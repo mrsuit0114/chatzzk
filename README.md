@@ -1,2 +1,2 @@
-# python-template
-pr-template test
+# Chatzzk
+A chat recommender for live streams you're watching.
