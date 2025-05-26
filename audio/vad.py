@@ -28,7 +28,7 @@ class VAD:
         Returns:
             list[tuple[int, int]]: list of speech segments
         """
-        audio_data = torch.from_numpy(audio_data).float() / 32768.0
+        audio_data = torch.from_numpy(audio_data)
         timestamps = get_speech_timestamps(
             audio_data,
             self.model,

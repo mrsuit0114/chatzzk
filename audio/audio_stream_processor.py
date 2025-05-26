@@ -98,7 +98,7 @@ class AudioStreamProcessor:
             print("[Model Inference Task] No audio data available, skipping inference.")
             return
 
-        audio_data_np = np.frombuffer(audio_data, dtype=np.int16)
+        audio_data_np = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0
         try:
             timestamps = self._get_timestamps(audio_data_np)
             if timestamps:
