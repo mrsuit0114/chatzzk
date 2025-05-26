@@ -9,16 +9,32 @@ from silero_vad import get_speech_timestamps, load_silero_vad
 
 
 class VAD:
-    def __init__(self):
+    def __init__(self, min_silence_duration_ms: int, max_speech_duration_s: int):
         self.model = None
+        self.min_silence_duration_ms = min_silence_duration_ms
+        self.max_speech_duration_s = max_speech_duration_s
         self._load_model()
 
     def _load_model(self):
         self.model = load_silero_vad()
 
     def __call__(self, audio_data: np.ndarray | torch.Tensor):
+        """return timestamps of speech segments
+
+        Args:
+            audio_data (np.ndarray | torch.Tensor): audio data
+            min_silence_duration_ms (int, optional): minimum silence duration in milliseconds. Defaults to 500. In Chatzzk, this is heuristic parameter needed for one context not speech.
+            max_speech_duration_s (int, optional): maximum speech duration in seconds. Defaults to 30. In Whisper, 30seconds is the maximum speech duration.
+        Returns:
+            list[tuple[int, int]]: list of speech segments
+        """
         audio_data = torch.from_numpy(audio_data).float() / 32768.0
-        timestamps = get_speech_timestamps(audio_data, self.model)
+        timestamps = get_speech_timestamps(
+            audio_data,
+            self.model,
+            min_silence_duration_ms=self.min_silence_duration_ms,
+            max_speech_duration_s=self.max_speech_duration_s,
+        )
         results = []
         for timestamp in timestamps:
             results.append((timestamp["start"], timestamp["end"]))

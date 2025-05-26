@@ -3,8 +3,8 @@
 
 import datetime
 import threading
-import time
-from queue import Queue
+from collections import deque
+from time import time
 
 import ffmpeg
 import numpy as np
@@ -13,11 +13,11 @@ from audio.asr import ASR
 from audio.circular_audio_buffer import CircularAudioBuffer
 from audio.vad import VAD
 
-ORIGINAL_SAMPLING_RATE = 48000
 TARGET_SAMPLING_RATE = 16000
 BUFFER_DURATION = 30  # 30 seconds buffer
 BYTES_PER_SAMPLE = 2
 MAX_BUFFER_SIZE = TARGET_SAMPLING_RATE * BYTES_PER_SAMPLE * BUFFER_DURATION
+SAMPLE_TO_MS = 1000 / TARGET_SAMPLING_RATE / BYTES_PER_SAMPLE
 
 # 2초마다 모델 추론을 수행하도록 설정
 MODEL_INFERENCE_INTERVAL_SECONDS = 2
@@ -29,53 +29,63 @@ class AudioStreamProcessor:
     [(ms, content), ... ]
     """
 
-    def __init__(self):
+    def __init__(self, min_silence_duration_ms: int = 500, max_speech_duration_ms: int = 30000):
         self.m3u8_url: str = ""
         self.process = None
         self.is_running = False
         self.stop_event = threading.Event()
+        self.min_silence_duration_ms = min_silence_duration_ms
+        self.max_speech_duration_ms = max_speech_duration_ms
 
-        self.vad = VAD()
+        self.vad = VAD(min_silence_duration_ms, max_speech_duration_ms // 1000)
         self.asr = ASR()
 
         self.audio_buffer = CircularAudioBuffer(MAX_BUFFER_SIZE)
-        self.context_audio_queue: Queue[tuple[int, str]] = Queue()
+        self.context_audio_deque: deque[tuple[int, str]] = deque()
+        self.context_audio_lock = threading.Lock()
+        self.last_speech_timestamp_ms = 0
 
         self.model_inference_timer = None
 
     def set_m3u8_url(self, m3u8_url: str):
         self.m3u8_url = m3u8_url
 
-    def _merge_timestamps(self, timestamps: list[tuple[int, int]], threshold_ms: int = 800):
-        threshold_samples = threshold_ms * TARGET_SAMPLING_RATE // 1000
-        merged_timestamps = []
-        current_start: int | None = None
-        current_end: int | None = None
-
-        for start, end in timestamps:
-            if current_start is None:
-                current_start = start
-                current_end = end
-            elif start - current_end <= threshold_samples:  # type: ignore
-                current_end = end
-            else:
-                merged_timestamps.append((current_start, current_end))
-                current_start = start
-                current_end = end
-
-        if current_start is not None:
-            merged_timestamps.append((current_start, current_end))
-
-        return merged_timestamps
-
-    def _get_merged_timestamps(self, audio_data: np.ndarray):
+    def _get_timestamps(self, audio_data: np.ndarray):
         timestamps = self.vad(audio_data)
-        merged_timestamps = self._merge_timestamps(timestamps)
-        return merged_timestamps
+        return timestamps
 
     def _get_asr_results(self, audio_data: np.ndarray, timestamps: list[tuple[int, int]]):
         asr_results = self.asr(audio_data, timestamps)
         return asr_results
+
+    def _get_after_last_speech_timestamp(self, timestamps: list[tuple[int, int]], snapshot_timestamp_ms: int):
+        # timestamps에서 가장 마지막 음성 이후의 경우만 필터링, 마지막 음성이 이어지는 경우 한개인 경우는 빈 리스트 반환, 여러개인 경우 [:-1] 반환하고 시간을 갱신
+        # 중복된 구간에 대해 ASR을 시도하지 않기 위해, 현재 시간을 받아 샘플의 시간을 계산해서 마지막 처리된 음성보다 시간이 큰 경우만 처리
+        after_last_speech_timestamps = [
+            timestamp
+            for timestamp in timestamps
+            if snapshot_timestamp_ms + timestamp[0] * SAMPLE_TO_MS > self.last_speech_timestamp_ms
+        ]
+        # 추출된 timestamps가 있는 경우
+        if after_last_speech_timestamps:
+            # 마지막 데이터의 끝 timestamp의 ms와 self.min_silence_duration_ms을 더했을 때 self.max_speech_duration_ms보다 크면 음성이 이어질 수 있으므로 다음 seg를 봐야함
+            if (
+                after_last_speech_timestamps[-1][1] * SAMPLE_TO_MS + self.min_silence_duration_ms
+                >= self.max_speech_duration_ms
+            ):
+                # 여러개인 경우 마지막 데이터 제외하고 반환하고 시간 갱신
+                if len(after_last_speech_timestamps) > 1:
+                    self.last_speech_timestamp_ms = snapshot_timestamp_ms + int(
+                        after_last_speech_timestamps[-2][1] * SAMPLE_TO_MS
+                    )
+                    return after_last_speech_timestamps[:-1]
+            else:
+                self.last_speech_timestamp_ms = snapshot_timestamp_ms + int(
+                    after_last_speech_timestamps[-1][1] * SAMPLE_TO_MS
+                )
+                return after_last_speech_timestamps
+
+        return []
 
     def _perform_model_inference_task(self):
         if self.stop_event.is_set():
@@ -90,9 +100,17 @@ class AudioStreamProcessor:
 
         audio_data_np = np.frombuffer(audio_data, dtype=np.int16)
         try:
-            timestamps = self._get_merged_timestamps(audio_data_np)
+            timestamps = self._get_timestamps(audio_data_np)
             if timestamps:
-                asr_results = self._get_asr_results(audio_data_np, timestamps)
+                snapshot_timestamp_ms = int(time() * 1000)
+                after_last_speech_timestamps = self._get_after_last_speech_timestamp(timestamps, snapshot_timestamp_ms)
+                asr_results = self._get_asr_results(audio_data_np, after_last_speech_timestamps)
+                with self.context_audio_lock:
+                    for after_last_speech_timestamp, result in zip(after_last_speech_timestamps, asr_results):
+                        start_time = snapshot_timestamp_ms + after_last_speech_timestamp[0] * SAMPLE_TO_MS
+                        end_time = snapshot_timestamp_ms + after_last_speech_timestamp[1] * SAMPLE_TO_MS
+                        middle_time = int((start_time + end_time) / 2)
+                        self.context_audio_deque.append((middle_time, result))
                 print(f"\n[{datetime.datetime.now().strftime('%H:%M:%S')}] [Model Inference] Results: {asr_results}")
             else:
                 print("No timestamps found")
@@ -143,7 +161,7 @@ class AudioStreamProcessor:
                 ffmpeg.input(self.m3u8_url, protocol_whitelist="file,http,https,tcp,tls")
                 .output("pipe:", format="s16le", acodec="pcm_s16le", ac=1, ar=TARGET_SAMPLING_RATE)
                 .global_args("-fflags", "nobuffer")
-                .run_async(pipe_stdout=True, pipe_stderr=False)
+                .run_async(pipe_stdout=True, pipe_stderr=False)  # stderr로 받으려면 다른 곳에서 처리를 해줘야함
             )
         except Exception as e:
             print(f"Error starting FFMPEG process: {e}")
@@ -164,8 +182,8 @@ class AudioStreamProcessor:
 
         # 메인 스레드는 종료 신호를 기다리면서 대기
         try:
-            while self.is_running and not self.stop_event.is_set():
-                time.sleep(0.1)  # 짧게 대기하며 종료 신호 확인
+            while not self.stop_event.is_set():
+                self.stop_event.wait(timeout=1.0)  # 1초마다 체크
         except KeyboardInterrupt:
             print("\nCtrl+C detected. Stopping application...")
         finally:
@@ -199,3 +217,10 @@ class AudioStreamProcessor:
             print("FFMPEG process terminated.")
 
         print("AudioStreamProcessor stopped cleanly.")
+
+    def get_context_audio(self):
+        with self.context_audio_lock:
+            while self.context_audio_deque and self.context_audio_deque[0][0] < time() - 30:
+                self.context_audio_deque.popleft()
+            results = list(self.context_audio_deque)
+        return results
