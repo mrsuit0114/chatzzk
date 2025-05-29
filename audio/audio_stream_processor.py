@@ -76,8 +76,8 @@ class AudioStreamProcessor:
                 # 결과를 컨텍스트 큐에 추가
                 with self.context_audio_deque_lock:
                     for timestamp, result in zip(timestamps, asr_results):
-                        start_time = snapshot_timestamp_ms + (timestamp[0] + start_idx) * SAMPLE_TO_MS
-                        end_time = snapshot_timestamp_ms + (timestamp[1] + start_idx) * SAMPLE_TO_MS
+                        start_time = snapshot_timestamp_ms + (timestamp[0] + start_idx // 2) * SAMPLE_TO_MS
+                        end_time = snapshot_timestamp_ms + (timestamp[1] + start_idx // 2) * SAMPLE_TO_MS
                         middle_time = int((start_time + end_time) / 2)
                         self.context_audio_deque.append((middle_time, result))
 
