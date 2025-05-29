@@ -11,9 +11,8 @@ class CircularAudioBuffer:
     def write(self, data: bytes):
         data_len = len(data)
         if data_len >= self.capacity:
-            with self.lock:
-                self.buffer[:] = data[-self.capacity :]
-                self.write_pos = 0
+            self.buffer[:] = data[-self.capacity :]
+            self.write_pos = 0
             self.is_full = True
             return
 

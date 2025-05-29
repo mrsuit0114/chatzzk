@@ -132,8 +132,6 @@ class AudioStreamProcessor:
                         self.audio_buffer_last_speech_timestamp_idx += 2 * last_timestamp[1]
                     self._process_asr_results(audio_data_np, timestamps, start_idx)
             else:
-                with self.audio_buffer_last_speech_timestamp_idx_lock:
-                    self.audio_buffer_last_speech_timestamp_idx += len(audio_data)
                 print("No timestamps found")
         except Exception as e:
             print(f"[Model Inference Task] Error during inference: {e}")
