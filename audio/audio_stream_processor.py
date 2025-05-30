@@ -1,18 +1,14 @@
-import queue
-import threading
-from collections import deque
-from time import time
-
-import ffmpeg
-import numpy as np
 import requests
+from loguru import logger
 
-from audio.asr import ASR
+from audio.audio_processor import AudioProcessor
+from audio.audio_stream_receiver import AudioStreamReceiver
 from audio.circular_audio_buffer import CircularAudioBuffer
-from audio.vad import VAD
+from data_types.context_data import ContextData
 
 
-def _get_audio_m3u8_url(channel_id: str, m3u8_proxy_url: str):
+def _get_audio_m3u8_url(channel_id: str, m3u8_proxy_url: str) -> str:
+    """Get audio m3u8 url from channel_id and m3u8_proxy_url."""
     proxy_url = m3u8_proxy_url.format(channel_id=channel_id)
 
     response = requests.get(proxy_url, allow_redirects=False)
@@ -20,270 +16,52 @@ def _get_audio_m3u8_url(channel_id: str, m3u8_proxy_url: str):
     if response.status_code == 302:
         m3u8_url = response.headers.get("Location")
         if m3u8_url is None:
+            logger.error("Failed to get m3u8 URL")
             raise Exception("Failed to get m3u8 URL")
+        logger.info(f"m3u8 URL: {m3u8_url}")
         audio_url = m3u8_url.replace("/1080p/", "/audioOnly/")
         return audio_url
     else:
+        logger.error(f"Failed to get m3u8 URL: {response.status_code} {response.text}")
         raise Exception(f"Failed to get m3u8 URL: {response.status_code} {response.text}")
 
 
 class AudioStreamProcessor:
-    """요청한 시점에 context에 포함될 오디오 데이터를 반환해야함
-    [(ms, content), ... ]
+    """
+    AudioStreamProcessor is responsible for receiving audio stream from the channel and processing it.
+    It uses AudioStreamReceiver to receive audio stream and AudioProcessor to process it.
     """
 
     def __init__(self, channel_id: str, audio_config: dict):
-        self.process = None
-        self.is_running = False
-        self.stop_event = threading.Event()
-
         self.m3u8_url: str = _get_audio_m3u8_url(channel_id, audio_config["m3u8_proxy_url"])
-        self.target_sampling_rate = audio_config["target_sampling_rate"]
-        self.buffer_duration_s = audio_config["buffer_duration_s"]
-        self.bytes_per_sample = audio_config["bytes_per_sample"]
-        self.max_buffer_size = self.target_sampling_rate * self.bytes_per_sample * self.buffer_duration_s
-        self.sample_to_ms = 1000 / self.target_sampling_rate / self.bytes_per_sample
-        self.audio_context_duration_ms = audio_config["audio_context_duration_ms"]
-        self.model_inference_interval_s = audio_config["model_inference_interval_s"]
-        self.ffmpeg_read_chunk_size = audio_config["ffmpeg_read_chunk_size"]
-        self.min_silence_duration_ms = audio_config["min_silence_duration_ms"]
-        self.max_speech_duration_ms = audio_config["max_speech_duration_ms"]
-        self.model_size = audio_config["model_size"]
+        self.buffer = CircularAudioBuffer(audio_config["max_buffer_size"])
 
-        self.vad = VAD(self.min_silence_duration_ms, self.max_speech_duration_ms // 1000)
-        self.asr = ASR(self.model_size)
-
-        self.audio_buffer = CircularAudioBuffer(self.max_buffer_size)
-        self.audio_buffer_last_speech_timestamp_idx = 0
-        self.audio_buffer_last_speech_timestamp_idx_lock = threading.Lock()
-
-        self.context_audio_deque: deque[tuple[int, str]] = deque()
-        self.context_audio_deque_lock = threading.Lock()
-
-        self.model_inference_timer = None
-
-        # ASR 처리를 위한 큐와 스레드
-        self.asr_queue = queue.Queue()
-        self.asr_thread = None
-
-    def _get_timestamps(self, audio_data: np.ndarray):
-        timestamps = self.vad(audio_data)
-        return timestamps
-
-    def _get_asr_results(self, audio_data: np.ndarray, timestamps: list[tuple[int, int]]):
-        asr_results = self.asr(audio_data, timestamps)
-        return asr_results
-
-    def _asr_worker(self):
-        """ASR 처리를 위한 워커 스레드"""
-        while not self.stop_event.is_set():
-            try:
-                # 큐에서 ASR 작업 가져오기 (1초 타임아웃)
-                audio_data_np, timestamps, start_idx, snapshot_timestamp_ms = self.asr_queue.get(timeout=1.0)
-
-                # ASR 결과 처리
-                asr_results = self._get_asr_results(audio_data_np, timestamps)
-                print(f"[ASR Worker] Results: {asr_results}")
-
-                # 결과를 컨텍스트 큐에 추가
-                with self.context_audio_deque_lock:
-                    for timestamp, result in zip(timestamps, asr_results):
-                        start_time = snapshot_timestamp_ms + (timestamp[0] + start_idx // 2) * self.sample_to_ms
-                        end_time = snapshot_timestamp_ms + (timestamp[1] + start_idx // 2) * self.sample_to_ms
-                        middle_time = int((start_time + end_time) / 2)
-                        self.context_audio_deque.append((middle_time, result))
-
-                self.asr_queue.task_done()
-            except queue.Empty:
-                continue
-            except Exception as e:
-                print(f"[ASR Worker] Error processing ASR: {e}")
-                continue
-
-    def _process_asr_results(
-        self, audio_data_np: np.ndarray, timestamps: list[tuple[int, int]], start_idx: int
-    ) -> None:
-        """ASR 처리를 큐에 추가"""
-        snapshot_timestamp_ms = int(time() * 1000)
-        self.asr_queue.put((audio_data_np, timestamps, start_idx, snapshot_timestamp_ms))
-
-    def _perform_model_inference_task(self):
-        if self.stop_event.is_set():
-            print("[Model Inference Task] Stop event set, exiting.")
-            return
-
-        audio_data = self.audio_buffer.get_all_data()
-        with self.audio_buffer_last_speech_timestamp_idx_lock:
-            start_idx = self.audio_buffer_last_speech_timestamp_idx
-            print(f"[Model Inference] Start index: {start_idx}, Buffer size: {len(audio_data)}")
-
-        audio_data = audio_data[start_idx:]
-        if len(audio_data) % 2 != 0:
-            audio_data = audio_data[:-1]
-        if not audio_data:
-            print("[Model Inference Task] No audio data available, skipping inference.")
-            return
-
-        audio_data_np = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0
-        try:
-            timestamps = self._get_timestamps(audio_data_np)
-            if timestamps:
-                last_timestamp = timestamps[-1]
-                if last_timestamp[1] + int(self.min_silence_duration_ms / self.sample_to_ms) >= len(audio_data_np):
-                    # 다음 seg를 확인해야 하는 경우
-                    with self.audio_buffer_last_speech_timestamp_idx_lock:
-                        self.audio_buffer_last_speech_timestamp_idx += 2 * last_timestamp[0]
-                    if len(timestamps) > 1:
-                        timestamps = timestamps[:-1]
-                        self._process_asr_results(
-                            audio_data_np, timestamps, start_idx
-                        )  # start_idx만큼 시간을 계산해야할 것
-                else:
-                    # 다음 seg를 확인할 필요가 없는 경우
-                    with self.audio_buffer_last_speech_timestamp_idx_lock:
-                        self.audio_buffer_last_speech_timestamp_idx += 2 * last_timestamp[1]
-                    self._process_asr_results(audio_data_np, timestamps, start_idx)
-            else:
-                with self.audio_buffer_last_speech_timestamp_idx_lock:
-                    self.audio_buffer_last_speech_timestamp_idx += len(audio_data)
-                print("No timestamps found")
-        except Exception as e:
-            print(f"[Model Inference Task] Error during inference: {e}")
-
-    def _schedule_model_inference_task(self):
-        if self.stop_event.is_set():
-            print("[Model Inference Task] Stop event set, exiting.")
-            return
-
-        self._perform_model_inference_task()
-
-        # 다음 모델 추론을 위한 타이머 재설정 (재귀적으로)
-        if self.is_running and not self.stop_event.is_set():
-            self.model_inference_timer = threading.Timer(
-                self.model_inference_interval_s, self._schedule_model_inference_task
-            )
-            self.model_inference_timer.start()
-        else:
-            print("[Scheduler] Application stopping, model timer not restarted.")
-
-    def _reader_audio_stream(self):
-        """stream을 읽어 버퍼에 저장"""
-        while self.is_running and not self.stop_event.is_set():
-            try:
-                if not self.process or not self.process.stdout:
-                    print("[Reader] Process or stdout not available.")
-                    break
-                raw_audio = self.process.stdout.read(self.ffmpeg_read_chunk_size)
-                if not raw_audio:
-                    print("FFMPEG stream ended or no more data")
-                    break
-                self._write_audio_buffer(raw_audio)
-            except Exception as e:
-                print(f"Error reading audio stream: {e}")
-                break
-        print("[Reader] Audio stream reader stopped")
-        self.stop_event.set()
-
-    def _write_audio_buffer(self, raw_audio: bytes):
-        self.audio_buffer.write(raw_audio)
-        with self.audio_buffer_last_speech_timestamp_idx_lock:
-            updated_last_speech_timestamp_idx = self.audio_buffer_last_speech_timestamp_idx - len(raw_audio)
-            self.audio_buffer_last_speech_timestamp_idx = max(
-                0, min(updated_last_speech_timestamp_idx, self.max_buffer_size)
-            )  # 0<=idx<=MAX_BUFFER_SIZE
-
-    def run_async(self):
-        if self.m3u8_url == "":
-            raise ValueError("m3u8_url is empty")
-
-        self.is_running = True
-        try:
-            self.process = (
-                ffmpeg.input(self.m3u8_url, protocol_whitelist="file,http,https,tcp,tls")
-                .output("pipe:", format="s16le", acodec="pcm_s16le", ac=1, ar=self.target_sampling_rate)
-                .global_args("-fflags", "nobuffer")
-                .global_args("-loglevel", "error")
-                .run_async(pipe_stdout=True, pipe_stderr=False)
-            )
-        except Exception as e:
-            print(f"Error starting FFMPEG process: {e}")
-            self.stop_event.set()
-            raise
-
-        # ASR 워커 스레드 시작
-        self.asr_thread = threading.Thread(target=self._asr_worker)
-        self.asr_thread.daemon = True
-        self.asr_thread.start()
-
-        # 1. FFMPEG stdout에서 데이터를 읽어 CircularAudioBuffer에 넣는 스레드
-        reader_thread = threading.Thread(target=self._reader_audio_stream)
-        reader_thread.daemon = True
-        reader_thread.start()
-
-        # 2. 주기적으로 모델 추론을 트리거하는 타이머 시작
-        self.model_inference_timer = threading.Timer(
-            self.model_inference_interval_s, self._schedule_model_inference_task
+        self.processor = AudioProcessor(audio_config, self.buffer)
+        self.receiver = AudioStreamReceiver(
+            self.m3u8_url, self.buffer, audio_config["target_sampling_rate"], audio_config["ffmpeg_read_chunk_size"]
         )
-        self.model_inference_timer.start()
 
-        # 메인 스레드는 종료 신호를 기다리면서 대기
+    def run(self) -> None:
         try:
-            while not self.stop_event.is_set():
-                self.stop_event.wait(timeout=1.0)
-        except KeyboardInterrupt:
-            print("\nCtrl+C detected. Stopping application...")
+            self.receiver.start()
+            self.processor.start()
+
+            while True:
+                try:
+                    self.receiver.stop_event.wait(timeout=1.0)
+                    if self.receiver.stop_event.is_set():
+                        break
+                except KeyboardInterrupt:
+                    logger.info("\nCtrl+C detected. Stopping application...")
+                    break
         finally:
             self.stop()
 
-    def stop(self):
-        if not self.is_running:
-            return
+    def stop(self) -> None:
+        logger.info("\nStopping AudioStreamProcessor...")
+        self.receiver.stop()
+        self.processor.stop()
+        logger.info("AudioStreamProcessor stopped cleanly.")
 
-        print("\nStopping AudioStreamProcessor...")
-        self.is_running = False
-        self.stop_event.set()
-
-        # ASR 큐 비우기
-        while not self.asr_queue.empty():
-            try:
-                self.asr_queue.get_nowait()
-                self.asr_queue.task_done()
-            except queue.Empty:
-                break
-
-        # ASR 스레드 종료 대기
-        if self.asr_thread and self.asr_thread.is_alive():
-            self.asr_thread.join(timeout=5.0)
-            print("ASR worker thread stopped.")
-
-        # Timer 스레드 종료
-        if self.model_inference_timer:
-            self.model_inference_timer.cancel()
-            print("Model inference timer cancelled.")
-
-        # FFMPEG 프로세스 종료
-        if self.process:
-            print("Terminating FFMPEG process...")
-            try:
-                # ffmpeg.run_async로 시작된 프로세스는 pipe_stdin=True가 아니면 stdin이 없을 수 있습니다.
-                # 필요시 self.process.stdin.close()
-                self.process.stdout.close()
-                self.process.stderr.close()
-                self.process.terminate()  # 강제 종료
-                self.process.wait(timeout=5)  # 프로세스가 종료될 때까지 최대 5초 대기
-            except Exception as e:
-                print(f"Error terminating FFMPEG process: {e}")
-            print("FFMPEG process terminated.")
-
-        print("AudioStreamProcessor stopped cleanly.")
-
-    def get_context_audio(self):
-        current_time = int(time() * 1000)
-        with self.context_audio_deque_lock:
-            while (
-                self.context_audio_deque
-                and self.context_audio_deque[0][0] < current_time - self.audio_context_duration_ms
-            ):
-                self.context_audio_deque.popleft()
-            results = list(self.context_audio_deque)
-        return results
+    def get_context_audio(self) -> list[ContextData]:
+        return self.processor.get_context_audio()
