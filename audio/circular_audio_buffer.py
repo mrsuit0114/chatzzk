@@ -2,6 +2,8 @@ import threading
 
 
 class CircularAudioBuffer:
+    """Thread-safe circular buffer for storing audio data in bytes."""
+
     def __init__(self, capacity_bytes: int):
         self.buffer = bytearray(capacity_bytes)
         self.capacity = capacity_bytes
@@ -9,6 +11,14 @@ class CircularAudioBuffer:
         self.lock = threading.Lock()
 
     def write(self, data: bytes):
+        """
+        Write bytes data into the circular buffer.
+
+        If data length exceeds buffer capacity, only the last capacity bytes are stored.
+
+        Args:
+            data (bytes): Audio data bytes to write into buffer.
+        """
         data_len = len(data)
         if data_len >= self.capacity:
             with self.lock:
@@ -33,6 +43,12 @@ class CircularAudioBuffer:
                 self.buffer[:second_part] = data[first_part:]
                 self.write_pos = second_part
 
-    def get_all_data(self):
+    def get_all_data(self) -> bytes:
+        """
+        Retrieve all data from the buffer in chronological order, starting from the oldest data.
+
+        Returns:
+            bytes: Concatenated bytes of the buffered audio data.
+        """
         with self.lock:
             return bytes(self.buffer[self.write_pos :] + self.buffer[: self.write_pos])
