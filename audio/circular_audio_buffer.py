@@ -9,6 +9,8 @@ class CircularAudioBuffer:
         self.capacity = capacity_bytes
         self.write_pos = 0
         self.lock = threading.Lock()
+        self.total_written_bytes = 0
+        self.total_written_bytes_lock = threading.Lock()
 
     def write(self, data: bytes):
         """
@@ -20,6 +22,9 @@ class CircularAudioBuffer:
             data (bytes): Audio data bytes to write into buffer.
         """
         data_len = len(data)
+        with self.total_written_bytes_lock:
+            self.total_written_bytes += data_len
+
         if data_len >= self.capacity:
             with self.lock:
                 self.buffer[:] = data[-self.capacity :]
@@ -42,6 +47,18 @@ class CircularAudioBuffer:
                 self.buffer[self.write_pos :] = data[:first_part]
                 self.buffer[:second_part] = data[first_part:]
                 self.write_pos = second_part
+
+    def get_and_reset_written_bytes(self) -> int:
+        """
+        Get the total number of bytes written since last reset and reset the counter.
+
+        Returns:
+            int: Total number of bytes written since last reset.
+        """
+        with self.total_written_bytes_lock:
+            written = self.total_written_bytes
+            self.total_written_bytes = 0
+            return written
 
     def get_all_data(self) -> bytes:
         """

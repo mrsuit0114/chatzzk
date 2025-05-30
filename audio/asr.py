@@ -9,8 +9,8 @@ class ASR:
     BATCH_SIZE = 4
 
     def __init__(self, model_size: str):
-        self.model = self._load_model(model_size)
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.model = self._load_model(model_size)
 
     def _load_model(self, model_size: str):
         model = whisperx.load_model(model_size, device=self.device, compute_type=self.COMPUTE_TYPE)

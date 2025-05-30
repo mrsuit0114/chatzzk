@@ -34,7 +34,9 @@ class AudioStreamProcessor:
 
     def __init__(self, channel_id: str, audio_config: dict):
         self.m3u8_url: str = _get_audio_m3u8_url(channel_id, audio_config["m3u8_proxy_url"])
-        self.buffer = CircularAudioBuffer(audio_config["max_buffer_size"])
+        self.buffer = CircularAudioBuffer(
+            audio_config["target_sampling_rate"] * audio_config["bytes_per_sample"] * audio_config["buffer_duration_s"]
+        )
 
         self.processor = AudioProcessor(audio_config, self.buffer)
         self.receiver = AudioStreamReceiver(

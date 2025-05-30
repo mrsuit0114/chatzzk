@@ -131,10 +131,16 @@ class AudioProcessor:
             logger.info("[Model Inference Task] Stop event set, exiting.")
             return
 
+        # Update last_speech_timestamp_idx based on written bytes
+        written_bytes = self.audio_buffer.get_and_reset_written_bytes()
+        with self.audio_buffer_last_speech_timestamp_idx_lock:
+            self.audio_buffer_last_speech_timestamp_idx = max(
+                0, self.audio_buffer_last_speech_timestamp_idx - written_bytes
+            )
+
         audio_data = self.audio_buffer.get_all_data()
         with self.audio_buffer_last_speech_timestamp_idx_lock:
             start_idx = self.audio_buffer_last_speech_timestamp_idx
-            logger.info(f"[Model Inference] Start index: {start_idx}, Buffer size: {len(audio_data)}")
 
         audio_data = audio_data[start_idx:]
         if len(audio_data) % 2 != 0:
@@ -161,7 +167,6 @@ class AudioProcessor:
             else:
                 with self.audio_buffer_last_speech_timestamp_idx_lock:
                     self.audio_buffer_last_speech_timestamp_idx += len(audio_data)
-                logger.info("[Model Inference Task] No timestamps found")
         except Exception as e:
             logger.error(f"[Model Inference Task] Error during inference: {e}")
 
