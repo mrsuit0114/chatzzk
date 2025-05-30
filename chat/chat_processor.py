@@ -13,9 +13,9 @@ from chat.cmd_type import CHZZK_CHAT_CMD
 
 
 class ChatProcessor:
-    def __init__(self, streamer_id: str, context_duration_ms: int = 30000):
+    def __init__(self, streamer_id: str, chat_config: dict):
         self.streamer_id = streamer_id
-        self.context_duration_ms = context_duration_ms
+        self.context_duration_ms = chat_config["chat_context_duration_ms"]
 
         self.sid = None
         self.chatChannelId = api.fetch_chatChannelId(self.streamer_id)
@@ -27,7 +27,7 @@ class ChatProcessor:
         self.is_running = False
         self.stop_event = threading.Event()
         self.chat_thread = None
-        self.chat_history = deque(maxlen=1000)  # 최근 1000개의 채팅 메시지 저장
+        self.chat_history = deque(maxlen=chat_config["max_chat_history_count"])
         self.chat_history_lock = threading.Lock()
 
         self.connect()

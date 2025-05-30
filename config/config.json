@@ -1,0 +1,16 @@
+{
+    "audio": {
+        "target_sampling_rate": 16000,
+        "buffer_duration_s": 30,
+        "model_inference_interval_s": 2,
+        "audio_context_duration_ms": 40000,
+        "ffmpeg_read_chunk_size": 4096,
+        "min_silence_duration_ms": 500,
+        "max_speech_duration_ms": 30000,
+        "m3u8_proxy_url": "https://chzzk-api-proxy.hibiya.workers.dev/m3u8-redirect/{channel_id}"
+    },
+    "chat": {
+        "chat_context_duration_ms": 30000,
+        "max_chat_history_count": 1000
+    }
+}

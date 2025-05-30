@@ -5,21 +5,26 @@ from time import time
 
 import ffmpeg
 import numpy as np
+import requests
 
 from audio.asr import ASR
 from audio.circular_audio_buffer import CircularAudioBuffer
 from audio.vad import VAD
 
-TARGET_SAMPLING_RATE = 16000
-BUFFER_DURATION = 30  # 30 seconds buffer
-BYTES_PER_SAMPLE = 2
-MAX_BUFFER_SIZE = TARGET_SAMPLING_RATE * BYTES_PER_SAMPLE * BUFFER_DURATION
-SAMPLE_TO_MS = 1000 / TARGET_SAMPLING_RATE / BYTES_PER_SAMPLE
-AUDIO_CONTEXT_DURATION_MS = 40000
 
-# 2초마다 모델 추론을 수행하도록 설정
-MODEL_INFERENCE_INTERVAL_SECONDS = 2
-FFMPEG_READ_CHUNK_SIZE = 4096  # ffmpeg stdout에서 한 번에 읽어올 청크 크기 (바이트)
+def _get_audio_m3u8_url(channel_id: str, m3u8_proxy_url: str):
+    proxy_url = m3u8_proxy_url.format(channel_id=channel_id)
+
+    response = requests.get(proxy_url, allow_redirects=False)
+
+    if response.status_code == 302:
+        m3u8_url = response.headers.get("Location")
+        if m3u8_url is None:
+            raise Exception("Failed to get m3u8 URL")
+        audio_url = m3u8_url.replace("/1080p/", "/audioOnly/")
+        return audio_url
+    else:
+        raise Exception(f"Failed to get m3u8 URL: {response.status_code} {response.text}")
 
 
 class AudioStreamProcessor:
@@ -27,18 +32,27 @@ class AudioStreamProcessor:
     [(ms, content), ... ]
     """
 
-    def __init__(self, min_silence_duration_ms: int = 500, max_speech_duration_ms: int = 30000):
-        self.m3u8_url: str = ""
+    def __init__(self, channel_id: str, audio_config: dict):
         self.process = None
         self.is_running = False
         self.stop_event = threading.Event()
-        self.min_silence_duration_ms = min_silence_duration_ms
-        self.max_speech_duration_ms = max_speech_duration_ms
 
-        self.vad = VAD(min_silence_duration_ms, max_speech_duration_ms // 1000)
+        self.m3u8_url: str = _get_audio_m3u8_url(channel_id, audio_config["m3u8_proxy_url"])
+        self.target_sampling_rate = audio_config["target_sampling_rate"]
+        self.buffer_duration_s = audio_config["buffer_duration_s"]
+        self.bytes_per_sample = audio_config["bytes_per_sample"]
+        self.max_buffer_size = self.target_sampling_rate * self.bytes_per_sample * self.buffer_duration_s
+        self.sample_to_ms = 1000 / self.target_sampling_rate / self.bytes_per_sample
+        self.audio_context_duration_ms = audio_config["audio_context_duration_ms"]
+        self.model_inference_interval_s = audio_config["model_inference_interval_s"]
+        self.ffmpeg_read_chunk_size = audio_config["ffmpeg_read_chunk_size"]
+        self.min_silence_duration_ms = audio_config["min_silence_duration_ms"]
+        self.max_speech_duration_ms = audio_config["max_speech_duration_ms"]
+
+        self.vad = VAD(self.min_silence_duration_ms, self.max_speech_duration_ms // 1000)
         self.asr = ASR()
 
-        self.audio_buffer = CircularAudioBuffer(MAX_BUFFER_SIZE)
+        self.audio_buffer = CircularAudioBuffer(self.max_buffer_size)
         self.audio_buffer_last_speech_timestamp_idx = 0
         self.audio_buffer_last_speech_timestamp_idx_lock = threading.Lock()
 
@@ -50,9 +64,6 @@ class AudioStreamProcessor:
         # ASR 처리를 위한 큐와 스레드
         self.asr_queue = queue.Queue()
         self.asr_thread = None
-
-    def set_m3u8_url(self, m3u8_url: str):
-        self.m3u8_url = m3u8_url
 
     def _get_timestamps(self, audio_data: np.ndarray):
         timestamps = self.vad(audio_data)
@@ -76,8 +87,8 @@ class AudioStreamProcessor:
                 # 결과를 컨텍스트 큐에 추가
                 with self.context_audio_deque_lock:
                     for timestamp, result in zip(timestamps, asr_results):
-                        start_time = snapshot_timestamp_ms + (timestamp[0] + start_idx // 2) * SAMPLE_TO_MS
-                        end_time = snapshot_timestamp_ms + (timestamp[1] + start_idx // 2) * SAMPLE_TO_MS
+                        start_time = snapshot_timestamp_ms + (timestamp[0] + start_idx // 2) * self.sample_to_ms
+                        end_time = snapshot_timestamp_ms + (timestamp[1] + start_idx // 2) * self.sample_to_ms
                         middle_time = int((start_time + end_time) / 2)
                         self.context_audio_deque.append((middle_time, result))
 
@@ -117,7 +128,7 @@ class AudioStreamProcessor:
             timestamps = self._get_timestamps(audio_data_np)
             if timestamps:
                 last_timestamp = timestamps[-1]
-                if last_timestamp[1] + int(self.min_silence_duration_ms / SAMPLE_TO_MS) >= len(audio_data_np):
+                if last_timestamp[1] + int(self.min_silence_duration_ms / self.sample_to_ms) >= len(audio_data_np):
                     # 다음 seg를 확인해야 하는 경우
                     with self.audio_buffer_last_speech_timestamp_idx_lock:
                         self.audio_buffer_last_speech_timestamp_idx += 2 * last_timestamp[0]
@@ -148,7 +159,7 @@ class AudioStreamProcessor:
         # 다음 모델 추론을 위한 타이머 재설정 (재귀적으로)
         if self.is_running and not self.stop_event.is_set():
             self.model_inference_timer = threading.Timer(
-                MODEL_INFERENCE_INTERVAL_SECONDS, self._schedule_model_inference_task
+                self.model_inference_interval_s, self._schedule_model_inference_task
             )
             self.model_inference_timer.start()
         else:
@@ -161,7 +172,7 @@ class AudioStreamProcessor:
                 if not self.process or not self.process.stdout:
                     print("[Reader] Process or stdout not available.")
                     break
-                raw_audio = self.process.stdout.read(FFMPEG_READ_CHUNK_SIZE)
+                raw_audio = self.process.stdout.read(self.ffmpeg_read_chunk_size)
                 if not raw_audio:
                     print("FFMPEG stream ended or no more data")
                     break
@@ -177,7 +188,7 @@ class AudioStreamProcessor:
         with self.audio_buffer_last_speech_timestamp_idx_lock:
             updated_last_speech_timestamp_idx = self.audio_buffer_last_speech_timestamp_idx - len(raw_audio)
             self.audio_buffer_last_speech_timestamp_idx = max(
-                0, min(updated_last_speech_timestamp_idx, MAX_BUFFER_SIZE)
+                0, min(updated_last_speech_timestamp_idx, self.max_buffer_size)
             )  # 0<=idx<=MAX_BUFFER_SIZE
 
     def run_async(self):
@@ -188,7 +199,7 @@ class AudioStreamProcessor:
         try:
             self.process = (
                 ffmpeg.input(self.m3u8_url, protocol_whitelist="file,http,https,tcp,tls")
-                .output("pipe:", format="s16le", acodec="pcm_s16le", ac=1, ar=TARGET_SAMPLING_RATE)
+                .output("pipe:", format="s16le", acodec="pcm_s16le", ac=1, ar=self.target_sampling_rate)
                 .global_args("-fflags", "nobuffer")
                 .global_args("-loglevel", "error")
                 .run_async(pipe_stdout=True, pipe_stderr=False)
@@ -210,7 +221,7 @@ class AudioStreamProcessor:
 
         # 2. 주기적으로 모델 추론을 트리거하는 타이머 시작
         self.model_inference_timer = threading.Timer(
-            MODEL_INFERENCE_INTERVAL_SECONDS, self._schedule_model_inference_task
+            self.model_inference_interval_s, self._schedule_model_inference_task
         )
         self.model_inference_timer.start()
 
@@ -269,7 +280,8 @@ class AudioStreamProcessor:
         current_time = int(time() * 1000)
         with self.context_audio_deque_lock:
             while (
-                self.context_audio_deque and self.context_audio_deque[0][0] < current_time - AUDIO_CONTEXT_DURATION_MS
+                self.context_audio_deque
+                and self.context_audio_deque[0][0] < current_time - self.audio_context_duration_ms
             ):
                 self.context_audio_deque.popleft()
             results = list(self.context_audio_deque)
