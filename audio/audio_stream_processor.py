@@ -48,9 +48,10 @@ class AudioStreamProcessor:
         self.ffmpeg_read_chunk_size = audio_config["ffmpeg_read_chunk_size"]
         self.min_silence_duration_ms = audio_config["min_silence_duration_ms"]
         self.max_speech_duration_ms = audio_config["max_speech_duration_ms"]
+        self.model_size = audio_config["model_size"]
 
         self.vad = VAD(self.min_silence_duration_ms, self.max_speech_duration_ms // 1000)
-        self.asr = ASR()
+        self.asr = ASR(self.model_size)
 
         self.audio_buffer = CircularAudioBuffer(self.max_buffer_size)
         self.audio_buffer_last_speech_timestamp_idx = 0

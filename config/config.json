@@ -7,7 +7,9 @@
         "ffmpeg_read_chunk_size": 4096,
         "min_silence_duration_ms": 500,
         "max_speech_duration_ms": 30000,
-        "m3u8_proxy_url": "https://chzzk-api-proxy.hibiya.workers.dev/m3u8-redirect/{channel_id}"
+        "bytes_per_sample": 2,
+        "m3u8_proxy_url": "https://chzzk-api-proxy.hibiya.workers.dev/m3u8-redirect/{channel_id}",
+        "model_size": "large-v3"
     },
     "chat": {
         "chat_context_duration_ms": 30000,

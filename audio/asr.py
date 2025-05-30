@@ -6,13 +6,13 @@ import whisperx
 
 
 class ASR:
-    def __init__(self):
+    def __init__(self, model_size: str):
         self.model = None
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self._load_model()
+        self._load_model(model_size)
 
-    def _load_model(self):
-        self.model = whisperx.load_model("large-v3", device=self.device, compute_type="float16")
+    def _load_model(self, model_size: str):
+        self.model = whisperx.load_model(model_size, device=self.device, compute_type="float16")
 
     def _process_audio(self, audio_data: np.ndarray):
         if self.model is None:
