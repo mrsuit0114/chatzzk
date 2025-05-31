@@ -185,13 +185,10 @@ class AudioProcessor:
         else:
             logger.info("[Processor Scheduler] Application stopping, timer not restarted.")
 
-    def get_context_audio(self) -> list[ContextData]:
+    def get_latest_asr_since(self, timestamp_ms: int) -> list[ContextData]:
         """Assumes periodic invocation and is responsible for removing outdated data."""
-        current_time = int(time() * 1000)
+        threshold_ms = timestamp_ms - self.audio_context_duration_ms
         with self.context_audio_deque_lock:
-            while (
-                self.context_audio_deque
-                and self.context_audio_deque[0][0] < current_time - self.audio_context_duration_ms
-            ):
+            while self.context_audio_deque and self.context_audio_deque[0][0] < threshold_ms:
                 self.context_audio_deque.popleft()
             return list(self.context_audio_deque)

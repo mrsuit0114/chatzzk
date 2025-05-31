@@ -8,14 +8,13 @@ from loguru import logger
 from websocket import WebSocket
 
 import chat.api as api
-from chat.chat_preprocess import preprocess_chat_message
-from chat.cmd_type import CHZZK_CHAT_CMD
 
 
 class ChatProcessor:
     def __init__(self, streamer_id: str, chat_config: dict):
         self.streamer_id = streamer_id
         self.context_duration_ms = chat_config["chat_context_duration_ms"]
+        self.chat_cmd = chat_config["chzzk_chat_cmd"]
 
         self.sid = None
         self.chatChannelId = api.fetch_chatChannelId(self.streamer_id)
@@ -47,7 +46,7 @@ class ChatProcessor:
         }
 
         send_dict = {
-            "cmd": CHZZK_CHAT_CMD["connect"],
+            "cmd": self.chat_cmd["connect"],
             "tid": 1,
             "bdy": {
                 "uid": self.userIdHash,
@@ -63,7 +62,7 @@ class ChatProcessor:
         print(f"\r{self.channelName} 채팅창에 연결 중 ..", end="")
 
         send_dict = {
-            "cmd": CHZZK_CHAT_CMD["request_recent_chat"],
+            "cmd": self.chat_cmd["request_recent_chat"],
             "tid": 2,
             "sid": self.sid,
             "bdy": {"recentMessageCount": 50},
@@ -96,7 +95,7 @@ class ChatProcessor:
 
         send_dict = {
             "tid": 3,
-            "cmd": CHZZK_CHAT_CMD["send_chat"],
+            "cmd": self.chat_cmd["send_chat"],
             "retry": False,
             "sid": self.sid,
             "bdy": {
@@ -114,16 +113,16 @@ class ChatProcessor:
         try:
             chat_cmd = raw_message["cmd"]  # 한개가 아닌 경우가 있음
 
-            if chat_cmd == CHZZK_CHAT_CMD["ping"]:
-                self.sock.send(json.dumps({"ver": "2", "cmd": CHZZK_CHAT_CMD["pong"]}))
+            if chat_cmd == self.chat_cmd["ping"]:
+                self.sock.send(json.dumps({"ver": "2", "cmd": self.chat_cmd["pong"]}))
 
                 if self.chatChannelId != api.fetch_chatChannelId(self.streamer_id):
                     self.connect()
                 return
 
-            if chat_cmd == CHZZK_CHAT_CMD["chat"]:
+            if chat_cmd == self.chat_cmd["chat"]:
                 chat_type = "CHAT"
-            elif chat_cmd == CHZZK_CHAT_CMD["donation"]:
+            elif chat_cmd == self.chat_cmd["donation"]:
                 chat_type = "DONATION"
             else:
                 return
@@ -134,7 +133,7 @@ class ChatProcessor:
                 chat_info = {
                     "timestamp_ms": timestamp_ms,
                     "type": chat_type,
-                    "message": preprocess_chat_message(chat_data["msg"]),
+                    "message": chat_data["msg"],
                     # "raw_data": chat_data
                 }
 
@@ -199,7 +198,7 @@ class ChatProcessor:
             print("Chat worker thread stopped.")
 
     def get_latest_chats_since(self, timestamp_ms: int) -> list:
-        timestamp_ms = timestamp_ms - self.context_duration_ms
+        threshold_ms = timestamp_ms - self.context_duration_ms
         with self.chat_history_lock:
-            idx = bisect.bisect_left(self.chat_history, timestamp_ms, key=lambda x: x["timestamp_ms"])
+            idx = bisect.bisect_left(self.chat_history, threshold_ms, key=lambda x: x["timestamp_ms"])
             return list(self.chat_history)[idx:]

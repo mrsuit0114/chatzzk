@@ -65,5 +65,5 @@ class AudioStreamProcessor:
         self.processor.stop()
         logger.info("AudioStreamProcessor stopped cleanly.")
 
-    def get_context_audio(self) -> list[ContextData]:
-        return self.processor.get_context_audio()
+    def get_latest_asr_since(self, timestamp_ms: int) -> list[ContextData]:
+        return self.processor.get_latest_asr_since(timestamp_ms)
