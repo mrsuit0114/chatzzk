@@ -8,9 +8,10 @@ from loguru import logger
 from websocket import WebSocket
 
 import chat.api as api
+from data_types.context_data import ContextData
 
 
-class ChatProcessor:
+class ChatStreamProcessor:
     def __init__(self, streamer_id: str, chat_config: dict):
         self.streamer_id = streamer_id
         self.context_duration_ms = chat_config["chat_context_duration_ms"]
@@ -130,12 +131,7 @@ class ChatProcessor:
             for chat_data in raw_message["bdy"]:
                 timestamp_ms = chat_data["msgTime"]  # 이미 밀리초 단위로 제공됨
 
-                chat_info = {
-                    "timestamp_ms": timestamp_ms,
-                    "type": chat_type,
-                    "message": chat_data["msg"],
-                    # "raw_data": chat_data
-                }
+                chat_info = ContextData(timestamp_ms, chat_data["msg"], chat_type)
 
                 # 채팅 히스토리에 추가
                 with self.chat_history_lock:
@@ -161,7 +157,7 @@ class ChatProcessor:
                 if not self.stop_event.is_set():
                     self.connect()
 
-    def run_async(self):
+    def run(self):
         """비동기로 채팅 수집 시작"""
         if self.is_running:
             return
@@ -200,5 +196,5 @@ class ChatProcessor:
     def get_latest_chats_since(self, timestamp_ms: int) -> list:
         threshold_ms = timestamp_ms - self.context_duration_ms
         with self.chat_history_lock:
-            idx = bisect.bisect_left(self.chat_history, threshold_ms, key=lambda x: x["timestamp_ms"])
+            idx = bisect.bisect_left(self.chat_history, threshold_ms, key=lambda x: x.timestamp_ms)
             return list(self.chat_history)[idx:]
