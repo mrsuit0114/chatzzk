@@ -30,9 +30,6 @@ class AudioProcessor:
         self.vad = VAD(self.min_silence_duration_ms, self.max_speech_duration_ms // 1000)
         self.asr = ASR(config["model_size"])
 
-        self.audio_buffer_last_speech_timestamp_idx = 0
-        self.audio_buffer_last_speech_timestamp_idx_lock = threading.Lock()
-
         self.context_audio_deque: deque[ContextData] = deque()
         self.context_audio_deque_lock = threading.Lock()
 
@@ -131,16 +128,8 @@ class AudioProcessor:
             logger.info("[Model Inference Task] Stop event set, exiting.")
             return
 
-        # Update last_speech_timestamp_idx based on written bytes
-        written_bytes = self.audio_buffer.get_and_reset_written_bytes()
-        with self.audio_buffer_last_speech_timestamp_idx_lock:
-            self.audio_buffer_last_speech_timestamp_idx = max(
-                0, self.audio_buffer_last_speech_timestamp_idx - written_bytes
-            )
-
         audio_data = self.audio_buffer.get_all_data()
-        with self.audio_buffer_last_speech_timestamp_idx_lock:
-            start_idx = self.audio_buffer_last_speech_timestamp_idx
+        start_idx = self.audio_buffer.get_last_speech_timestamp_idx()
 
         audio_data = audio_data[start_idx:]
         if len(audio_data) % 2 != 0:
@@ -155,18 +144,15 @@ class AudioProcessor:
             if timestamps:
                 last_timestamp = timestamps[-1]
                 if last_timestamp[1] + int(self.min_silence_duration_ms / self.sample_to_ms) >= len(audio_data_np):
-                    with self.audio_buffer_last_speech_timestamp_idx_lock:
-                        self.audio_buffer_last_speech_timestamp_idx += self.bytes_per_sample * last_timestamp[0]
+                    self.audio_buffer.update_last_speech_timestamp_idx(self.bytes_per_sample * last_timestamp[0])
                     if len(timestamps) > 1:
                         timestamps = timestamps[:-1]
                         self._process_asr_results(audio_data_np, timestamps, start_idx)
                 else:
-                    with self.audio_buffer_last_speech_timestamp_idx_lock:
-                        self.audio_buffer_last_speech_timestamp_idx += self.bytes_per_sample * last_timestamp[1]
+                    self.audio_buffer.update_last_speech_timestamp_idx(self.bytes_per_sample * last_timestamp[1])
                     self._process_asr_results(audio_data_np, timestamps, start_idx)
             else:
-                with self.audio_buffer_last_speech_timestamp_idx_lock:
-                    self.audio_buffer_last_speech_timestamp_idx += len(audio_data)
+                self.audio_buffer.update_last_speech_timestamp_idx(len(audio_data))
         except Exception as e:
             logger.error(f"[Model Inference Task] Error during inference: {e}")
 
