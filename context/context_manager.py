@@ -44,3 +44,17 @@ class ContextManager:
             j += 1
 
         return merged_context
+
+    def stop(self):
+        self.audio_stream_processor.stop()
+        self.chat_stream_processor.stop()
+
+        if self.audio_stream_processor_thread and self.audio_stream_processor_thread.is_alive():
+            self.audio_stream_processor_thread.join(timeout=5.0)
+            if self.audio_stream_processor_thread.is_alive():
+                print("Warning: Audio stream processor thread did not terminate gracefully")
+
+        if self.chat_stream_processor_thread and self.chat_stream_processor_thread.is_alive():
+            self.chat_stream_processor_thread.join(timeout=5.0)
+            if self.chat_stream_processor_thread.is_alive():
+                print("Warning: Chat stream processor thread did not terminate gracefully")

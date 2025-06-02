@@ -42,4 +42,6 @@ def preprocess_audio_context(audio_context: list[ContextData]) -> list[ContextDa
 def preprocess_asr(asr: str) -> Optional[str]:
     if "MBC" in asr:  # 발언하지 않았음에도 'MBC 기자 누구입니다.'가 나와 제외함
         return None
+    if asr == "":
+        return None
     return asr

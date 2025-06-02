@@ -26,6 +26,7 @@ class AudioProcessor:
         self.min_silence_duration_ms: int = config["min_silence_duration_ms"]
         self.max_speech_duration_ms: int = config["max_speech_duration_ms"]
         self.sample_to_ms: float = 1000 / self.target_sampling_rate / self.bytes_per_sample
+        self.lookahead_offset_ms = config["lookahead_offset_ms"]
 
         self.vad = VAD(self.min_silence_duration_ms, self.max_speech_duration_ms // 1000)
         self.asr = ASR(config["model_size"])
@@ -84,23 +85,19 @@ class AudioProcessor:
         """Background thread function that processes ASR tasks from the queue."""
         while not self.stop_event.is_set():
             try:
-                audio_data_np, timestamps, start_idx, snapshot_timestamp_ms = self.asr_queue.get(timeout=1.0)
+                audio_data_np, timestamps, snapshot_timestamp_ms = self.asr_queue.get(timeout=1.0)
 
                 asr_results = self._get_asr_results(audio_data_np, timestamps)
                 logger.info(f"[ASR Worker] Results: {asr_results}")
 
                 with self.context_audio_deque_lock:
                     for timestamp, result in zip(timestamps, asr_results):
-                        start_time = (
-                            snapshot_timestamp_ms
-                            + (timestamp[0] + start_idx // self.bytes_per_sample) * self.sample_to_ms
+                        speech_length = timestamp[1] - timestamp[0]
+                        speech_time_ms = (
+                            snapshot_timestamp_ms - (speech_length // self.bytes_per_sample * self.sample_to_ms) // 2
                         )
-                        end_time = (
-                            snapshot_timestamp_ms
-                            + (timestamp[1] + start_idx // self.bytes_per_sample) * self.sample_to_ms
-                        )
-                        middle_time = int((start_time + end_time) / 2)
-                        self.context_audio_deque.append(ContextData(middle_time, result, "ASR"))
+                        speech_time_ms -= self.lookahead_offset_ms
+                        self.context_audio_deque.append(ContextData(speech_time_ms, result, "ASR"))
 
                 self.asr_queue.task_done()
             except queue.Empty:
@@ -109,11 +106,9 @@ class AudioProcessor:
                 logger.error(f"[ASR Worker] Error processing ASR: {e}")
                 continue
 
-    def _process_asr_results(
-        self, audio_data_np: np.ndarray, timestamps: list[tuple[int, int]], start_idx: int
-    ) -> None:
+    def _process_asr_results(self, audio_data_np: np.ndarray, timestamps: list[tuple[int, int]]) -> None:
         snapshot_timestamp_ms = int(time() * 1000)
-        self.asr_queue.put((audio_data_np, timestamps, start_idx, snapshot_timestamp_ms))
+        self.asr_queue.put((audio_data_np, timestamps, snapshot_timestamp_ms))
 
     def _perform_model_inference_task(self) -> None:
         """Perform inference by extracting audio from buffer and applying VAD + ASR.
@@ -147,10 +142,10 @@ class AudioProcessor:
                     self.audio_buffer.update_last_speech_timestamp_idx(self.bytes_per_sample * last_timestamp[0])
                     if len(timestamps) > 1:
                         timestamps = timestamps[:-1]
-                        self._process_asr_results(audio_data_np, timestamps, start_idx)
+                        self._process_asr_results(audio_data_np, timestamps)
                 else:
                     self.audio_buffer.update_last_speech_timestamp_idx(self.bytes_per_sample * last_timestamp[1])
-                    self._process_asr_results(audio_data_np, timestamps, start_idx)
+                    self._process_asr_results(audio_data_np, timestamps)
             else:
                 self.audio_buffer.update_last_speech_timestamp_idx(len(audio_data))
         except Exception as e:

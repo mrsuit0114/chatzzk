@@ -15,8 +15,8 @@ class CircularAudioBuffer:
     def write(self, data: bytes):
         """
         Write bytes data into the circular buffer.
-
         If data length exceeds buffer capacity, only the last capacity bytes are stored.
+        last_speech_timestamp_idx is decremented by data length because the buffer is circular.
 
         Args:
             data (bytes): Audio data bytes to write into buffer.
@@ -60,6 +60,11 @@ class CircularAudioBuffer:
             return self.last_speech_timestamp_idx
 
     def update_last_speech_timestamp_idx(self, idx: int) -> None:
+        """Add idx as much as the number of bytes processed.
+
+        Args:
+            idx (int): number of bytes processed
+        """
         with self.last_speech_timestamp_idx_lock:
             self.last_speech_timestamp_idx += idx
 
