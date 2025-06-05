@@ -3,7 +3,7 @@ from time import time
 
 from audio.audio_stream_processor import AudioStreamProcessor
 from chat.chat_stream_processor import ChatStreamProcessor
-from context.context_preprocess import preprocess_audio_context, preprocess_chat_context
+from context.context_preprocess import ContextPreprocessor
 
 
 class ContextManager:
@@ -13,6 +13,7 @@ class ContextManager:
         self.chat_stream_processor = ChatStreamProcessor(channel_id, config["chat"])
         self.audio_stream_processor_thread = None
         self.chat_stream_processor_thread = None
+        self.context_preprocessor = ContextPreprocessor(config["context"])
 
     def run(self):
         self.audio_stream_processor_thread = threading.Thread(target=self.audio_stream_processor.run)
@@ -24,8 +25,8 @@ class ContextManager:
         timestamp_ms = int(time() * 1000)
         chat_context = self.chat_stream_processor.get_latest_chats_since(timestamp_ms)
         audio_context = self.audio_stream_processor.get_latest_asr_since(timestamp_ms)
-        preprocessed_chat_context = preprocess_chat_context(chat_context)
-        preprocessed_audio_context = preprocess_audio_context(audio_context)
+        preprocessed_chat_context = self.context_preprocessor.preprocess_chat_context(chat_context)
+        preprocessed_audio_context = self.context_preprocessor.preprocess_audio_context(audio_context)
 
         merged_context = []
         i, j = 0, 0
