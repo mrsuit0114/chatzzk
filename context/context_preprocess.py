@@ -13,13 +13,14 @@ class ContextPreprocessor:
         # {:...:} 형태 제거
         text = re.sub(r"\{:[^:]*:\}", "", text)
 
-        # 'ㅋ' 하나 이상 → 'ㅋㅋ'
-        if "ㅋ" in text:
-            text = re.sub(r"ㅋ+", "ㅋㅋ", text)
+        if re.search(r"ㅋ{2,}", text):
+            text = re.sub(r"ㅋ{2,}", "ㅋㅋ", text)
 
-        # 'ㅅ' 하나 이상 → 'ㅅㅅ'
-        if "ㅅ" in text:
-            text = re.sub(r"ㅅ+", "ㅅㅅ", text)
+        if re.search(r"ㅅ{2,}", text):
+            text = re.sub(r"ㅅ{2,}", "ㅅㅅ", text)
+
+        if re.search(r"ㅊ{2,}", text):
+            text = re.sub(r"ㅊ{2,}", "ㅊㅊ", text)
 
         return text.strip()
 

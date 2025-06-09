@@ -31,7 +31,7 @@ class ASR:
             str: The transcribed text from the audio segment.
         """
         result = self.model.transcribe(audio_data, batch_size=self.BATCH_SIZE, language="ko")
-        text = "".join([res["text"] for res in result["segments"]])
+        text = "".join([res["text"] for res in result["segments"]]).strip()
         return text
 
     def __call__(self, audio_data: np.ndarray, timestamps: list[tuple[int, int]]) -> list[str]:
