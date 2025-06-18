@@ -94,7 +94,7 @@ class AudioProcessor:
                 with self.asr_history_lock:
                     for timestamp, result in zip(timestamps, asr_results):
                         speech_length = timestamp[1] - timestamp[0]
-                        speech_time_ms = (
+                        speech_time_ms = int(
                             snapshot_timestamp_ms - (speech_length // self.bytes_per_sample * self.sample_to_ms) // 2
                         )
                         speech_time_ms -= self.lookahead_offset_ms

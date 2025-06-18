@@ -34,8 +34,8 @@
         "context_update_interval_s": 1,
         "context_save_interval_s": 5,
         "context_save_path": "./data/history/context_history.jsonl",
-        "asr_context_duration_ms": 40000,
-        "chat_context_duration_ms": 30000,
+        "asr_context_duration_ms": 130000,
+        "chat_context_duration_ms": 120000,
         "asr_not_expected_list": [
             "MBC",
             "스토리였습니다",
