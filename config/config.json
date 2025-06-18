@@ -1,9 +1,15 @@
 {
+    "shared_config": {
+        "prompt_cmd_to_type_code": {
+            "chat": 100,
+            "donation": 1000,
+            "asr": 10000
+        }
+    },
     "audio": {
         "target_sampling_rate": 16000,
         "buffer_duration_s": 30,
         "model_inference_interval_s": 2,
-        "audio_context_duration_ms": 40000,
         "ffmpeg_read_chunk_size": 4096,
         "min_silence_duration_ms": 500,
         "max_speech_duration_ms": 30000,
@@ -13,9 +19,8 @@
         "lookahead_offset_ms": 2000
     },
     "chat": {
-        "chat_context_duration_ms": 30000,
         "max_chat_history_count": 1000,
-        "chzzk_chat_cmd": {
+        "chzzk_chat_code": {
             "ping": 0,
             "pong": 10000,
             "connect": 100,
@@ -26,6 +31,11 @@
         }
     },
     "context": {
+        "context_update_interval_s": 1,
+        "context_save_interval_s": 5,
+        "context_save_path": "./data/history/context_history.jsonl",
+        "asr_context_duration_ms": 40000,
+        "chat_context_duration_ms": 30000,
         "asr_not_expected_list": [
             "MBC",
             "스토리였습니다",

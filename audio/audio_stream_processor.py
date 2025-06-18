@@ -32,13 +32,13 @@ class AudioStreamProcessor:
     It uses AudioStreamReceiver to receive audio stream and AudioProcessor to process it.
     """
 
-    def __init__(self, channel_id: str, audio_config: dict):
+    def __init__(self, channel_id: str, audio_config: dict, shared_config: dict):
         self.m3u8_url: str = _get_audio_m3u8_url(channel_id, audio_config["m3u8_proxy_url"])
         self.buffer = CircularAudioBuffer(
             audio_config["target_sampling_rate"] * audio_config["bytes_per_sample"] * audio_config["buffer_duration_s"]
         )
 
-        self.processor = AudioProcessor(audio_config, self.buffer)
+        self.processor = AudioProcessor(audio_config, self.buffer, shared_config)
         self.receiver = AudioStreamReceiver(
             self.m3u8_url, self.buffer, audio_config["target_sampling_rate"], audio_config["ffmpeg_read_chunk_size"]
         )
@@ -65,5 +65,5 @@ class AudioStreamProcessor:
         self.processor.stop()
         logger.info("AudioStreamProcessor stopped cleanly.")
 
-    def get_latest_asr_since(self, timestamp_ms: int) -> list[ContextData]:
-        return self.processor.get_latest_asr_since(timestamp_ms)
+    def get_new_asr_results(self) -> list[ContextData]:
+        return self.processor.get_new_asr_results()

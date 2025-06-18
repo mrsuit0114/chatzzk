@@ -1,4 +1,3 @@
-import bisect
 import datetime
 import json
 import threading
@@ -12,10 +11,11 @@ from data_types.context_data import ContextData
 
 
 class ChatStreamProcessor:
-    def __init__(self, streamer_id: str, chat_config: dict):
+    def __init__(self, streamer_id: str, chat_config: dict, shared_config: dict):
         self.streamer_id = streamer_id
-        self.context_duration_ms = chat_config["chat_context_duration_ms"]
-        self.chat_cmd = chat_config["chzzk_chat_cmd"]
+        self.chzzk_chat_code = chat_config["chzzk_chat_code"]
+        self.prompt_cmd_to_type_code = shared_config["prompt_cmd_to_type_code"]
+        self.type_code_to_prompt_cmd = {v: k.upper() for k, v in self.prompt_cmd_to_type_code.items()}
 
         self.sid = None
         self.chatChannelId = api.fetch_chatChannelId(self.streamer_id)
@@ -27,7 +27,7 @@ class ChatStreamProcessor:
         self.is_running = False
         self.stop_event = threading.Event()
         self.chat_thread = None
-        self.chat_history = deque(maxlen=chat_config["max_chat_history_count"])
+        self.chat_history: deque[ContextData] = deque()
         self.chat_history_lock = threading.Lock()
 
         self.connect()
@@ -47,7 +47,7 @@ class ChatStreamProcessor:
         }
 
         send_dict = {
-            "cmd": self.chat_cmd["connect"],
+            "cmd": self.chzzk_chat_code["connect"],
             "tid": 1,
             "bdy": {
                 "uid": self.userIdHash,
@@ -63,7 +63,7 @@ class ChatStreamProcessor:
         print(f"\r{self.channelName} 채팅창에 연결 중 ..", end="")
 
         send_dict = {
-            "cmd": self.chat_cmd["request_recent_chat"],
+            "cmd": self.chzzk_chat_code["request_recent_chat"],
             "tid": 2,
             "sid": self.sid,
             "bdy": {"recentMessageCount": 50},
@@ -96,7 +96,7 @@ class ChatStreamProcessor:
 
         send_dict = {
             "tid": 3,
-            "cmd": self.chat_cmd["send_chat"],
+            "cmd": self.chzzk_chat_code["send_chat"],
             "retry": False,
             "sid": self.sid,
             "bdy": {
@@ -112,26 +112,27 @@ class ChatStreamProcessor:
     def _process_chat_message(self, raw_message):
         """채팅 메시지를 처리하고 큐에 추가"""
         try:
-            chat_cmd = raw_message["cmd"]  # 한개가 아닌 경우가 있음
+            chat_code = raw_message["cmd"]  # 한개가 아닌 경우가 있음
 
-            if chat_cmd == self.chat_cmd["ping"]:
-                self.sock.send(json.dumps({"ver": "2", "cmd": self.chat_cmd["pong"]}))
+            if chat_code == self.chzzk_chat_code["ping"]:
+                self.sock.send(json.dumps({"ver": "2", "cmd": self.chzzk_chat_code["pong"]}))
 
                 if self.chatChannelId != api.fetch_chatChannelId(self.streamer_id):
                     self.connect()
                 return
 
-            if chat_cmd == self.chat_cmd["chat"]:
-                chat_type = "CHAT"
-            elif chat_cmd == self.chat_cmd["donation"]:
-                chat_type = "DONATION"
+            if chat_code == self.chzzk_chat_code["chat"]:
+                chat_type_code = self.prompt_cmd_to_type_code["chat"]
+            elif chat_code == self.chzzk_chat_code["donation"]:
+                chat_type_code = self.prompt_cmd_to_type_code["donation"]
             else:
                 return
 
             for chat_data in raw_message["bdy"]:
                 timestamp_ms = chat_data["msgTime"]  # 이미 밀리초 단위로 제공됨
+                prompt_str = f"[{self.type_code_to_prompt_cmd[chat_type_code]}] {chat_data['msg']}\n"
 
-                chat_info = ContextData(timestamp_ms, chat_data["msg"], chat_type)
+                chat_info = ContextData(timestamp_ms, chat_data["msg"], chat_type_code, prompt_str)
 
                 # 채팅 히스토리에 추가
                 with self.chat_history_lock:
@@ -193,8 +194,8 @@ class ChatStreamProcessor:
             self.chat_thread.join(timeout=5.0)
             print("Chat worker thread stopped.")
 
-    def get_latest_chats_since(self, timestamp_ms: int) -> list:
-        threshold_ms = timestamp_ms - self.context_duration_ms
+    def get_new_chats(self) -> list[ContextData]:
         with self.chat_history_lock:
-            idx = bisect.bisect_left(self.chat_history, threshold_ms, key=lambda x: x.timestamp_ms)
-            return list(self.chat_history)[idx:]
+            latest_chats = list(self.chat_history)
+            self.chat_history.clear()
+        return latest_chats

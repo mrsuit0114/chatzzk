@@ -19,7 +19,7 @@ class AudioProcessor:
     Therefore, this class encapsulates both processing and storage to simplify thread management.
     """
 
-    def __init__(self, config: dict, audio_buffer: CircularAudioBuffer):
+    def __init__(self, config: dict, audio_buffer: CircularAudioBuffer, shared_config: dict):
         self.audio_buffer = audio_buffer
         self.target_sampling_rate: int = config["target_sampling_rate"]
         self.bytes_per_sample: int = config["bytes_per_sample"]
@@ -27,12 +27,14 @@ class AudioProcessor:
         self.max_speech_duration_ms: int = config["max_speech_duration_ms"]
         self.sample_to_ms: float = 1000 / self.target_sampling_rate / self.bytes_per_sample
         self.lookahead_offset_ms = config["lookahead_offset_ms"]
+        self.prompt_cmd_to_type_code = shared_config["prompt_cmd_to_type_code"]
+        self.type_code_to_prompt_cmd = {v: k.upper() for k, v in self.prompt_cmd_to_type_code.items()}
 
         self.vad = VAD(self.min_silence_duration_ms, self.max_speech_duration_ms // 1000)
         self.asr = ASR(config["model_size"])
 
-        self.context_audio_deque: deque[ContextData] = deque()
-        self.context_audio_deque_lock = threading.Lock()
+        self.asr_history: deque[ContextData] = deque()
+        self.asr_history_lock = threading.Lock()
 
         # 실행시간이 긴 ASR은 비동기로 수행하고 Queue를 관리하여 순서를 보장
         self.asr_queue = queue.Queue()
@@ -44,7 +46,6 @@ class AudioProcessor:
 
         self.model_inference_interval_s: int = config["model_inference_interval_s"]
         self.model_inference_timer = None
-        self.audio_context_duration_ms: int = config["audio_context_duration_ms"]
 
     def start(self) -> None:
         self.is_running = True
@@ -90,14 +91,16 @@ class AudioProcessor:
                 asr_results = self._get_asr_results(audio_data_np, timestamps)
                 logger.info(f"[ASR Worker] Results: {asr_results}")
 
-                with self.context_audio_deque_lock:
+                with self.asr_history_lock:
                     for timestamp, result in zip(timestamps, asr_results):
                         speech_length = timestamp[1] - timestamp[0]
                         speech_time_ms = (
                             snapshot_timestamp_ms - (speech_length // self.bytes_per_sample * self.sample_to_ms) // 2
                         )
                         speech_time_ms -= self.lookahead_offset_ms
-                        self.context_audio_deque.append(ContextData(speech_time_ms, result, "ASR"))
+                        type_code = self.prompt_cmd_to_type_code["asr"]
+                        prompt_str = f"[{self.type_code_to_prompt_cmd[type_code]}] {result}\n"
+                        self.asr_history.append(ContextData(speech_time_ms, result, type_code, prompt_str))
 
                 self.asr_queue.task_done()
             except queue.Empty:
@@ -166,10 +169,8 @@ class AudioProcessor:
         else:
             logger.info("[Processor Scheduler] Application stopping, timer not restarted.")
 
-    def get_latest_asr_since(self, timestamp_ms: int) -> list[ContextData]:
-        """Assumes periodic invocation and is responsible for removing outdated data."""
-        threshold_ms = timestamp_ms - self.audio_context_duration_ms
-        with self.context_audio_deque_lock:
-            while self.context_audio_deque and self.context_audio_deque[0][0] < threshold_ms:
-                self.context_audio_deque.popleft()
-            return list(self.context_audio_deque)
+    def get_new_asr_results(self) -> list[ContextData]:
+        with self.asr_history_lock:
+            latest_asr = list(self.asr_history)
+            self.asr_history.clear()
+        return latest_asr
