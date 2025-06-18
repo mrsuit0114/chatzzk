@@ -32,7 +32,10 @@ class ContextPreprocessor:
                 continue
             preprocessed_chat_context.append(
                 ContextData(
-                    chat.timestamp_ms, text, chat.type_code, f"[{self.code_to_prompt_cmd[chat.type_code]}] {text}\n"
+                    chat.timestamp_ms,
+                    chat.content,
+                    chat.type_code,
+                    f"[{self.code_to_prompt_cmd[chat.type_code]}] {text}\n",
                 )
             )
         return preprocessed_chat_context
