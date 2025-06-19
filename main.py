@@ -6,12 +6,8 @@ from loguru import logger
 
 from context.context_manager import ContextManager
 
-with open("config/config.json") as f:
-    config = json.load(f)
-
-
-def ms_to_time(ms: int) -> str:
-    return time.strftime("%H:%M:%S", time.gmtime(ms / 1000))
+with open("context/config.json") as f:
+    context_config = json.load(f)
 
 
 def periodic_task():
@@ -26,7 +22,7 @@ if __name__ == "__main__":
     stop_event = threading.Event()
     channel_id = ""  # channel_id
 
-    context_manager = ContextManager(channel_id, config)
+    context_manager = ContextManager(channel_id, context_config)
 
     # Start context manager in a separate thread
     context_thread = threading.Thread(target=context_manager.run)

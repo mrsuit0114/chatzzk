@@ -6,9 +6,9 @@ from time import time
 import numpy as np
 from loguru import logger
 
-from audio.asr import ASR
-from audio.circular_audio_buffer import CircularAudioBuffer
-from audio.vad import VAD
+from context.audio.asr import ASR
+from context.audio.circular_audio_buffer import CircularAudioBuffer
+from context.audio.vad import VAD
 from data_types.context_data import ContextData
 
 

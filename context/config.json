@@ -30,7 +30,8 @@
         ]
     },
     "chat": {
-        "max_chat_history_count": 1000,
+        "max_chat_history_count": 10000,
+        "stop_timeout_s": 5,
         "chzzk_chat_code": {
             "ping": 0,
             "pong": 10000,

@@ -4,8 +4,8 @@ from collections import deque
 from heapq import merge
 from time import time
 
-from audio.audio_stream_processor import AudioStreamProcessor
-from chat.chat_stream_processor import ChatStreamProcessor
+from context.audio.audio_stream_processor import AudioStreamProcessor
+from context.chat.chat_stream_processor import ChatStreamProcessor
 from context.context_preprocess import ContextPreprocessor
 from data_types.context_data import ContextData
 

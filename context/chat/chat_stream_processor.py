@@ -6,7 +6,7 @@ from collections import deque
 from loguru import logger
 from websocket import WebSocket
 
-import chat.api as api
+from context.chat import api
 from data_types.context_data import ContextData
 
 
@@ -14,6 +14,7 @@ class ChatStreamProcessor:
     def __init__(self, streamer_id: str, chat_config: dict, shared_config: dict):
         self.streamer_id = streamer_id
         self.chzzk_chat_code = chat_config["chzzk_chat_code"]
+        self.stop_timeout_s = chat_config["stop_timeout_s"]
         self.prompt_cmd_to_type_code = shared_config["prompt_cmd_to_type_code"]
         self.type_code_to_prompt_cmd = {v: k.upper() for k, v in self.prompt_cmd_to_type_code.items()}
 
@@ -27,18 +28,24 @@ class ChatStreamProcessor:
         self.is_running = False
         self.stop_event = threading.Event()
         self.chat_thread = None
-        self.chat_history: deque[ContextData] = deque()
+        self.chat_history: deque[ContextData] = deque(maxlen=chat_config["max_chat_history_count"])
         self.chat_history_lock = threading.Lock()
 
         self.connect()
 
     def connect(self):
+        if hasattr(self, "sock") and self.sock.connected:
+            try:
+                self.sock.close()
+            except Exception as e:
+                logger.error(f"Error closing socket: {e}")
+
         self.chatChannelId = api.fetch_chatChannelId(self.streamer_id)
         self.accessToken, self.extraToken = api.fetch_accessToken(self.chatChannelId)
 
         sock = WebSocket()
         sock.connect("wss://kr-ss1.chat.naver.com/chat")
-        print(f"{self.channelName} 채팅창에 연결 중 .", end="")
+        logger.info(f"{self.channelName} 채팅창에 연결 중 .")
 
         default_dict = {
             "ver": "2",
@@ -60,7 +67,7 @@ class ChatStreamProcessor:
         sock.send(json.dumps(dict(send_dict, **default_dict)))
         sock_response = json.loads(sock.recv())
         self.sid = sock_response["bdy"]["sid"]
-        print(f"\r{self.channelName} 채팅창에 연결 중 ..", end="")
+        logger.info(f"\r{self.channelName} 채팅창에 연결 중 ..")
 
         send_dict = {
             "cmd": self.chzzk_chat_code["request_recent_chat"],
@@ -71,12 +78,13 @@ class ChatStreamProcessor:
 
         sock.send(json.dumps(dict(send_dict, **default_dict)))
         sock.recv()
-        print(f"\r{self.channelName} 채팅창에 연결 중 ...")
+        logger.info(f"\r{self.channelName} 채팅창에 연결 중 ...")
 
         self.sock = sock
         if self.sock.connected:
-            print("연결 완료")
+            logger.info("연결 완료")
         else:
+            logger.error("오류 발생")
             raise ValueError("오류 발생")
 
     def send(self, message: str):
@@ -138,11 +146,6 @@ class ChatStreamProcessor:
                 with self.chat_history_lock:
                     self.chat_history.append(chat_info)
 
-                # 로깅 (필요한 경우에만 문자열로 변환)
-                # now = datetime.datetime.fromtimestamp(timestamp_ms / 1000)
-                # now = datetime.datetime.strftime(now, "%Y-%m-%d %H:%M:%S")
-                # self.logger.info(f"[{now}][{chat_type}] {chat_data['msg']}")
-
         except Exception as e:
             logger.error(f"Error processing chat message: {e}")
 
@@ -159,40 +162,27 @@ class ChatStreamProcessor:
                     self.connect()
 
     def run(self):
-        """비동기로 채팅 수집 시작"""
         if self.is_running:
             return
 
         self.is_running = True
         self.stop_event.clear()
 
-        # 채팅 워커 스레드 시작
         self.chat_thread = threading.Thread(target=self._chat_worker)
         self.chat_thread.daemon = True
         self.chat_thread.start()
 
-        # 메인 스레드는 종료 신호를 기다리면서 대기
-        try:
-            while not self.stop_event.is_set():
-                self.stop_event.wait(timeout=1.0)
-        except KeyboardInterrupt:
-            print("\nCtrl+C detected. Stopping chat collection...")
-        finally:
-            self.stop()
-
     def stop(self):
-        """채팅 수집 중지"""
         if not self.is_running:
             return
 
-        print("\nStopping ChatProcessor...")
+        logger.info("\nStopping ChatProcessor...")
         self.is_running = False
         self.stop_event.set()
 
-        # 채팅 스레드 종료 대기
         if self.chat_thread and self.chat_thread.is_alive():
-            self.chat_thread.join(timeout=5.0)
-            print("Chat worker thread stopped.")
+            self.chat_thread.join(timeout=self.stop_timeout_s)
+            logger.info("Chat worker thread stopped.")
 
     def get_new_chats(self) -> list[ContextData]:
         with self.chat_history_lock:

@@ -8,7 +8,7 @@ class CircularAudioBuffer:
         self.buffer = bytearray(capacity_bytes)
         self.capacity = capacity_bytes
         self.write_pos = 0
-        self.lock = threading.Lock()
+        self.buffer_lock = threading.Lock()
         self.last_speech_timestamp_idx = 0
         self.last_speech_timestamp_idx_lock = threading.Lock()
 
@@ -27,7 +27,7 @@ class CircularAudioBuffer:
             self.last_speech_timestamp_idx = max(self.last_speech_timestamp_idx, 0)
 
         if data_len >= self.capacity:
-            with self.lock:
+            with self.buffer_lock:
                 self.buffer[:] = data[-self.capacity :]
                 self.write_pos = 0
             self.is_full = True
@@ -37,11 +37,11 @@ class CircularAudioBuffer:
 
         if end_pos <= self.capacity:
             # 버퍼 끝까지 여유 공간 있을 때
-            with self.lock:
+            with self.buffer_lock:
                 self.buffer[self.write_pos : end_pos] = data
                 self.write_pos = end_pos % self.capacity
         else:
-            with self.lock:
+            with self.buffer_lock:
                 # 버퍼 끝과 처음을 넘나들며 저장
                 first_part = self.capacity - self.write_pos
                 second_part = data_len - first_part
@@ -75,5 +75,5 @@ class CircularAudioBuffer:
         Returns:
             bytes: Concatenated bytes of the buffered audio data.
         """
-        with self.lock:
+        with self.buffer_lock:
             return bytes(self.buffer[self.write_pos :] + self.buffer[: self.write_pos])

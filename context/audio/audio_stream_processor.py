@@ -1,9 +1,9 @@
 import requests
 from loguru import logger
 
-from audio.audio_processor import AudioProcessor
-from audio.audio_stream_receiver import AudioStreamReceiver
-from audio.circular_audio_buffer import CircularAudioBuffer
+from context.audio.audio_processor import AudioProcessor
+from context.audio.audio_stream_receiver import AudioStreamReceiver
+from context.audio.circular_audio_buffer import CircularAudioBuffer
 from data_types.context_data import ContextData
 
 
