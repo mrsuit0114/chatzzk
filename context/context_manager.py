@@ -1,6 +1,7 @@
 import json
 import threading
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor
 from heapq import merge
 from time import time
 
@@ -16,52 +17,59 @@ class ContextManager:
         self.type_code_to_prompt_cmd = {v: k.upper() for k, v in self.prompt_cmd_to_type_code.items()}
         self.asr_context_duration_ms = config["context"]["asr_context_duration_ms"]
         self.chat_context_duration_ms = config["context"]["chat_context_duration_ms"]
-        self.context_update_interval_s = config["context"]["context_update_interval_s"]
-        self.context_save_interval_s = config["context"]["context_save_interval_s"]
         self.context_save_path = config["context"]["context_save_path"]
 
         self.audio_stream_processor = AudioStreamProcessor(channel_id, config["audio"], config["shared_config"])
         self.chat_stream_processor = ChatStreamProcessor(channel_id, config["chat"], config["shared_config"])
         self.context_preprocessor = ContextPreprocessor(config["context"], config["shared_config"])
 
-        self.audio_stream_processor_thread = None
-        self.chat_stream_processor_thread = None
+        self.audio_stream_processor_thread = threading.Thread(target=self.audio_stream_processor.run)
+        self.audio_stream_processor_thread.daemon = True
+        self.chat_stream_processor_thread = threading.Thread(target=self.chat_stream_processor.run)
+        self.chat_stream_processor_thread.daemon = True
 
-        # 스케줄러 관련 변수들
-        self.update_timer = None
-        self.save_timer = None
-        self.running = False
+        self.context_update_interval_s = config["context"]["context_update_interval_s"]
+        self.context_save_interval_s = config["context"]["context_save_interval_s"]
+        self.update_context_thread = threading.Thread(target=self._update_context_loop)
+        self.save_context_history_thread = threading.Thread(target=self._save_context_history_loop)
+        self.update_context_thread.daemon = True
+        self.save_context_history_thread.daemon = True
+        self.update_context_executor = ThreadPoolExecutor(max_workers=2)
+        self.save_context_history_executor = ThreadPoolExecutor(max_workers=2)
+
+        self.is_running = False
+        self.stop_event = threading.Event()
 
         self.context_history: list[ContextData] = []
         self.context_history_lock = threading.Lock()
         self.context_prompt_buffer: deque[ContextData] = deque()
         self.context_prompt_lock = threading.Lock()
 
+        self.threads = [
+            self.audio_stream_processor_thread,
+            self.chat_stream_processor_thread,
+            self.update_context_thread,
+            self.save_context_history_thread,
+        ]
+
     def run(self):
-        self.audio_stream_processor_thread = threading.Thread(target=self.audio_stream_processor.run)
-        self.chat_stream_processor_thread = threading.Thread(target=self.chat_stream_processor.run)
-        self.audio_stream_processor_thread.start()
-        self.chat_stream_processor_thread.start()
+        self.is_running = True
+        self.stop_event.clear()
+        for thread in self.threads:
+            thread.start()
 
-        # 주기적 작업 시작
-        self.running = True
-        self._schedule_update_context()
-        self._schedule_save_context_history()
-
-    def _schedule_update_context(self):
-        """1초마다 update_context를 호출하는 스케줄러"""
-        if self.running:
+    def _update_context_loop(self):
+        while self.is_running and not self.stop_event.is_set():
             cur_timestamp_ms = int(time() * 1000)
-            self._update_context(cur_timestamp_ms)
-            self.update_timer = threading.Timer(self.context_update_interval_s, self._schedule_update_context)
-            self.update_timer.start()
+            self.update_context_executor.submit(self._update_context, cur_timestamp_ms)
+            if self.stop_event.wait(self.context_update_interval_s):
+                break
 
-    def _schedule_save_context_history(self):
-        """5초마다 _save_context_history를 호출하는 스케줄러"""
-        if self.running:
-            self._flush_context_history_to_file()
-            self.save_timer = threading.Timer(self.context_save_interval_s, self._schedule_save_context_history)
-            self.save_timer.start()
+    def _save_context_history_loop(self):
+        while self.is_running and not self.stop_event.is_set():
+            self.save_context_history_executor.submit(self._flush_context_history_to_file)
+            if self.stop_event.wait(self.context_save_interval_s):
+                break
 
     def _update_context(self, cur_timestamp_ms: int):  # 주기적으로 호출 필요
         new_context = self._get_new_context()
@@ -120,25 +128,15 @@ class ContextManager:
         return context_prompt
 
     def stop(self):
-        # 스케줄러 중지
-        self.running = False
-        if self.update_timer:
-            self.update_timer.cancel()
-        if self.save_timer:
-            self.save_timer.cancel()
+        self.is_running = False
 
-        # 마지막 저장 실행
         self._flush_context_history_to_file()
 
         self.audio_stream_processor.stop()
         self.chat_stream_processor.stop()
 
-        if self.audio_stream_processor_thread and self.audio_stream_processor_thread.is_alive():
-            self.audio_stream_processor_thread.join(timeout=5.0)
-            if self.audio_stream_processor_thread.is_alive():
-                print("Warning: Audio stream processor thread did not terminate gracefully")
-
-        if self.chat_stream_processor_thread and self.chat_stream_processor_thread.is_alive():
-            self.chat_stream_processor_thread.join(timeout=5.0)
-            if self.chat_stream_processor_thread.is_alive():
-                print("Warning: Chat stream processor thread did not terminate gracefully")
+        for thread in self.threads:
+            if thread.is_alive():
+                thread.join(timeout=5.0)
+                if thread.is_alive():
+                    print(f"Warning: {thread.name} did not terminate gracefully")

@@ -45,8 +45,8 @@ class AudioStreamProcessor:
 
     def run(self) -> None:
         try:
-            self.receiver.start()
-            self.processor.start()
+            self.receiver.run()
+            self.processor.run()
 
             while True:
                 try:

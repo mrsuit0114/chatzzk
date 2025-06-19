@@ -1,6 +1,7 @@
 import queue
 import threading
 from collections import deque
+from concurrent.futures import ThreadPoolExecutor
 from time import time
 
 import numpy as np
@@ -37,21 +38,27 @@ class AudioProcessor:
         self.asr_history_lock = threading.Lock()
 
         # 실행시간이 긴 ASR은 비동기로 수행하고 Queue를 관리하여 순서를 보장
+        self.is_running = False
+        self.stop_event = threading.Event()
+
         self.asr_queue = queue.Queue()
         self.asr_thread = threading.Thread(target=self._asr_worker)
         self.asr_thread.daemon = True
 
-        self.is_running = False
-        self.stop_event = threading.Event()
-
         self.model_inference_interval_s: int = config["model_inference_interval_s"]
-        self.model_inference_timer = None
+        self.inference_scheduler_executor = ThreadPoolExecutor(max_workers=3)
+        self.inference_scheduler_thread = threading.Thread(target=self._inference_scheduler_loop)
+        self.inference_scheduler_thread.daemon = True
 
-    def start(self) -> None:
+        self.threads = [self.asr_thread, self.inference_scheduler_thread]
+
+    def run(self) -> None:
+        if self.is_running:
+            return
         self.is_running = True
         self.stop_event.clear()
-        self.asr_thread.start()
-        self._schedule_model_inference_task()
+        for thread in self.threads:
+            thread.start()
 
     def stop(self) -> None:
         if not self.is_running:
@@ -68,13 +75,12 @@ class AudioProcessor:
             except queue.Empty:
                 break
 
-        if self.asr_thread.is_alive():
-            self.asr_thread.join(timeout=5)
-            logger.info("[Processor] ASR worker thread stopped.")
+        for thread in self.threads:
+            if thread.is_alive():
+                thread.join(timeout=5)
+                logger.info(f"[Processor] {thread.name} stopped.")
 
-        if self.model_inference_timer:
-            self.model_inference_timer.cancel()
-            logger.info("[Processor] Model inference timer cancelled.")
+        self.inference_scheduler_executor.shutdown(wait=True)
 
     def _get_timestamps(self, audio_data: np.ndarray) -> list[tuple[int, int]]:
         return self.vad(audio_data)
@@ -154,20 +160,11 @@ class AudioProcessor:
         except Exception as e:
             logger.error(f"[Model Inference Task] Error during inference: {e}")
 
-    def _schedule_model_inference_task(self) -> None:
-        if self.stop_event.is_set():
-            logger.info("[Model Inference Task] Stop event set, exiting.")
-            return
-
-        self._perform_model_inference_task()
-
-        if self.is_running and not self.stop_event.is_set():
-            self.model_inference_timer = threading.Timer(
-                self.model_inference_interval_s, self._schedule_model_inference_task
-            )
-            self.model_inference_timer.start()
-        else:
-            logger.info("[Processor Scheduler] Application stopping, timer not restarted.")
+    def _inference_scheduler_loop(self) -> None:
+        while self.is_running and not self.stop_event.is_set():
+            self.inference_scheduler_executor.submit(self._perform_model_inference_task)
+            if self.stop_event.wait(self.model_inference_interval_s):
+                break
 
     def get_new_asr_results(self) -> list[ContextData]:
         with self.asr_history_lock:
