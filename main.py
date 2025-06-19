@@ -2,6 +2,8 @@ import json
 import threading
 import time
 
+from loguru import logger
+
 from context.context_manager import ContextManager
 
 with open("config/config.json") as f:
@@ -14,10 +16,9 @@ def ms_to_time(ms: int) -> str:
 
 def periodic_task():
     while not stop_event.is_set():
-        print("[주기적 호출] context 분석")
-        context_audio = context_manager.get_context()
-        for context in context_audio:
-            print(f"{ms_to_time(context.timestamp_ms)} [{context.type}] {context.content}")
+        logger.info("[주기적 호출] context 분석")
+        context_prompt = context_manager.get_context_prompt()
+        print(context_prompt)
         time.sleep(2)  # 5초 간격
 
 

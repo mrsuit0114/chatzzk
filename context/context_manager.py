@@ -70,11 +70,10 @@ class ContextManager:
 
     def _get_new_context(self) -> list[ContextData]:
         chat_contexts = self.chat_stream_processor.get_new_chats()
-        asr_contexts = self.audio_stream_processor.get_new_asr_results()
         processed_chat_contexts = self.context_preprocessor.preprocess_chat_context(chat_contexts)
-        processed_asr_contexts = self.context_preprocessor.preprocess_audio_context(asr_contexts)
+        asr_contexts = self.audio_stream_processor.get_new_asr_results()
 
-        return self._get_combined_context(processed_chat_contexts, processed_asr_contexts)
+        return self._get_combined_context(processed_chat_contexts, asr_contexts)
 
     def _get_combined_context(
         self, chat_contexts: list[ContextData], asr_contexts: list[ContextData]

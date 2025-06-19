@@ -31,7 +31,7 @@ class AudioProcessor:
         self.type_code_to_prompt_cmd = {v: k.upper() for k, v in self.prompt_cmd_to_type_code.items()}
 
         self.vad = VAD(self.min_silence_duration_ms, self.max_speech_duration_ms // 1000)
-        self.asr = ASR(config["model_size"])
+        self.asr = ASR(config["model_size"], config["not_expected_asr_list"])
 
         self.asr_history: deque[ContextData] = deque()
         self.asr_history_lock = threading.Lock()
