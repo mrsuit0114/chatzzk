@@ -73,7 +73,7 @@ def apply_asr_to_context(video_id: int, model_size: str):
         start, end, _ = vad
         asr_result = "".join(asr(audio_data_np, [(start, end)])).strip()
         asr_context.append(
-            {"timestamp": (start + end) // 32, "text": asr_result, "pay_amount": -1}
+            {"timestamp": (start + end) // 32, "text": asr_result, "type_code": 10000}
         )  # // 2(for avg) // 16000(sr) * 1000(sec to ms)
 
     full_context = []

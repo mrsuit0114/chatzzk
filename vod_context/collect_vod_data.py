@@ -15,6 +15,8 @@ USER_AGENT = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
 )
 
+PROMPT_CMD_TO_TYPE_CODE = {"chat": 100, "donation": 1000, "asr": 10000}
+
 
 def _get_chats_url_of_video_id(video_id: int) -> str:
     return f"{VIDEOCHATS_BASE_URL}/{video_id}/chats"
@@ -68,7 +70,7 @@ def _append_chats_to_jsonl(chats: list[tuple[int, str, int]], video_id: int):
         # Append new chats as JSONL
         with open(file_path, "a", encoding="utf-8") as f:
             for chat in chats:
-                chat_obj = {"timestamp": chat[0], "text": chat[1], "pay_amount": chat[2]}
+                chat_obj = {"timestamp": chat[0], "text": chat[1], "type_code": chat[2]}
                 f.write(json.dumps(chat_obj, ensure_ascii=False) + "\n")
     except Exception as e:
         logger.error(f"Error appending chats to jsonl file: {e}")
@@ -90,14 +92,14 @@ def _parse_video_chats(data):
     result = []
 
     for video_chat in video_chats:
-        extras = json.loads(video_chat["extras"])
-
         msg_type_code = video_chat.get("messageTypeCode")
         timestamp_ms = video_chat.get("playerMessageTime")
-        pay_amount = extras.get("payAmount", 0)
         text = video_chat.get("content")
 
-        if msg_type_code in [1, 10]:
-            result.append((timestamp_ms, text, pay_amount))
+        match msg_type_code:
+            case 1:
+                result.append((timestamp_ms, text, PROMPT_CMD_TO_TYPE_CODE["chat"]))
+            case 10:
+                result.append((timestamp_ms, text, PROMPT_CMD_TO_TYPE_CODE["donation"]))
 
     return result, next_player_message_time

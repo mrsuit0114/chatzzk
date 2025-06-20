@@ -14,31 +14,24 @@ NOT_EXPECTED_ASR = [
     "수고하셨습니다",
 ]
 
+PROMPT_CMD_TO_TYPE_CODE = {"chat": 100, "donation": 1000, "asr": 10000}
+
+TYPE_CODE_TO_PROMPT_CMD = {v: k.upper() for k, v in PROMPT_CMD_TO_TYPE_CODE.items()}
+
 
 def _preprocess_chat_message(text: str) -> str:
     # {:...:} 형태 제거
     text = re.sub(r"\{:[^:]*:\}", "", text)
 
-    if re.search(r"ㅋ{2,}", text):
-        text = re.sub(r"ㅋ{2,}", "ㅋㅋ", text)
-
-    # 'ㅅ'이 2개 이상 연속될 때만 처리
-    if re.search(r"ㅅ{2,}", text):
-        text = re.sub(r"ㅅ{2,}", "ㅅㅅ", text)
-
-    # 'ㅊ'이 2개 이상 연속될 때만 처리
-    if re.search(r"ㅊ{2,}", text):
-        text = re.sub(r"ㅊ{2,}", "ㅊㅊ", text)
+    text = re.sub(r"ㅋ{2,}", "ㅋㅋ", text)
+    text = re.sub(r"ㅅ{2,}", "ㅅㅅ", text)
+    text = re.sub(r"ㅊ{2,}", "ㅊㅊ", text)
 
     return text.strip()
 
 
 def _preprocess_asr(asr: str) -> Optional[str]:
-    if any(
-        not_expected_asr in asr for not_expected_asr in NOT_EXPECTED_ASR
-    ):  # 발언하지 않았음에도 'MBC 기자 누구입니다.'가 나와 제외함
-        return None
-    if asr == "":
+    if asr == "" or any(not_expected_asr in asr for not_expected_asr in NOT_EXPECTED_ASR):
         return None
 
     return asr
@@ -54,15 +47,17 @@ def process_jsonl(video_id: int):
             if line.strip():  # 빈 줄 무시
                 item = json.loads(line)
                 tmp = item.copy()
-                if tmp["pay_amount"] == -1:
+                if tmp["type_code"] == 10000:
                     text = _preprocess_asr(tmp["text"])
                     if text is not None:
                         tmp["text"] = text
+                        tmp["prompt_str"] = f"[{TYPE_CODE_TO_PROMPT_CMD[tmp['type_code']]}] {text}\n"
                         processed_data.append(tmp)
                 else:
                     text = _preprocess_chat_message(tmp["text"])
                     if text != "":
                         tmp["text"] = text
+                        tmp["prompt_str"] = f"[{TYPE_CODE_TO_PROMPT_CMD[tmp['type_code']]}] {text}\n"
                         processed_data.append(tmp)
 
     with open(output_file, "w", encoding="utf-8") as f:

@@ -13,6 +13,8 @@ model = load_silero_vad()
 MIN_SILENCE_DURATION_MS = 500
 MAX_SPEECH_DURATION_S = 30
 
+PROMPT_CMD_TO_TYPE_CODE = {"chat": 100, "donation": 1000, "asr": 10000}
+
 
 def extract_and_save_vad(video_id: int):
     audio_path = _get_audio_file_path(video_id)
@@ -31,7 +33,7 @@ def _get_vad_context(audio_path: str) -> list[tuple[int, int, int]]:
     )
     results = []
     for timestamp in timestamps:
-        results.append((timestamp["start"], timestamp["end"], -1))
+        results.append((timestamp["start"], timestamp["end"], PROMPT_CMD_TO_TYPE_CODE["asr"]))
     return results
 
 
