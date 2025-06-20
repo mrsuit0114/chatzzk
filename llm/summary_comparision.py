@@ -34,9 +34,11 @@ if file1 and file2:
                 for sub_key in sorted(dict1.keys(), key=lambda x: int(x) if x.isdigit() else x):
                     st.markdown(f"### 🔹  {int(sub_key)} ~ {int(sub_key) + 2} minutes")
                     st.markdown("**File 1:**")
-                    st.markdown(f"> {dict1[sub_key].strip().replace('\n', '  \n')}")
+                    text1 = dict1[sub_key].strip().replace("\n", "  \n")
+                    st.markdown(f"> {text1}")
                     st.markdown("**File 2:**")
-                    st.markdown(f"> {dict2[sub_key].strip().replace('\n', '  \n')}")
+                    text2 = dict2[sub_key].strip().replace("\n", "  \n")
+                    st.markdown(f"> {text2}")
                     st.markdown("---")
 
     except json.JSONDecodeError:
