@@ -8,6 +8,7 @@ import torch
 import torchaudio
 from loguru import logger
 from silero_vad import get_speech_timestamps, load_silero_vad
+from tqdm import tqdm
 
 model = load_silero_vad()
 MIN_SILENCE_DURATION_MS = 500
@@ -32,7 +33,7 @@ def _get_vad_context(audio_path: str) -> list[tuple[int, int, int]]:
         audio, model, min_silence_duration_ms=MIN_SILENCE_DURATION_MS, max_speech_duration_s=MAX_SPEECH_DURATION_S
     )
     results = []
-    for timestamp in timestamps:
+    for timestamp in tqdm(timestamps, desc="Extracting VAD"):
         results.append((timestamp["start"], timestamp["end"], PROMPT_CMD_TO_TYPE_CODE["asr"]))
     return results
 

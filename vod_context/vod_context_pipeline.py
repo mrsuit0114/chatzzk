@@ -1,3 +1,5 @@
+import os
+
 from vod_context.apply_asr_to_context import apply_asr_to_context
 from vod_context.collect_vod_data import crawl_chat_data_for_video
 from vod_context.extract_vad import extract_and_save_vad
@@ -14,3 +16,12 @@ def run(video_id: int):
     extract_and_save_vad(video_id)
     apply_asr_to_context(video_id, model_size="large-v3")
     process_jsonl(video_id)
+
+
+def init():
+    os.makedirs("./data", exist_ok=True)
+    os.makedirs("./data/videos", exist_ok=True)
+    os.makedirs("./data/audios", exist_ok=True)
+    os.makedirs("./data/vads", exist_ok=True)
+    os.makedirs("./data/chats", exist_ok=True)
+    os.makedirs("./data/full_contexts", exist_ok=True)
