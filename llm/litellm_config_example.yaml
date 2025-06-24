@@ -1,0 +1,63 @@
+model_list:
+  - model_name: gemini
+    litellm_params:
+      model: gemini/gemini-2.0-flash
+      api_key: "your_api_key"
+
+  - model_name: gemini
+    litellm_params:
+      model: gemini/gemini-2.0-flash-lite
+      api_key: "your_api_key"
+
+  - model_name: gemini
+    litellm_params:
+      model: gemini/gemini-2.5-flash-lite-preview-06-17
+      api_key: "your_api_key"
+
+  - model_name: short_term_summary
+    litellm_params:
+      model: gemini/gemini-2.0-flash
+      litellm_credential_name: short_term_summary
+
+  - model_name: short_term_summary
+    litellm_params:
+      model: gemini/gemini-2.0-flash-lite
+      litellm_credential_name: short_term_summary
+
+  - model_name: short_term_summary
+    litellm_params:
+      model: gemini/gemini-2.5-flash-lite-preview-06-17
+      litellm_credential_name: short_term_summary
+
+  - model_name: gpt-4o-mini
+    litellm_params:
+      model: gpt-4o-mini
+
+credential_list:
+  - credential_name: short_term_summary
+    credential_values:
+      api_key: "your_api_key"
+      temperature: 0.3
+      top_p: 0.9
+      max_tokens: 500
+    credential_info:
+      description: "config for short_term_summary"
+
+
+general_settings:
+  master_key: sk-1234
+  database_url: "your_database_url"
+
+litellm_settings:
+  drop_params: True
+  num_retries: 3
+  request_timeout: 5
+  success_callback: ["langfuse"]
+  failure_callback: ["langfuse"]
+  allowed_fails: 3
+
+router_settings:
+  routing_strategy: "latency-based-routing"
+  model_group_alias: {"short_term_summary": "short_term_summary"}
+  num_retries: 2
+  timeout: 10

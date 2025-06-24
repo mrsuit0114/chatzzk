@@ -1,62 +1,52 @@
-import time
+from abc import ABC, abstractmethod
 
 from litellm import completion
+from loguru import logger
 
-from data_types.context_data import ContextData
-from llm.prompt_builder import PromptBuilder
+from llm.prompt_builder import PromptBuilderFactory
 
 
-class LLMClient:
-    # 어떤 요청을 받을지 모름 - 주제요청, 방송 흐름정리, 채팅 추천 등 요구사항에 따라 시스템 프롬프트가 다름
-    def __init__(self, config: dict, proxy_url: str):
-        self.prompt_builder = PromptBuilder(config["prompt_builder"])
+class LLMClient(ABC):
+    def __init__(self, config: dict, task_type: str, proxy_url: str):
+        self.prompt_builder = PromptBuilderFactory.create_prompt_builder(
+            config[task_type]["prompt_builder"], task_type
+        )
         self.proxy_url = proxy_url
+        self.task_type = task_type
 
-    def request_completion_choices(
-        self,
-        user_api_key: str,
-        *,
-        request_type: str,
-        metadata: dict[str, str],
-        prev_summary: str,
-        cur_context: list[ContextData],
-        custom_request: str,
-    ):
-        # system_prompt, metadata, prev_summary, cur_context, custom_request, system_request_emphasis
-        # messages = self.prompt_builder.build_prompt_for_choices(request_type, metadata, prev_summary, cur_context, custom_request)
-
+    @abstractmethod
+    def complete(self, api_key: str, **kwargs):
         pass
 
-    def request_completion_summary(
-        self,
-        user_api_key: str,
-        *,
-        metadata: dict[str, str],
-        prev_summary: str,
-        cur_context: str,
-    ):
-        messages = self.prompt_builder.build_prompt_for_summary(metadata, prev_summary, cur_context)
+    def _build_messages(self, **kwargs) -> list[dict]:
+        return self.prompt_builder.build_messages(**kwargs)
 
-        max_retries = 30
-        base_delay = 1  # 초기 대기 시간 (초)
 
-        for attempt in range(max_retries):
-            try:
-                response = completion(
-                    model="gemini/gemini-2.0-flash",
-                    messages=messages,
-                    # api_base=self.proxy_url,
-                    # api_key=user_api_key,
-                    temperature=0.3,
-                    top_p=0.9,
-                    max_tokens=500,
-                )
-                return response.choices[0].message.content
-            except Exception:
-                if attempt == max_retries - 1:  # 마지막 시도였다면
-                    raise  # 에러를 그대로 전파
+class LLMClientFactory:
+    @staticmethod
+    def create_llm_client(config: dict, task_type: str, proxy_url: str) -> LLMClient:
+        if task_type == "short_term_summary":
+            return ShortTermSummaryLLMClient(config, proxy_url)
+        else:
+            raise ValueError(f"Invalid task type: {task_type}")
 
-                # 지수 백오프: 각 시도마다 대기 시간이 2배씩 증가
-                delay = base_delay * (2**attempt)
-                time.sleep(delay)
-                continue
+
+class ShortTermSummaryLLMClient(LLMClient):
+    def __init__(self, config: dict, proxy_url: str):
+        super().__init__(config, "short_term_summary", proxy_url)
+
+    def complete(self, api_key: str, **kwargs) -> str:
+        messages = self._build_messages(**kwargs)
+
+        try:
+            response = completion(
+                model=self.task_type,
+                messages=messages,
+                api_key=api_key,
+                base_url=self.proxy_url,
+                custom_llm_provider="openai",
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"Error in request_completion: {e}")
+            raise e
