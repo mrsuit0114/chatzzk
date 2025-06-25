@@ -175,3 +175,4 @@ cython_debug/
 
 # custom
 /data
+/llm/litellm_config.yaml

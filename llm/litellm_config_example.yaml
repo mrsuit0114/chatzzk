@@ -2,17 +2,17 @@ model_list:
   - model_name: gemini
     litellm_params:
       model: gemini/gemini-2.0-flash
-      api_key: "your_api_key"
+      api_key: "your_key"
 
   - model_name: gemini
     litellm_params:
       model: gemini/gemini-2.0-flash-lite
-      api_key: "your_api_key"
+      api_key: "your_key"
 
   - model_name: gemini
     litellm_params:
       model: gemini/gemini-2.5-flash-lite-preview-06-17
-      api_key: "your_api_key"
+      api_key: "your_key"
 
   - model_name: short_term_summary
     litellm_params:
@@ -29,6 +29,21 @@ model_list:
       model: gemini/gemini-2.5-flash-lite-preview-06-17
       litellm_credential_name: short_term_summary
 
+  - model_name: general
+    litellm_params:
+      model: gemini/gemini-2.0-flash
+      litellm_credential_name: general
+
+  - model_name: general
+    litellm_params:
+      model: gemini/gemini-2.0-flash-lite
+      litellm_credential_name: general
+
+  - model_name: general
+    litellm_params:
+      model: gemini/gemini-2.5-flash-lite-preview-06-17
+      litellm_credential_name: general
+
   - model_name: gpt-4o-mini
     litellm_params:
       model: gpt-4o-mini
@@ -36,17 +51,26 @@ model_list:
 credential_list:
   - credential_name: short_term_summary
     credential_values:
-      api_key: "your_api_key"
+      api_key: "your_key"
       temperature: 0.3
       top_p: 0.9
       max_tokens: 500
     credential_info:
       description: "config for short_term_summary"
 
+  - credential_name: general
+    credential_values:
+      api_key: "your_key"
+      temperature: 1
+      top_p: 0.9
+      max_tokens: 500
+    credential_info:
+      description: "config for general"
+
 
 general_settings:
   master_key: sk-1234
-  database_url: "your_database_url"
+  database_url: "your_db"
 
 litellm_settings:
   drop_params: True
@@ -58,6 +82,6 @@ litellm_settings:
 
 router_settings:
   routing_strategy: "latency-based-routing"
-  model_group_alias: {"short_term_summary": "short_term_summary"}
+  model_group_alias: {"short_term_summary": "short_term_summary", "general": "general", "general_choice": "general"}
   num_retries: 2
   timeout: 10
