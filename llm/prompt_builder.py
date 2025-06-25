@@ -64,10 +64,52 @@ class ShortTermSummaryPromptBuilder(PromptBuilder):
         return self.user_prompt_format.format(**metadata, prev_summary=prev_summary, cur_context=cur_context)
 
 
-class PromptBuilderFactory(PromptBuilder):
+class GeneralPromptBuilder(PromptBuilder):
+    def __init__(self, config: dict):
+        super().__init__(config)
+
+    def _build_system_prompt(self) -> str:
+        return self.system_prompt_format
+
+    def _build_user_prompt(
+        self, metadata: dict, prev_summary: str, cur_context: str, consideration: str, request_emphasis: str
+    ) -> str:
+        return self.user_prompt_format.format(
+            **metadata,
+            prev_summary=prev_summary,
+            cur_context=cur_context,
+            consideration=consideration,
+            request_emphasis=request_emphasis,
+        )
+
+
+class GeneralChoicePromptBuilder(PromptBuilder):
+    def __init__(self, config: dict):
+        super().__init__(config)
+
+    def _build_system_prompt(self) -> str:
+        return self.system_prompt_format
+
+    def _build_user_prompt(
+        self, metadata: dict, prev_summary: str, cur_context: str, consideration: str, request_emphasis: str
+    ) -> str:
+        return self.user_prompt_format.format(
+            **metadata,
+            prev_summary=prev_summary,
+            cur_context=cur_context,
+            consideration=consideration,
+            request_emphasis=request_emphasis,
+        )
+
+
+class PromptBuilderFactory:
     @staticmethod
     def create_prompt_builder(config: dict, task_type: str) -> PromptBuilder:
         if task_type == "short_term_summary":
             return ShortTermSummaryPromptBuilder(config)
+        elif task_type == "general":
+            return GeneralPromptBuilder(config)
+        elif task_type == "general_choice":
+            return GeneralChoicePromptBuilder(config)
         else:
             raise ValueError(f"Invalid prompt type: {task_type}")
