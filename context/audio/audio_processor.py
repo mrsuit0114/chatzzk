@@ -27,7 +27,7 @@ class AudioProcessor:
         self.min_silence_duration_ms: int = config["min_silence_duration_ms"]
         self.max_speech_duration_ms: int = config["max_speech_duration_ms"]
         self.sample_to_ms: float = 1000 / self.target_sampling_rate / self.bytes_per_sample
-        self.lookahead_offset_ms = config["lookahead_offset_ms"]
+        self.offset_ms = config["offset_ms"]
         self.prompt_cmd_to_type_code = shared_config["prompt_cmd_to_type_code"]
         self.type_code_to_prompt_cmd = {v: k.upper() for k, v in self.prompt_cmd_to_type_code.items()}
 
@@ -103,7 +103,7 @@ class AudioProcessor:
                         speech_time_ms = int(
                             snapshot_timestamp_ms - (speech_length // self.bytes_per_sample * self.sample_to_ms) // 2
                         )
-                        speech_time_ms -= self.lookahead_offset_ms
+                        speech_time_ms -= self.offset_ms
                         type_code = self.prompt_cmd_to_type_code["asr"]
                         prompt_str = f"[{self.type_code_to_prompt_cmd[type_code]}] {result}\n"
                         self.asr_history.append(ContextData(speech_time_ms, result, type_code, prompt_str))
