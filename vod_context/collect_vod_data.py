@@ -70,7 +70,7 @@ def _append_chats_to_jsonl(chats: list[tuple[int, str, int]], video_id: int):
         # Append new chats as JSONL
         with open(file_path, "a", encoding="utf-8") as f:
             for chat in chats:
-                chat_obj = {"timestamp": chat[0], "text": chat[1], "type_code": chat[2]}
+                chat_obj = {"timestamp_ms": chat[0], "content": chat[1], "type_code": chat[2]}
                 f.write(json.dumps(chat_obj, ensure_ascii=False) + "\n")
     except Exception as e:
         logger.error(f"Error appending chats to jsonl file: {e}")
@@ -94,12 +94,12 @@ def _parse_video_chats(data):
     for video_chat in video_chats:
         msg_type_code = video_chat.get("messageTypeCode")
         timestamp_ms = video_chat.get("playerMessageTime")
-        text = video_chat.get("content")
+        content = video_chat.get("content")
 
         match msg_type_code:
             case 1:
-                result.append((timestamp_ms, text, PROMPT_CMD_TO_TYPE_CODE["chat"]))
+                result.append((timestamp_ms, content, PROMPT_CMD_TO_TYPE_CODE["chat"]))
             case 10:
-                result.append((timestamp_ms, text, PROMPT_CMD_TO_TYPE_CODE["donation"]))
+                result.append((timestamp_ms, content, PROMPT_CMD_TO_TYPE_CODE["donation"]))
 
     return result, next_player_message_time

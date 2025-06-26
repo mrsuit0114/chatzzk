@@ -1,7 +1,3 @@
-# vad는 sample을 기준으로 구분되어 있으므로 wav를 메모리에 올리고 구간에따라 audio[start:end]로 asr 실행
-# timestamp는 start와 end를 16000으로 나눈 값의 평균으로 계산하여 {"full_context": [{"timestamp": timestamp, "text": asr_result, "pay_amout":-1}]} 형태로 저장
-# asr저장된 결과와 chats의 결과가 똑같은 구조를 가지므로 timestamp를 기준으로 정렬된 full_context를 구축하여 저장
-
 import json
 
 import numpy as np
@@ -73,14 +69,14 @@ def apply_asr_to_context(video_id: int, model_size: str):
         start, end, _ = vad
         asr_result = "".join(asr(audio_data_np, [(start, end)])).strip()
         asr_context.append(
-            {"timestamp": (start + end) // 32, "text": asr_result, "type_code": 10000}
+            {"timestamp_ms": (start + end) // 32, "content": asr_result, "type_code": 10000}
         )  # // 2(for avg) // 16000(sr) * 1000(sec to ms)
 
     full_context = []
 
     i, j = 0, 0
     while i < len(chat_context) and j < len(asr_context):
-        if chat_context[i]["timestamp"] < asr_context[j]["timestamp"]:
+        if chat_context[i]["timestamp_ms"] < asr_context[j]["timestamp_ms"]:
             full_context.append(chat_context[i])
             i += 1
         else:
