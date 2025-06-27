@@ -10,11 +10,7 @@ class ContextPreprocessor:
     def _preprocess_chat_message(self, text: str) -> str:
         # {:...:} 형태 제거
         text = re.sub(r"\{:[^:]*:\}", "", text)
-
-        # 반복되는 자음들 정리
-        text = re.sub(r"ㅋ{2,}", "ㅋㅋ", text)
-        text = re.sub(r"ㅅ{2,}", "ㅅㅅ", text)
-        text = re.sub(r"ㅊ{2,}", "ㅊㅊ", text)
+        text = re.sub(r"([ㄱ-ㅎㅏ-ㅣ])\1{2,}", r"\1\1", text)
 
         return text.strip()
 
