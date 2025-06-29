@@ -58,14 +58,7 @@ python main.py
 
 ### ✅ Completed
 
-- Real-time data pipeline established for live streams.
-- Synchronized audio (ASR) and chat data collection implemented.
-- Built contextual representation combining chat messages and transcribed audio.
+<img width="1005" alt="image" src="https://github.com/user-attachments/assets/5f3d7115-0826-4c52-9f07-f69f1993c597" />
 
-### 🛠️ In Progress / Upcoming
+### data example
 
-- Periodic analysis of broadcast flow to detect transitions and context shifts.
-- Text generation module:
-  - Generates responses based on real-time context (chat + ASR).
-  - Adapts to user prompts and the ongoing flow of the broadcast.
-  - Supports use cases like chat recommendation, summarization, and content generation.
