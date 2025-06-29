@@ -12,14 +12,6 @@ A real-time audio-driven text generation framework for live streams, capable of 
 - **[ChzzkChat](https://github.com/Buddha7771/ChzzkChat)** - Chat crawler
   - Based on the work of [Buddha7771](https://github.com/Buddha7771)
 
-### 한국어
-- [WhisperX](https://github.com/m-bain/whisperX) - ASR
-  - 라이센스: BSD-2-Clause License
-- [Silero VAD](https://github.com/snakers4/silero-vad) - 음성 활동 감지
-  - 라이센스: MIT License
-- [ChzzkChat](https://github.com/Buddha7771/ChzzkChat) - 채팅 크롤링 구현
-  - [Buddha7771](https://github.com/Buddha7771)님의 작업을 기반으로 함
-
 ## Installation & Setup
 
 ### English
@@ -38,27 +30,32 @@ sudo apt install libcudnn8
 python main.py
 ```
 
-### 한국어
-1. Python 의존성 설치:
-```bash
-pip install -r requirements.txt
-```
-
-2. CUDA 의존성 설치:
-```bash
-sudo apt install libcudnn8
-```
-
-3. 애플리케이션 실행:
-```bash
-python main.py
-```
-
 ## 🚧 Project Status
-
-### ✅ Completed
 
 <img width="1005" alt="image" src="https://github.com/user-attachments/assets/5f3d7115-0826-4c52-9f07-f69f1993c597" />
 
 ### data example
-
+full_context.jsonl
+```bash
+{"timestamp_ms": 295959, "content": "안녕하세요", "type_code": 100, "prompt_str": "[CHAT] 안녕하세요\n"}
+{"timestamp_ms": 296071, "content": "굿", "type_code": 100, "prompt_str": "[CHAT] 굿\n"}
+{"timestamp_ms": 296109, "content": "ㅋㅋ", "type_code": 100, "prompt_str": "[CHAT] ㅋㅋ\n"}
+{"timestamp_ms": 297877, "content": "네", "type_code": 100, "prompt_str": "[CHAT] 네\n"}
+{"timestamp_ms": 298096, "content": "인터넷을 하루 맨종일 하면서", "type_code": 10000, "prompt_str": "[ASR] 인터넷을 하루 맨종일 하면서\n"}
+{"timestamp_ms": 300169, "content": "그랬군요", "type_code": 100, "prompt_str": "[CHAT] 그랬군요\n"}
+{"timestamp_ms": 300256, "content": "면.", "type_code": 10000, "prompt_str": "[ASR] 면.\n"}
+{"timestamp_ms": 301220, "content": "ㅔㅔ", "type_code": 100, "prompt_str": "[CHAT] ㅔㅔ\n"}
+```
+summary.json
+```bash
+{
+  "short_term_summary": {
+    "120": "summary1",
+    "240": "summary2",
+    "360": "summary3",
+    "480": "summary4",
+    ...
+    },
+    "middle_term_summary":{}
+}
+```
