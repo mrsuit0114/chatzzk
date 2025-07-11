@@ -1,13 +1,11 @@
-import datetime
 import json
 import threading
 from collections import deque
 
-from loguru import logger
-from websocket import WebSocket
-
 from context.chat import api
 from data_types.context_data import ContextData
+from loguru import logger
+from websocket import WebSocket
 
 
 class ChatStreamProcessor:
@@ -87,35 +85,35 @@ class ChatStreamProcessor:
             logger.error("오류 발생")
             raise ValueError("오류 발생")
 
-    def send(self, message: str):
-        default_dict = {
-            "ver": 2,
-            "svcid": "game",
-            "cid": self.chatChannelId,
-        }
+    # def send(self, message: str):
+    #     default_dict = {
+    #         "ver": 2,
+    #         "svcid": "game",
+    #         "cid": self.chatChannelId,
+    #     }
 
-        extras = {
-            "chatType": "STREAMING",
-            "emojis": "",
-            "osType": "PC",
-            "extraToken": self.extraToken,
-            "streamingChannelId": self.chatChannelId,
-        }
+    #     extras = {
+    #         "chatType": "STREAMING",
+    #         "emojis": "",
+    #         "osType": "PC",
+    #         "extraToken": self.extraToken,
+    #         "streamingChannelId": self.chatChannelId,
+    #     }
 
-        send_dict = {
-            "tid": 3,
-            "cmd": self.chzzk_chat_code["send_chat"],
-            "retry": False,
-            "sid": self.sid,
-            "bdy": {
-                "msg": message,
-                "msgTypeCode": 1,
-                "extras": json.dumps(extras),
-                "msgTime": int(datetime.datetime.now().timestamp()),
-            },
-        }
+    #     send_dict = {
+    #         "tid": 3,
+    #         "cmd": self.chzzk_chat_code["send_chat"],
+    #         "retry": False,
+    #         "sid": self.sid,
+    #         "bdy": {
+    #             "msg": message,
+    #             "msgTypeCode": 1,
+    #             "extras": json.dumps(extras),
+    #             "msgTime": int(datetime.datetime.now().timestamp()),
+    #         },
+    #     }
 
-        self.sock.send(json.dumps(dict(send_dict, **default_dict)))
+    #     self.sock.send(json.dumps(dict(send_dict, **default_dict)))
 
     def _process_chat_message(self, raw_message):
         """채팅 메시지를 처리하고 큐에 추가"""

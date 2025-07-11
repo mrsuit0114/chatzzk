@@ -5,12 +5,11 @@ from concurrent.futures import ThreadPoolExecutor
 from time import time
 
 import numpy as np
-from loguru import logger
-
 from context.audio.asr import ASR
 from context.audio.circular_audio_buffer import CircularAudioBuffer
 from context.audio.vad import VAD
 from data_types.context_data import ContextData
+from loguru import logger
 
 
 class AudioProcessor:

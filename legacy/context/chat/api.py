@@ -11,6 +11,7 @@ def fetch_chatChannelId(streamer: str) -> str:
         response = response.json()
 
         chatChannelId = response["content"]["chatChannelId"]
+        # liveOn = response["content"]["status"]  "OPEN" or "CLOSE"
         assert chatChannelId is not None
         return chatChannelId
     except Exception as e:
