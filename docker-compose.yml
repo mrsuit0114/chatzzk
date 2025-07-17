@@ -1,46 +1,32 @@
-# docker-compose.yml
 version: '3.8'
 
 services:
   redis:
-    image: redis:7.0-alpine
-    container_name: redis-server
+    image: redis
+    container_name: redis
     ports:
       - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
     networks:
-      - monitor-network
+      - app-network
 
-  context_service: # 기존 monitor_manager 역할을 하는 서비스
+  watcher:
     build:
-      context: ./ContextService # ContextService 디렉토리 경로
-      dockerfile: Dockerfile
-    container_name: context-service
-    ports:
-      - "8000:8000"
-    environment:
-      # ... (ContextService에 필요한 환경 변수)
-      REDIS_HOST: redis
+      context: ./BroadcasterStatusWatcher
+    container_name: broadcaster_watcher
+    env_file:
+      - ./BroadcasterStatusWatcher/.env
+    networks:
+      - app-network
     depends_on:
       - redis
-    networks:
-      - monitor-network
 
-  broadcaster_status_watcher: # 새로 추가된 서비스
-    build:
-      context: ./BroadcasterStatusWatcher # BroadcasterStatusWatcher 디렉토리 경로
-      dockerfile: Dockerfile
-    container_name: broadcaster-status-watcher
-    environment:
-      # .env 파일에서 로드되므로, 여기서 중복 설정은 피하거나, 필요한 것만 오버라이드
-      MONITOR_MANAGER_URL: http://context_service:8000 # context_service의 내부 네트워크 주소
-      WATCH_INTERVAL_SECONDS: 5
-      BROADCASTER_IDS: "woowakgood,dokonoko" # 실제 테스트할 스트리머 ID
-      HEADERS_JSON: '{"User-Agent": ""}' # 필요시 여기에 직접 JSON 문자열 입력
-    depends_on:
-      - context_service # ContextService가 먼저 실행되어야 함
-    networks:
-      - monitor-network
+volumes:
+  redis-data:
+
 
 networks:
-  monitor-network:
+  app-network:
     driver: bridge

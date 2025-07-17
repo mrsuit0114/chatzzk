@@ -3,3 +3,5 @@ uvicorn[standard]
 redis[async]
 httpx
 python-dotenv
+kubernetes
+loguru
