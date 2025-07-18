@@ -47,26 +47,12 @@
 import time
 
 from chat.chat_stream_processor import ChatStreamProcessor
+from config import ChatConfig, SharedConfig
 from loguru import logger
-
-CHAT_CONFIG = {
-    "max_chat_history_count": 10000,
-    "chzzk_chat_code": {
-        "ping": 0,
-        "pong": 10000,
-        "connect": 100,
-        "send_chat": 3101,
-        "request_recent_chat": 5101,
-        "chat": 93101,
-        "donation": 93102,
-    },
-}
-
-SHARED_CONFIG = {"prompt_cmd_to_type_code": {"chat": 100, "donation": 1000, "asr": 10000}}
 
 channel_id = ""
 
-chat_stream_processor = ChatStreamProcessor(channel_id, CHAT_CONFIG, SHARED_CONFIG)
+chat_stream_processor = ChatStreamProcessor(channel_id, ChatConfig, SharedConfig)
 chat_stream_processor.run()
 
 while True:

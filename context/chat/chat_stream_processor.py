@@ -15,21 +15,21 @@ STOP_TIMEOUT_S = 5
 
 
 class ChatStreamProcessor:
-    def __init__(self, streamer_id: str, chat_config: dict, shared_config: dict):
+    def __init__(self, streamer_id: str, chat_config, shared_config):
         self.streamer_id = streamer_id
-        self.chzzk_chat_code = chat_config["chzzk_chat_code"]
+        self.chzzk_chat_code = chat_config.CHZZK_CHAT_CODE
         self.sid = None
         self.chatChannelId = api.fetch_chatChannelId(streamer_id)
         self.channelName = api.fetch_channelName(streamer_id)
         self.accessToken, self.extraToken = None, None
         self.userIdHash = api.fetch_userIdHash()
 
-        self.prompt_cmd_to_type_code = shared_config["prompt_cmd_to_type_code"]
+        self.prompt_cmd_to_type_code = shared_config.PROMPT_CMD_TO_TYPE_CODE
         self.type_code_to_prompt_cmd = {v: k.upper() for k, v in self.prompt_cmd_to_type_code.items()}
         self.is_running = False
         self.stop_event = threading.Event()
         self.chat_thread = None
-        self.chat_history: deque[ContextData] = deque(maxlen=chat_config["max_chat_history_count"])
+        self.chat_history: deque[ContextData] = deque(maxlen=chat_config.MAX_CHAT_HISTORY_COUNT)
         self.chat_history_lock = threading.Lock()
 
         self._connect()
