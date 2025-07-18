@@ -1,0 +1,6 @@
+# whisperx
+# silero-vad
+ffmpeg-python
+loguru
+websocket-client
+requests

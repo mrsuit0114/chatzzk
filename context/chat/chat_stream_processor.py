@@ -1,39 +1,40 @@
 import datetime
 import json
+import re
 import threading
+import time
 from collections import deque
 
+from chat import api
 from loguru import logger
 from websocket import WebSocket
 
-from context.chat import api
 from data_types.context_data import ContextData
+
+STOP_TIMEOUT_S = 5
 
 
 class ChatStreamProcessor:
     def __init__(self, streamer_id: str, chat_config: dict, shared_config: dict):
         self.streamer_id = streamer_id
         self.chzzk_chat_code = chat_config["chzzk_chat_code"]
-        self.stop_timeout_s = chat_config["stop_timeout_s"]
-        self.prompt_cmd_to_type_code = shared_config["prompt_cmd_to_type_code"]
-        self.type_code_to_prompt_cmd = {v: k.upper() for k, v in self.prompt_cmd_to_type_code.items()}
-
         self.sid = None
-        self.chatChannelId = api.fetch_chatChannelId(self.streamer_id)
-        self.channelName = api.fetch_channelName(self.streamer_id)
+        self.chatChannelId = api.fetch_chatChannelId(streamer_id)
+        self.channelName = api.fetch_channelName(streamer_id)
         self.accessToken, self.extraToken = None, None
         self.userIdHash = api.fetch_userIdHash()
 
-        # 채팅 메시지를 저장할 큐와 스레드 관련 변수들
+        self.prompt_cmd_to_type_code = shared_config["prompt_cmd_to_type_code"]
+        self.type_code_to_prompt_cmd = {v: k.upper() for k, v in self.prompt_cmd_to_type_code.items()}
         self.is_running = False
         self.stop_event = threading.Event()
         self.chat_thread = None
         self.chat_history: deque[ContextData] = deque(maxlen=chat_config["max_chat_history_count"])
         self.chat_history_lock = threading.Lock()
 
-        self.connect()
+        self._connect()
 
-    def connect(self):
+    def _connect(self):
         if hasattr(self, "sock") and self.sock.connected:
             try:
                 self.sock.close()
@@ -117,6 +118,12 @@ class ChatStreamProcessor:
 
         self.sock.send(json.dumps(dict(send_dict, **default_dict)))
 
+    def _preprocess_chat_message_to_prompt_str(self, chat_message: str) -> str:
+        chat_message = re.sub(r"\{:[^:]*:\}", "", chat_message)
+        chat_message = re.sub(r"([ㄱ-ㅎㅏ-ㅣ])\1{2,}", r"\1\1", chat_message)
+
+        return chat_message.strip()
+
     def _process_chat_message(self, raw_message):
         """채팅 메시지를 처리하고 큐에 추가"""
         try:
@@ -126,7 +133,7 @@ class ChatStreamProcessor:
                 self.sock.send(json.dumps({"ver": "2", "cmd": self.chzzk_chat_code["pong"]}))
 
                 if self.chatChannelId != api.fetch_chatChannelId(self.streamer_id):
-                    self.connect()
+                    self._connect()
                 return
 
             if chat_code == self.chzzk_chat_code["chat"]:
@@ -137,8 +144,8 @@ class ChatStreamProcessor:
                 return
 
             for chat_data in raw_message["bdy"]:
-                timestamp_ms = chat_data["msgTime"]  # 이미 밀리초 단위로 제공됨
-                prompt_str = f"[{self.type_code_to_prompt_cmd[chat_type_code]}] {chat_data['msg']}\n"
+                timestamp_ms = int(datetime.datetime.now().timestamp() * 1000)
+                prompt_str = f"[{self.type_code_to_prompt_cmd[chat_type_code]}] {self._preprocess_chat_message_to_prompt_str(chat_data['msg'])}\n"
 
                 chat_info = ContextData(timestamp_ms, chat_data["msg"], chat_type_code, prompt_str)
 
@@ -159,7 +166,7 @@ class ChatStreamProcessor:
             except Exception as e:
                 logger.error(f"Error in chat worker: {e}")
                 if not self.stop_event.is_set():
-                    self.connect()
+                    self._connect()
 
     def run(self):
         if self.is_running:
@@ -181,7 +188,7 @@ class ChatStreamProcessor:
         self.stop_event.set()
 
         if self.chat_thread and self.chat_thread.is_alive():
-            self.chat_thread.join(timeout=self.stop_timeout_s)
+            self.chat_thread.join(timeout=STOP_TIMEOUT_S)
             logger.info("Chat worker thread stopped.")
 
     def get_new_chats(self) -> list[ContextData]:
@@ -189,3 +196,31 @@ class ChatStreamProcessor:
             latest_chats = list(self.chat_history)
             self.chat_history.clear()
         return latest_chats
+
+
+if __name__ == "__main__":
+    CHAT_CONFIG = {
+        "max_chat_history_count": 10000,
+        "chzzk_chat_code": {
+            "ping": 0,
+            "pong": 10000,
+            "connect": 100,
+            "send_chat": 3101,
+            "request_recent_chat": 5101,
+            "chat": 93101,
+            "donation": 93102,
+        },
+    }
+
+    SHARED_CONFIG = {"prompt_cmd_to_type_code": {"chat": 100, "donation": 1000, "asr": 10000}}
+
+    channel_id = ""
+
+    chat_stream_processor = ChatStreamProcessor(channel_id, CHAT_CONFIG, SHARED_CONFIG)
+    chat_stream_processor.run()
+
+    while True:
+        time.sleep(1)
+        new_chats = chat_stream_processor.get_new_chats()
+        for chat in new_chats:
+            logger.info(chat)

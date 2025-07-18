@@ -3,8 +3,8 @@ import requests
 HEADERS = {"User-Agent": ""}
 
 
-def fetch_chatChannelId(streamer: str) -> str:
-    url = f"https://api.chzzk.naver.com/polling/v2/channels/{streamer}/live-status"
+def fetch_chatChannelId(channel_id: str) -> str:
+    url = f"https://api.chzzk.naver.com/polling/v2/channels/{channel_id}/live-status"
     try:
         response = requests.get(url, headers=HEADERS)
         response.raise_for_status()
@@ -17,8 +17,8 @@ def fetch_chatChannelId(streamer: str) -> str:
         raise e
 
 
-def fetch_channelName(streamer: str) -> str:
-    url = f"https://api.chzzk.naver.com/service/v1/channels/{streamer}"
+def fetch_channelName(channel_id: str) -> str:
+    url = f"https://api.chzzk.naver.com/service/v1/channels/{channel_id}"
     try:
         response = requests.get(url, headers=HEADERS)
         response.raise_for_status()
@@ -28,10 +28,8 @@ def fetch_channelName(streamer: str) -> str:
         raise e
 
 
-def fetch_accessToken(chatChannelId) -> tuple:
-    url = (
-        f"https://comm-api.game.naver.com/nng_main/v1/chats/access-token?channelId={chatChannelId}&chatType=STREAMING"
-    )
+def fetch_accessToken(chat_channel_id: str) -> tuple:
+    url = f"https://comm-api.game.naver.com/nng_main/v1/chats/access-token?channelId={chat_channel_id}&chatType=STREAMING"
     try:
         response = requests.get(url, headers=HEADERS)
         response.raise_for_status()
@@ -47,6 +45,6 @@ def fetch_userIdHash() -> str:
         response = requests.get(url, headers=HEADERS)
         response.raise_for_status()
         response = response.json()
-        return response["content"]["userIdHash"]
+        return response["content"]["userIdHash"]  # null
     except Exception as e:
         raise e
