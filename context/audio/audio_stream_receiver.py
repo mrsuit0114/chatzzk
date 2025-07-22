@@ -5,16 +5,16 @@ import threading
 import time
 
 import ffmpeg
+from audio.circular_audio_buffer import CircularAudioBuffer
 from loguru import logger
-
-from context.audio.circular_audio_buffer import CircularAudioBuffer
 
 
 class AudioStreamReceiver:
     """Fetch m3u8 stream, decode audio with ffmpeg, and write raw audio bytes into a circular buffer."""
 
+    STOP_TIMEOUT_S = 5
     SELECT_TIMEOUT_S = 0.1
-    WRITE_INTERVAL_S = 1.0
+    WRITE_INTERVAL_S = 0.5
 
     def __init__(
         self, m3u8_url: str, buffer: CircularAudioBuffer, target_sampling_rate: int, ffmpeg_read_chunk_size: int
@@ -70,6 +70,9 @@ class AudioStreamReceiver:
         self.stop_event.set()
 
     def run(self) -> None:
+        if self.is_running:
+            return
+
         self.is_running = True
         self.stop_event.clear()
 
@@ -98,7 +101,7 @@ class AudioStreamReceiver:
         self.stop_event.set()
 
         if self.reader_audio_stream_thread and self.reader_audio_stream_thread.is_alive():
-            self.reader_audio_stream_thread.join(timeout=5.0)
+            self.reader_audio_stream_thread.join(timeout=self.STOP_TIMEOUT_S)
             logger.info("[Receiver] Reader thread stopped.")
 
         if self.process:
@@ -106,7 +109,7 @@ class AudioStreamReceiver:
             try:
                 self.process.stdout.close()
                 self.process.terminate()
-                self.process.wait(timeout=5)
+                self.process.wait(timeout=self.STOP_TIMEOUT_S)
             except Exception as e:
                 logger.error(f"[Receiver] Error terminating FFMPEG process: {e}")
             logger.info("[Receiver] FFMPEG process terminated.")

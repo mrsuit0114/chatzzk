@@ -9,9 +9,11 @@ class ASR:
     BATCH_SIZE = 4
 
     def __init__(self, model_size: str, not_expected_asr_list: list[str]):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"  # cpu 사용 시 서비스 불가 - 에러처리
         self.model = self._load_model(model_size)
         self.not_expected_asr_list = not_expected_asr_list
+        if self.device == "cpu":
+            logger.error("ASR doesn't work well with cpu!!")
 
     def _load_model(self, model_size: str):
         model = whisperx.load_model(model_size, device=self.device, compute_type=self.COMPUTE_TYPE)

@@ -1,9 +1,10 @@
 import requests
+from audio.audio_processor import AudioProcessor
+from audio.audio_stream_receiver import AudioStreamReceiver
+from audio.circular_audio_buffer import CircularAudioBuffer
+from config import AudioConfig, SharedConfig
 from loguru import logger
 
-from context.audio.audio_processor import AudioProcessor
-from context.audio.audio_stream_receiver import AudioStreamReceiver
-from context.audio.circular_audio_buffer import CircularAudioBuffer
 from data_types.context_data import ContextData
 
 
@@ -32,15 +33,17 @@ class AudioStreamProcessor:
     It uses AudioStreamReceiver to receive audio stream and AudioProcessor to process it.
     """
 
-    def __init__(self, channel_id: str, audio_config: dict, shared_config: dict):
-        self.m3u8_url: str = _get_audio_m3u8_url(channel_id, audio_config["m3u8_proxy_url"])
+    FFMPEG_READ_CHUNK_SIZE: int = 4096
+
+    def __init__(self, channel_id: str, audio_config: AudioConfig, shared_config: SharedConfig):
+        self.m3u8_url: str = _get_audio_m3u8_url(channel_id, audio_config.M3U8_PROXY_URL)
         self.buffer = CircularAudioBuffer(
-            audio_config["target_sampling_rate"] * audio_config["bytes_per_sample"] * audio_config["buffer_duration_s"]
+            audio_config.TARGET_SAMPLING_RATE * audio_config.BYTES_PER_SAMPLE * audio_config.MAX_SPEECH_DURATION_S
         )
 
         self.processor = AudioProcessor(audio_config, self.buffer, shared_config)
         self.receiver = AudioStreamReceiver(
-            self.m3u8_url, self.buffer, audio_config["target_sampling_rate"], audio_config["ffmpeg_read_chunk_size"]
+            self.m3u8_url, self.buffer, audio_config.TARGET_SAMPLING_RATE, self.FFMPEG_READ_CHUNK_SIZE
         )
 
     def run(self) -> None:
@@ -53,8 +56,8 @@ class AudioStreamProcessor:
                     self.receiver.stop_event.wait(timeout=1.0)
                     if self.receiver.stop_event.is_set():
                         break
-                except KeyboardInterrupt:
-                    logger.info("\nCtrl+C detected. Stopping application...")
+                except Exception as e:
+                    logger.info(f"\nCtrl+C detected. Stopping application...{e}")
                     break
         finally:
             self.stop()

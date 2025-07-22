@@ -10,7 +10,6 @@ class CircularAudioBuffer:
         self.write_pos = 0
         self.buffer_lock = threading.Lock()
         self.last_speech_timestamp_idx = 0
-        self.last_speech_timestamp_idx_lock = threading.Lock()
 
     def write(self, data: bytes):
         """
@@ -22,26 +21,22 @@ class CircularAudioBuffer:
             data (bytes): Audio data bytes to write into buffer.
         """
         data_len = len(data)
-        with self.last_speech_timestamp_idx_lock:
+        with self.buffer_lock:
             self.last_speech_timestamp_idx -= data_len
             self.last_speech_timestamp_idx = max(self.last_speech_timestamp_idx, 0)
 
-        if data_len >= self.capacity:
-            with self.buffer_lock:
+            if data_len >= self.capacity:
                 self.buffer[:] = data[-self.capacity :]
                 self.write_pos = 0
-            self.is_full = True
-            return
+                return
 
-        end_pos = self.write_pos + data_len
+            end_pos = self.write_pos + data_len
 
-        if end_pos <= self.capacity:
-            # 버퍼 끝까지 여유 공간 있을 때
-            with self.buffer_lock:
+            if end_pos <= self.capacity:
+                # 버퍼 끝까지 여유 공간 있을 때
                 self.buffer[self.write_pos : end_pos] = data
                 self.write_pos = end_pos % self.capacity
-        else:
-            with self.buffer_lock:
+            else:
                 # 버퍼 끝과 처음을 넘나들며 저장
                 first_part = self.capacity - self.write_pos
                 second_part = data_len - first_part
@@ -49,23 +44,13 @@ class CircularAudioBuffer:
                 self.buffer[:second_part] = data[first_part:]
                 self.write_pos = second_part
 
-    def get_last_speech_timestamp_idx(self) -> int:
-        """
-        Get the total number of bytes written since last reset and reset the counter.
-
-        Returns:
-            int: Total number of bytes written since last reset.
-        """
-        with self.last_speech_timestamp_idx_lock:
-            return self.last_speech_timestamp_idx
-
     def update_last_speech_timestamp_idx(self, idx: int) -> None:
         """Add idx as much as the number of bytes processed.
 
         Args:
             idx (int): number of bytes processed
         """
-        with self.last_speech_timestamp_idx_lock:
+        with self.buffer_lock:
             self.last_speech_timestamp_idx += idx
 
     def get_all_data(self) -> bytes:
@@ -76,4 +61,5 @@ class CircularAudioBuffer:
             bytes: Concatenated bytes of the buffered audio data.
         """
         with self.buffer_lock:
-            return bytes(self.buffer[self.write_pos :] + self.buffer[: self.write_pos])
+            data = (self.buffer[self.write_pos :] + self.buffer[: self.write_pos])[self.last_speech_timestamp_idx :]
+            return data[:-1] if len(data) % 2 == 1 else data

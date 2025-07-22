@@ -11,10 +11,10 @@ from websocket import WebSocket
 
 from data_types.context_data import ContextData
 
-STOP_TIMEOUT_S = 5
-
 
 class ChatStreamProcessor:
+    STOP_TIMEOUT_S = 5
+
     def __init__(self, streamer_id: str, chat_config, shared_config):
         self.streamer_id = streamer_id
         self.chzzk_chat_code = chat_config.CHZZK_CHAT_CODE
@@ -188,7 +188,7 @@ class ChatStreamProcessor:
         self.stop_event.set()
 
         if self.chat_thread and self.chat_thread.is_alive():
-            self.chat_thread.join(timeout=STOP_TIMEOUT_S)
+            self.chat_thread.join(timeout=self.STOP_TIMEOUT_S)
             logger.info("Chat worker thread stopped.")
 
     def get_new_chats(self) -> list[ContextData]:
