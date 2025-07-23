@@ -1,3 +1,6 @@
+import os
+
+
 class SharedConfig:
     PROMPT_CMD_TO_TYPE_CODE: dict[str, int] = {"chat": 100, "donation": 1000, "asr": 10000}
 
@@ -43,10 +46,16 @@ class ContextConfig:
     CONTEXT_SAVE_PATH: str = "./data/history/context_history.jsonl"
     ASR_CONTEXT_DURATION_MS: int = 130000
     CHAT_CONTEXT_DURATION_MS: int = 120000
+    HISTORY_TOPIC_PREFIX = "history-updates:"
+    PROMPT_TOPIC_PREFIX = "prompt-updates:"
 
 
-class Config:
+class ContextFetcherConfig:
     shared = SharedConfig()
     chat = ChatConfig()
     audio = AudioConfig()
     context = ContextConfig()
+
+
+class RedisConfig:
+    REDIS_URL = os.environ.get("REDIS_URL", "")

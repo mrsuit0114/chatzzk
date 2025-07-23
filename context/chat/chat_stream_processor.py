@@ -145,7 +145,8 @@ class ChatStreamProcessor:
 
             for chat_data in raw_message["bdy"]:
                 timestamp_ms = int(datetime.datetime.now().timestamp() * 1000)
-                prompt_str = f"[{self.type_code_to_prompt_cmd[chat_type_code]}] {self._preprocess_chat_message_to_prompt_str(chat_data['msg'])}\n"
+                # timestamp_ms = int(chat_data["msgTime"]) -> 환경에 따라 자꾸 시간이 튐
+                prompt_str = f"{self._preprocess_chat_message_to_prompt_str(chat_data['msg'])}\n"
 
                 chat_info = ContextData(timestamp_ms, chat_data["msg"], chat_type_code, prompt_str)
 

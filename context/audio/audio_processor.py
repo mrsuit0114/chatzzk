@@ -85,7 +85,7 @@ class AudioProcessor:
                         speech_time_ms = int(snapshot_timestamp_ms - (speech_length * self.sample_to_ms) // 2)
                         speech_time_ms -= self.offset_ms
                         type_code = self.prompt_cmd_to_type_code["asr"]
-                        prompt_str = f"[{self.type_code_to_prompt_cmd[type_code]}] {result}\n"
+                        prompt_str = f"{result}\n"
                         self.asr_history.append(ContextData(speech_time_ms, result, type_code, prompt_str))
 
                 self.asr_queue.task_done()
@@ -103,10 +103,12 @@ class AudioProcessor:
         """Perform inference by extracting audio from buffer and applying VAD + ASR.
 
         Note:
-            1. To avoid redundant ASR processing, we consider whether the last VAD segment might be incomplete by
-                comparing it against the minimum silence duration (min_silence_duration_ms).
-            2. If the last segment may continue, the next inference will start from the beginning of the last VAD segment.
-            3. If there is no need to check the next segment, we simply advance by the length of the processed data.
+            1. Ensures that speech segments are not prematurely cut off by checking if the last detected segment
+                is followed by a sufficient duration of silence.
+            2. Only "complete" speech segments, confirmed to have ended, are sent for ASR processing.
+            3. Any incomplete segment at the end of the buffer is preserved and re-evaluated in the next cycle
+                with more audio data.
+            4. The audio buffer is advanced precisely by the length of the data that was actually processed.
         """
         if self.stop_event.is_set():
             logger.info("[Model Inference Task] Stop event set, exiting.")
@@ -123,19 +125,19 @@ class AudioProcessor:
         )  # normalization [-1.0, 1.0]
         try:
             timestamps = self._get_timestamps(audio_data_np)
-            next_start_idx_bytes = len(audio_data)
-
             if timestamps:
-                last_timestamp = timestamps[-1]
-                if last_timestamp[1] + self.min_silence_duration_samples >= len(audio_data_np):
-                    # 아직 말이 끝난지 확신할 수 없는 상황
-                    next_start_idx_bytes = self.bytes_per_sample * last_timestamp[0]
-                    if len(timestamps) > 1:
-                        del timestamps[-1]
-                        self._process_asr_results(audio_data_np, timestamps)
+                is_last_segment_complete = len(audio_data_np) - timestamps[-1][1] >= self.min_silence_duration_samples
+                if is_last_segment_complete:
+                    segments_to_process = timestamps
                 else:
-                    self._process_asr_results(audio_data_np, timestamps)
-            self.audio_buffer.update_last_speech_timestamp_idx(next_start_idx_bytes)
+                    segments_to_process = timestamps[:-1]
+
+                if segments_to_process:
+                    self._process_asr_results(audio_data_np, segments_to_process)
+                    last_processed_sample = segments_to_process[-1][1]
+                    self.audio_buffer.update_last_speech_timestamp_idx(last_processed_sample * self.bytes_per_sample)
+            else:
+                self.audio_buffer.update_last_speech_timestamp_idx(len(audio_data))
         except Exception as e:
             logger.error(f"[Model Inference Task] Error during inference: {e}")
 
