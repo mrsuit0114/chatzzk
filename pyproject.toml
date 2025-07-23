@@ -1,4 +1,6 @@
 [tool.ruff]
+src = ["MonitorWorker/src", "BroadcasterStatusWatcher/src", "MonitorManager/src"]
+
 target-version = "py311"
 line-length = 119
 exclude = [

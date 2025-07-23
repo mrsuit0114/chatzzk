@@ -4,11 +4,12 @@
 
 from itertools import groupby
 
-from data_types.context_data import ContextData
-from data_types.task_param import ShortTermSummaryParams
 from llm.llm_client import LLMClientFactory
 from loguru import logger
 from tqdm import tqdm
+
+from data_types.context_data import ContextData
+from data_types.task_param import ShortTermSummaryParams
 
 
 def _get_context_prompt(context_list: list[ContextData]) -> str:

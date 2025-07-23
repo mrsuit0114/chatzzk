@@ -1,10 +1,11 @@
 import requests
+from loguru import logger
+
 from audio.audio_processor import AudioProcessor
 from audio.audio_stream_receiver import AudioStreamReceiver
 from audio.circular_audio_buffer import CircularAudioBuffer
 from config import AudioConfig, SharedConfig
 from data_types.context_data import ContextData
-from loguru import logger
 
 
 def _get_audio_m3u8_url(channel_id: str, m3u8_proxy_url: str) -> str:

@@ -1,7 +1,8 @@
 # kubernetes_client.py
-from config import Config
 from kubernetes import client, config
 from loguru import logger
+
+from config import Config
 
 
 class KubernetesClient:

@@ -5,10 +5,11 @@ import threading
 import time
 from collections import deque
 
-from chat import api
-from data_types.context_data import ContextData
 from loguru import logger
 from websocket import WebSocket
+
+from chat import api
+from data_types.context_data import ContextData
 
 
 class ChatStreamProcessor:

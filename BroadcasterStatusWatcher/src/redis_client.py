@@ -1,7 +1,7 @@
-import config
+import redis.asyncio as redis
 from loguru import logger
 
-import redis.asyncio as redis
+import config
 
 redis_client = None
 

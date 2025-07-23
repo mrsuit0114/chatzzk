@@ -5,8 +5,9 @@ import threading
 import time
 
 import ffmpeg
-from audio.circular_audio_buffer import CircularAudioBuffer
 from loguru import logger
+
+from audio.circular_audio_buffer import CircularAudioBuffer
 
 
 class AudioStreamReceiver:

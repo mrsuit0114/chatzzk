@@ -2,8 +2,9 @@
 import json
 import time
 
-from config import Config
 from loguru import logger
+
+from config import Config
 from monitor_manager import MonitorManager
 from redis_client import RedisClient
 

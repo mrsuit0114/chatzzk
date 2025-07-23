@@ -1,7 +1,8 @@
 # main.py
+from loguru import logger
+
 from config import Config
 from kubernetes_client import KubernetesClient
-from loguru import logger
 from monitor_manager import MonitorManager
 from redis_client import RedisClient
 from stream_consumer import StreamConsumer

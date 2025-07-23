@@ -2,11 +2,12 @@ import asyncio
 import json
 import time
 
-import config
 import httpx
+from loguru import logger
+
+import config
 import redis_client
 from enums import LiveStatus
-from loguru import logger
 
 
 class ChannelStatusWatcher:

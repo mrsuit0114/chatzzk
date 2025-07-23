@@ -3,11 +3,12 @@ from collections import deque
 from heapq import merge
 from time import time
 
+from loguru import logger
+
 from audio.audio_stream_processor import AudioStreamProcessor
 from chat.chat_stream_processor import ChatStreamProcessor
 from config import ContextFetcherConfig
 from data_types.context_data import ContextData
-from loguru import logger
 from redis_client import RedisClient
 
 

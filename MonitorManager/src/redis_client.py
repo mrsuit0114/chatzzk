@@ -2,10 +2,10 @@
 import time
 from typing import Optional
 
+import redis
+
 from config import Config
 from models import ChannelMonitorStatus
-
-import redis
 
 
 class RedisClient:
