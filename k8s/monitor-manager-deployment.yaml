@@ -1,0 +1,29 @@
+# monitor-manager-deployment.yaml (예시)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monitor-manager
+  labels:
+    app: monitor-manager
+spec:
+  replicas: 1 # 여러 monitor_manager 인스턴스
+  selector:
+    matchLabels:
+      app: monitor-manager
+  template:
+    metadata:
+      labels:
+        app: monitor-manager
+    spec:
+      serviceAccountName: monitor-manager-sa # Kubernetes RBAC 설정 필요
+      containers:
+      - name: monitor-manager
+        image: monitor-manager # monitor_manager 애플리케이션 이미지
+        env:
+        - name: REDIS_URL
+          value: "redis://redis-service:6379"
+        - name: MONITOR_MANAGER_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name # Pod 이름을 ID로 사용 (권장)
+        imagePullPolicy: Never
