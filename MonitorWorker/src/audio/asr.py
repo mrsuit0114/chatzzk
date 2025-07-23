@@ -7,6 +7,7 @@ from loguru import logger
 class ASR:
     COMPUTE_TYPE = "float16"
     BATCH_SIZE = 4
+    MODEL_DIR = "/app/whisperx_models"
 
     def __init__(self, model_size: str, not_expected_asr_list: list[str]):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"  # cpu 사용 시 서비스 불가 - 에러처리
@@ -16,7 +17,9 @@ class ASR:
             logger.error("ASR doesn't work well with cpu!!")
 
     def _load_model(self, model_size: str):
-        model = whisperx.load_model(model_size, device=self.device, compute_type=self.COMPUTE_TYPE)
+        model = whisperx.load_model(
+            model_size, device=self.device, compute_type=self.COMPUTE_TYPE, download_root=self.MODEL_DIR
+        )
         if model is None:
             logger.error("Failed to load whisperx model")
             raise ValueError("Failed to load whisperx model")

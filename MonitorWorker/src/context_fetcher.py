@@ -9,13 +9,12 @@ from audio.audio_stream_processor import AudioStreamProcessor
 from chat.chat_stream_processor import ChatStreamProcessor
 from config import ContextFetcherConfig
 from data_types.context_data import ContextData
-from redis_client import RedisClient
 
 
 class ContextFetcher:
     STOP_TIMEOUT_S = 5
 
-    def __init__(self, channel_id: str, config: ContextFetcherConfig, redis_client: RedisClient = None):
+    def __init__(self, channel_id: str, config: ContextFetcherConfig):
         self.channel_id = channel_id
         # self.redis_client = redis_client
         # self.history_topic = config.

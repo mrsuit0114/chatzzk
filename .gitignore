@@ -176,3 +176,4 @@ cython_debug/
 # custom
 /data
 /llm/litellm_config.yaml
+MonitorWorker/whisperx_models/
