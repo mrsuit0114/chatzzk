@@ -50,7 +50,7 @@ class ASR:
         for start, end in timestamps:
             audio_segment = audio_data[start:end]
             processed_asr = self._process_audio(audio_segment)
-            if self._is_not_expected_asr(processed_asr):
+            if processed_asr == "" or self._is_not_expected_asr(processed_asr):
                 continue
             results.append(processed_asr)
         return results

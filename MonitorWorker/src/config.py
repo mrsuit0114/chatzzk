@@ -46,8 +46,6 @@ class ContextConfig:
     CONTEXT_SAVE_PATH: str = "./data/history/context_history.jsonl"
     ASR_CONTEXT_DURATION_MS: int = 130000
     CHAT_CONTEXT_DURATION_MS: int = 120000
-    HISTORY_TOPIC_PREFIX = "history-updates:"
-    PROMPT_TOPIC_PREFIX = "prompt-updates:"
 
 
 class ContextFetcherConfig:
@@ -55,6 +53,10 @@ class ContextFetcherConfig:
     chat = ChatConfig()
     audio = AudioConfig()
     context = ContextConfig()
+
+    CHANNEL_ID = os.environ.get("CHANNEL_ID", "")
+    HISTORY_TOPIC_PREFIX = "history-updates:"
+    PROMPT_TOPIC_PREFIX = "prompt-updates:"
 
 
 class RedisConfig:

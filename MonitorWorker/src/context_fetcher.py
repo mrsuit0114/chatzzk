@@ -16,9 +16,6 @@ class ContextFetcher:
 
     def __init__(self, channel_id: str, config: ContextFetcherConfig):
         self.channel_id = channel_id
-        # self.redis_client = redis_client
-        # self.history_topic = config.
-        # self.prompt_topic = config.
 
         self.prompt_cmd_to_type_code = config.shared.PROMPT_CMD_TO_TYPE_CODE
         self.type_code_to_prompt_cmd = {v: k.upper() for k, v in self.prompt_cmd_to_type_code.items()}
