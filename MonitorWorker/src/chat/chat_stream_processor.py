@@ -144,8 +144,10 @@ class ChatStreamProcessor:
                 return
 
             for chat_data in raw_message["bdy"]:
-                timestamp_ms = int(datetime.datetime.now().timestamp() * 1000)
-                # timestamp_ms = int(chat_data["msgTime"]) -> 환경에 따라 자꾸 시간이 튐
+                # timestamp_ms = int(datetime.datetime.now().timestamp() * 1000)
+                timestamp_ms = int(
+                    chat_data["msgTime"]
+                )  # 내 데스크탑 환경에 따라 시간이 튐 맥에서 대여한 gpu에서는 정상
                 processed_msg = self._preprocess_chat_message_to_prompt_str(chat_data["msg"])
                 prompt_str = f"{processed_msg}\n" if processed_msg else ""
 
