@@ -12,28 +12,6 @@ A real-time audio-driven text generation framework for live streams, capable of 
 - **[ChzzkChat](https://github.com/Buddha7771/ChzzkChat)** - Chat crawler
   - Based on the work of [Buddha7771](https://github.com/Buddha7771)
 
-## Installation & Setup
-
-### English
-1. Install Python dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-2. Install CUDA dependencies
-```bash
-sudo apt install libcudnn8
-```
-
-3. Run the application:
-```bash
-python main.py
-```
-
-## 🚧 Project Status
-
-<img width="1005" alt="image" src="https://github.com/user-attachments/assets/5f3d7115-0826-4c52-9f07-f69f1993c597" />
-
 ### data example
 full_context.jsonl
 ```bash
@@ -56,6 +34,6 @@ summary.json
     "480": "summary4",
     ...
     },
-    "middle_term_summary":{}
+  "middle_term_summary":{}
 }
 ```
