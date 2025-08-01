@@ -1,6 +1,5 @@
-from loguru import logger
-
 from kubernetes_client import KubernetesClient
+from loguru import logger
 from models import ChannelMonitorStatus
 from redis_client import RedisClient
 

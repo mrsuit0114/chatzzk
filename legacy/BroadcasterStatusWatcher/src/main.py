@@ -1,10 +1,10 @@
 import asyncio
 
+import redis_client
 from loguru import logger
+from watcher import ChannelStatusWatcher
 
 import config
-import redis_client
-from watcher import ChannelStatusWatcher
 
 
 async def main():

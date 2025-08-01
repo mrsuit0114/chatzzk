@@ -3,11 +3,11 @@ import json
 import time
 
 import httpx
+import redis_client
+from enums import LiveStatus
 from loguru import logger
 
 import config
-import redis_client
-from enums import LiveStatus
 
 
 class ChannelStatusWatcher:

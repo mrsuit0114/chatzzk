@@ -3,9 +3,9 @@ import time
 from typing import Optional
 
 import redis
+from models import ChannelMonitorStatus
 
 from config import Config
-from models import ChannelMonitorStatus
 
 
 class RedisClient:
