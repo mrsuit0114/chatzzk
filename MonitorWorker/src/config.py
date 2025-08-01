@@ -43,7 +43,6 @@ class AudioConfig:
 class ContextConfig:
     CONTEXT_UPDATE_INTERVAL_S: int = 1
     CONTEXT_SAVE_INTERVAL_S: int = 5
-    CONTEXT_SAVE_PATH: str = "./data/history/context_history.jsonl"
     ASR_CONTEXT_DURATION_MS: int = 130000
     CHAT_CONTEXT_DURATION_MS: int = 120000
 

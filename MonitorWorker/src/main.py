@@ -35,27 +35,8 @@ if __name__ == "__main__":
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("\n프로그램 종료 중...")
+        logger.info("\n프로그램 종료 중...")
         stop_event.set()
         context_fetcher.stop()
         context_thread.join(timeout=5.0)
         periodic_thread.join(timeout=5.0)
-        print(threading.active_count())  # 2, main and garbage collector(expected)
-
-# import os
-# import time
-
-# from chat.chat_stream_processor import ChatStreamProcessor
-# from config import ChatConfig, SharedConfig
-# from loguru import logger
-
-# channel_id = os.environ.get("CHANNEL_ID", "")
-
-# chat_stream_processor = ChatStreamProcessor(channel_id, ChatConfig, SharedConfig)
-# chat_stream_processor.run()
-
-# while True:
-#     time.sleep(1)
-#     new_chats = chat_stream_processor.get_new_chats()
-#     for chat in new_chats:
-#         logger.info(chat)

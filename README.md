@@ -12,28 +12,13 @@ A real-time audio-driven text generation framework for live streams, capable of 
 - **[ChzzkChat](https://github.com/Buddha7771/ChzzkChat)** - Chat crawler
   - Based on the work of [Buddha7771](https://github.com/Buddha7771)
 
-### data example
-full_context.jsonl
+### Usage
+#### MonitorWorker
 ```bash
-{"timestamp_ms": 295959, "content": "안녕하세요", "type_code": 100, "prompt_str": "[CHAT] 안녕하세요\n"}
-{"timestamp_ms": 296071, "content": "굿", "type_code": 100, "prompt_str": "[CHAT] 굿\n"}
-{"timestamp_ms": 296109, "content": "ㅋㅋ", "type_code": 100, "prompt_str": "[CHAT] ㅋㅋ\n"}
-{"timestamp_ms": 297877, "content": "네", "type_code": 100, "prompt_str": "[CHAT] 네\n"}
-{"timestamp_ms": 298096, "content": "인터넷을 하루 맨종일 하면서", "type_code": 10000, "prompt_str": "[ASR] 인터넷을 하루 맨종일 하면서\n"}
-{"timestamp_ms": 300169, "content": "그랬군요", "type_code": 100, "prompt_str": "[CHAT] 그랬군요\n"}
-{"timestamp_ms": 300256, "content": "면.", "type_code": 10000, "prompt_str": "[ASR] 면.\n"}
-{"timestamp_ms": 301220, "content": "ㅔㅔ", "type_code": 100, "prompt_str": "[CHAT] ㅔㅔ\n"}
+docker build -t monitor-worker ./MonitorWorker
+docker run --rm --gpus all --name {container_name} -e CHANNEL_ID={치지직 방송 채널 ID} -v "$(pwd)/MonitorWorker/whisperx_models:/app/whisperx_models" monitor-worker
 ```
-summary.json
-```bash
-{
-  "short_term_summary": {
-    "120": "summary1",
-    "240": "summary2",
-    "360": "summary3",
-    "480": "summary4",
-    ...
-    },
-  "middle_term_summary":{}
-}
-```
+
+### Issue
+개인 데스크탑에서 원인을 알 수 없는 치명적 시간 측정 이슈 발생 - time.time()을 신뢰할 수 없고 실시간 모니터링의 성능에 영향을 미침
+https://www.notion.so/context-feat-23aad172fa2180329879ca6e2b67c871?source=copy_link

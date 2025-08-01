@@ -6,9 +6,6 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 ENV WHISPERX_MODEL_DIR=/app/whisperx_models
-RUN mkdir -p ${WHISPERX_MODEL_DIR}
-
-COPY whisperx_models/ ./whisperx_models/
 
 COPY src/ ./src/
 
