@@ -1,5 +1,5 @@
 # Chatzzk
-A real-time audio-driven text generation framework for live streams, capable of understanding the flow of broadcasts and generating context-aware responses from user prompts.
+네이버의 인터넷 스트리밍 방송 플랫폼 Chzzk의 채팅내역과 오디오 데이터를 text로 전사한 데이터로 방송의 context를 구성하고 LLM과 분석 및 시각화 툴을 사용해 다양한 가능성을 점검하는 프로젝트 Chatzzk입니다.
 
 
 ## Technologies Used
