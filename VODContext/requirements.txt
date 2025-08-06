@@ -1,0 +1,7 @@
+whisperx
+silero-vad
+ffmpeg-python
+loguru
+websocket-client
+requests
+torchvision==0.20.1
