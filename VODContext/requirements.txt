@@ -1,3 +1,4 @@
 requests
 streamlink
 tqdm
+ffmpeg-python

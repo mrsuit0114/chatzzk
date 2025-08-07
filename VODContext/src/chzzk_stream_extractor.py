@@ -6,7 +6,7 @@ import requests
 from streamlink import Streamlink
 from tqdm import tqdm
 
-from config import Config
+from config import ChzzkStreamExtractorConfig
 
 
 def load_cookies_from_file(file_path):
@@ -23,11 +23,12 @@ def load_cookies_from_file(file_path):
 
 
 class ChzzkStreamExtractor:
-    def __init__(self, config: Config):
+    def __init__(self, config: ChzzkStreamExtractorConfig):
         self.vod_url = config.VOD_URL
         self.vod_info = config.VOD_INFO
         self.data_dir = config.DATA_DIR or "data/"
         self.video_dir = config.VIDEO_DIR or "videos/"
+        self.user_agent = config.USER_AGENT
 
     def extract_streams(self, video_no: int):
         # Initialize Streamlink session
@@ -125,7 +126,7 @@ class ChzzkStreamExtractor:
     def _get_vod_streams(self, session, video_no):
         api_url = self.vod_info.format(video_no=video_no)
 
-        UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+        UserAgent = self.user_agent
         try:
             response = requests.get(api_url, headers={"User-Agent": UserAgent})
             response.raise_for_status()
