@@ -15,8 +15,8 @@ class WavExtractor:
         """
         Extracts a WAV file from an MP4 file with specified configurations.
         """
-        input_mp4_path = f"{self.data_dir}{self.video_dir}{video_no}.mp4"
-        output_wav_path = f"{self.data_dir}{self.audio_dir}{video_no}.wav"
+        input_mp4_path = os.path.join(self.data_dir, self.video_dir, f"{video_no}.mp4")
+        output_wav_path = os.path.join(self.data_dir, self.audio_dir, f"{video_no}.wav")
 
         # Check if the input MP4 file exists
         if not os.path.exists(input_mp4_path):

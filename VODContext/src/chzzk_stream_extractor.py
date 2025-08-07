@@ -1,4 +1,5 @@
 import json
+import os
 import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -93,8 +94,7 @@ class ChzzkStreamExtractor:
 
         print("Download completed!\n")
 
-    @staticmethod
-    def _print_dash_manifest(video_url):
+    def _print_dash_manifest(self, video_url):
         try:
             response = requests.get(video_url, headers={"Accept": "application/dash+xml"})
             response.raise_for_status()
@@ -116,7 +116,7 @@ class ChzzkStreamExtractor:
             sorted_reps = sorted(reps, key=lambda x: x[0])
 
             low_resolution_url = sorted_reps[0][1]  # only need for extracting wav, not important resolution
-
+            print(low_resolution_url)
             return low_resolution_url
         except requests.RequestException as e:
             print("Failed to fetch DASH manifest:", str(e), "\n")
@@ -125,7 +125,7 @@ class ChzzkStreamExtractor:
 
     def _get_vod_streams(self, session, video_no):
         api_url = self.vod_info.format(video_no=video_no)
-
+        output_path = os.path.join(self.data_dir, self.video_dir, f"{video_no}.mp4")
         UserAgent = self.user_agent
         try:
             response = requests.get(api_url, headers={"User-Agent": UserAgent})
@@ -167,8 +167,6 @@ class ChzzkStreamExtractor:
             base_url = self._print_dash_manifest(video_url)
 
             if base_url:
-                output_path = f"{self.data_dir}{self.video_dir}{video_no}.mp4"
-
                 self.download_video(base_url, output_path)
 
         except json.JSONDecodeError as e:
