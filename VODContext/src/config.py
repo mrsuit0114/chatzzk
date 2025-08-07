@@ -8,6 +8,7 @@ class SharedConfig:
     CHAT_CONTEXT_DIR = "chat_contexts"
     ASR_CONTEXT_DIR = "asr_contexts"
     USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+    PROMPT_CMD_TO_TYPE_CODE: dict[str, int] = {"chat": 100, "donation": 1000, "asr": 10000}
 
 
 def create_directories(config: SharedConfig):
@@ -49,7 +50,17 @@ class WavExtractorConfig:
     TARGET_SAMPLING_RATE = 16000
 
 
+class ChzzkChatCrawlerConfig:
+    CHAT_URL = "https://api.chzzk.naver.com/service/v1/videos/{video_no}/chats"
+    USER_AGENT = SharedConfig.USER_AGENT
+    DATA_DIR = SharedConfig.DATA_DIR
+    CHAT_CONTEXT_DIR = SharedConfig.CHAT_CONTEXT_DIR
+    PROMPT_CMD_TO_TYPE_CODE = SharedConfig.PROMPT_CMD_TO_TYPE_CODE
+    MESSAGE_TYPE_CODE_TO_PROMPT_CMD = {1: "chat", 10: "donation"}
+
+
 class Config:
     shared = SharedConfig()
     chzzk_stream_extractor = ChzzkStreamExtractorConfig()
     wav_extractor = WavExtractorConfig()
+    chzzk_chat_crawler = ChzzkChatCrawlerConfig()

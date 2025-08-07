@@ -2,3 +2,4 @@ requests
 streamlink
 tqdm
 ffmpeg-python
+loguru
