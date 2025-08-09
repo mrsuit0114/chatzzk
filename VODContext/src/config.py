@@ -8,6 +8,7 @@ class SharedConfig:
     CHAT_CONTEXT_DIR = "chat_contexts"
     VAD_DIR = "vads"
     ASR_CONTEXT_DIR = "asr_contexts"
+    FULL_CONTEXT_DIR = "full_contexts"
     USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
     PROMPT_CMD_TO_TYPE_CODE: dict[str, int] = {"chat": 100, "donation": 1000, "asr": 10000}
 
@@ -26,6 +27,7 @@ def create_directories(config: SharedConfig):
         config.CHAT_CONTEXT_DIR,
         config.ASR_CONTEXT_DIR,
         config.VAD_DIR,
+        config.FULL_CONTEXT_DIR,
     ]
 
     for sub_dir in sub_directories:
@@ -84,9 +86,18 @@ class AudioProcessorConfig:
     ASR_PAY_AMOUNT = 0
 
 
+class ContextMergeManagerConfig:
+    DATA_DIR = SharedConfig.DATA_DIR
+    ASR_CONTEXT_DIR = SharedConfig.ASR_CONTEXT_DIR
+    CHAT_CONTEXT_DIR = SharedConfig.CHAT_CONTEXT_DIR
+    FULL_CONTEXT_DIR = SharedConfig.FULL_CONTEXT_DIR
+    ASR_CONTEXT_DEFAULT_OFFSET_MS = 500
+
+
 class Config:
     shared = SharedConfig()
     chzzk_stream_extractor = ChzzkStreamExtractorConfig()
     wav_extractor = WavExtractorConfig()
     chzzk_chat_crawler = ChzzkChatCrawlerConfig()
     audio_processor = AudioProcessorConfig()
+    context_merge_manager = ContextMergeManagerConfig()
