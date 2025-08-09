@@ -1,6 +1,5 @@
-FROM python:3.11-slim
+FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-devel
 
-# 필요한 패키지 리스트를 업데이트하고 ffmpeg를 설치합니다.
 RUN apt-get update && apt-get install -y ffmpeg
 
 WORKDIR /app
@@ -8,6 +7,8 @@ WORKDIR /app
 COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
+
+ENV WHISPERX_MODEL_DIR=/app/whisperx_models
 
 COPY src/ ./src/
 

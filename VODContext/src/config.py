@@ -6,6 +6,7 @@ class SharedConfig:
     VIDEO_DIR = "videos"
     AUDIO_DIR = "audios"
     CHAT_CONTEXT_DIR = "chat_contexts"
+    VAD_DIR = "vads"
     ASR_CONTEXT_DIR = "asr_contexts"
     USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
     PROMPT_CMD_TO_TYPE_CODE: dict[str, int] = {"chat": 100, "donation": 1000, "asr": 10000}
@@ -24,6 +25,7 @@ def create_directories(config: SharedConfig):
         config.AUDIO_DIR,
         config.CHAT_CONTEXT_DIR,
         config.ASR_CONTEXT_DIR,
+        config.VAD_DIR,
     ]
 
     for sub_dir in sub_directories:
@@ -59,8 +61,32 @@ class ChzzkChatCrawlerConfig:
     MESSAGE_TYPE_CODE_TO_PROMPT_CMD = {1: "chat", 10: "donation"}
 
 
+class AudioProcessorConfig:
+    DATA_DIR = SharedConfig.DATA_DIR
+    AUDIO_DIR = SharedConfig.AUDIO_DIR
+    VAD_DIR = SharedConfig.VAD_DIR
+    ASR_CONTEXT_DIR = SharedConfig.ASR_CONTEXT_DIR
+    NOT_EXPECTED_ASR_LIST: list[str] = [
+        "MBC",
+        "스토리였습니다",
+        "세계였습니다",
+        "시청해주셔서",
+        "고맙습니다",
+        "감사합니다",
+        "날씨였습니다",
+        "기상캐스터",
+        "수고하셨습니다",
+    ]
+    MODEL_SIZE = "large-v3"
+    MIN_SILENCE_DURATION_MS = 500
+    MAX_SPEECH_DURATION_S = 30
+    ASR_TYPE_CODE = 10000
+    ASR_PAY_AMOUNT = 0
+
+
 class Config:
     shared = SharedConfig()
     chzzk_stream_extractor = ChzzkStreamExtractorConfig()
     wav_extractor = WavExtractorConfig()
     chzzk_chat_crawler = ChzzkChatCrawlerConfig()
+    audio_processor = AudioProcessorConfig()
