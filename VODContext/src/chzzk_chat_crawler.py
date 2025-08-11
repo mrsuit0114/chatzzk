@@ -111,10 +111,11 @@ class ChzzkChatCrawler:
                     return False
 
                 video_chats, next_player_message_time = self._parse_video_chats(data)
-                print("next_player_message_time", next_player_message_time)
+                logger.info(f"next_player_message_time :{next_player_message_time}")
                 self._append_chats_to_jsonl(video_chats, video_no)
                 retry_count = 0  # Reset retry count on success
                 time.sleep(base_sleep_time * random.uniform(0.5, 1.5))
             except Exception as e:
                 logger.error(f"❌ Error crawling chat data for video_no {video_no}: {e}")
                 return False
+        return True

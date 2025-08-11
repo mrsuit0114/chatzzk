@@ -1,25 +1,33 @@
 import json
 import os
+import subprocess
 import xml.etree.ElementTree as ET
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Optional, Tuple
 
 import requests
-from streamlink import Streamlink
+from loguru import logger
 from tqdm import tqdm
 
 from config import ChzzkStreamExtractorConfig
 
 
-def load_cookies_from_file(file_path):
+def load_cookies_from_file(file_path: str) -> Optional[dict]:
+    """Load cookies from JSON file with proper error handling."""
     try:
-        with open(file_path) as file:
+        if not os.path.exists(file_path):
+            logger.warning(f"Cookie file not found: {file_path}")
+            return None
+
+        with open(file_path, encoding="utf-8") as file:
             cookies = json.load(file)
+        logger.info(f"✅ Cookies loaded from {file_path}")
         return cookies
-    except FileNotFoundError:
-        print(f"Cookie file not found: {file_path}", "\n")
+
+    except json.JSONDecodeError as e:
+        logger.error(f"❌ Error decoding JSON from file {file_path}: {e}")
         return None
-    except json.JSONDecodeError:
-        print(f"Error decoding JSON from file: {file_path}", "\n")
+    except Exception as e:
+        logger.error(f"❌ Unexpected error loading cookies from {file_path}: {e}")
         return None
 
 
@@ -27,157 +35,244 @@ class ChzzkStreamExtractor:
     def __init__(self, config: ChzzkStreamExtractorConfig):
         self.vod_url = config.VOD_URL
         self.vod_info = config.VOD_INFO
-        self.data_dir = config.DATA_DIR or "data/"
-        self.video_dir = config.VIDEO_DIR or "videos/"
+        self.data_dir = config.DATA_DIR
+        self.video_dir = config.VIDEO_DIR
         self.user_agent = config.USER_AGENT
+        self.cookies_file = config.COOKIES_FILE
+        self.max_retries = config.MAX_RETRIES
+        self.timeout = config.TIMEOUT
 
-    def extract_streams(self, video_no: int):
-        # Initialize Streamlink session
-        session = Streamlink()
-
-        # Match the link to extract necessary information
-        # match = re.match(r"https?://chzzk\.naver\.com/(?:video/(?P<video_no>\d+)|live/(?P<channel_id>[^/?]+))$", link)
-        # if not match:
-        #     print("Invalid link\n")
-        #     return
-
-        # video_no = match.group("video_no")
-
-        return self._get_vod_streams(session, video_no)
-
-    def download_video(self, video_url, output_path):
-        session = requests.Session()
-
-        # 파일 크기를 얻기 위한 초기 요청
-        with session.get(video_url, stream=True) as r:
-            r.raise_for_status()
-            total_size = int(r.headers.get("content-length", 0))
-
-        if total_size == 0:
-            print("Failed to get file size. Aborting download.")
-            return
-
-        part_size = 1024 * 1024 * 10
-        parts = total_size // part_size + (1 if total_size % part_size else 0)
-
-        tqdm_bar = tqdm(total=total_size, unit="B", unit_scale=True, desc="Downloading")
-
-        # 다운로드된 조각 데이터를 임시로 저장할 딕셔너리
-        parts_data = {}
-
-        def download_part(part):
-            start = part * part_size
-            end = start + part_size - 1 if (start + part_size - 1) < total_size else total_size
-            headers = {"Range": f"bytes={start}-{end}"}
-            with session.get(video_url, headers=headers, stream=True) as r:
-                r.raise_for_status()
-                return r.content
-
-        with ThreadPoolExecutor(max_workers=4) as executor:
-            future_to_part = {executor.submit(download_part, part): part for part in range(parts)}
-
-            for future in as_completed(future_to_part):
-                part_data = future.result()
-                part_number = future_to_part[future]
-
-                # 다운로드된 조각을 순서에 맞게 임시 저장
-                parts_data[part_number] = part_data
-                tqdm_bar.update(len(part_data))
-
-        tqdm_bar.close()
-
-        # 모든 조각 다운로드 완료 후, 원래 순서대로 파일에 쓰기
-        print("Combining downloaded parts...")
-        with open(output_path, "wb") as file:
-            for part_number in range(parts):
-                file.write(parts_data[part_number])
-
-        print("Download completed!\n")
-
-    def _print_dash_manifest(self, video_url):
+    def extract_streams(self, video_no: int) -> bool:
+        """Extract and download VOD streams with proper error handling."""
         try:
-            response = requests.get(video_url, headers={"Accept": "application/dash+xml"})
+            logger.info(f"🎬 Starting VOD extraction for video {video_no}")
+
+            # Get video information
+            video_info = self._get_video_info(video_no)
+            if not video_info:
+                logger.error(f"❌ Failed to get video info for {video_no}")
+                return False
+
+            video_id, in_key, metadata = video_info
+
+            # Get stream URL
+            stream_url = self._get_stream_url(video_id, in_key)
+            if not stream_url:
+                logger.error(f"❌ Failed to get stream URL for {video_no}")
+                return False
+
+            # Download video
+            output_path = os.path.join(self.data_dir, self.video_dir, f"{video_no}.mp4")
+            success = self._download_video(stream_url, output_path, metadata)
+
+            if success:
+                logger.info(f"✅ VOD extraction completed for video {video_no}")
+                return True
+            else:
+                logger.error(f"❌ VOD extraction failed for video {video_no}")
+                return False
+
+        except Exception as e:
+            logger.error(f"❌ Unexpected error during VOD extraction for {video_no}: {e}")
+            return False
+
+    def _get_video_info(self, video_no: int) -> Optional[Tuple[str, str, dict]]:
+        """Get video information from API with retry logic."""
+        api_url = self.vod_info.format(video_no=video_no)
+        headers = {"User-Agent": self.user_agent}
+
+        for attempt in range(self.max_retries):
+            try:
+                response = requests.get(api_url, headers=headers, timeout=self.timeout)
+                response.raise_for_status()
+
+                if response.status_code == 404:
+                    logger.error(f"❌ Video {video_no} not found")
+                    return None
+
+                content = response.json().get("content", {})
+                video_id = content.get("videoId")
+                in_key = content.get("inKey")
+
+                if video_id and in_key:
+                    metadata = {
+                        "author": content.get("channel", {}).get("channelName", "Unknown"),
+                        "title": content.get("videoTitle", "Unknown"),
+                        "category": content.get("videoCategory", "Unknown"),
+                    }
+                    logger.info(f"📹 Video info: {metadata['author']} - {metadata['title']}")
+                    return video_id, in_key, metadata
+
+                # Try with cookies if login required
+                logger.info("🔐 Login required, attempting with cookies...")
+                cookies = load_cookies_from_file(self.cookies_file)
+                if cookies:
+                    response = requests.get(api_url, cookies=cookies, headers=headers, timeout=self.timeout)
+                    response.raise_for_status()
+                    content = response.json().get("content", {})
+                    video_id = content.get("videoId")
+                    in_key = content.get("inKey")
+
+                    if video_id and in_key:
+                        metadata = {
+                            "author": content.get("channel", {}).get("channelName", "Unknown"),
+                            "title": content.get("videoTitle", "Unknown"),
+                            "category": content.get("videoCategory", "Unknown"),
+                        }
+                        logger.info(f"📹 Video info (with cookies): {metadata['author']} - {metadata['title']}")
+                        return video_id, in_key, metadata
+
+                logger.error(f"❌ Failed to get video ID and in_key for {video_no}")
+                return None
+
+            except requests.RequestException as e:
+                logger.warning(f"⚠️ API request failed (attempt {attempt + 1}/{self.max_retries}): {e}")
+                if attempt == self.max_retries - 1:
+                    logger.error(f"❌ Failed to fetch video information after {self.max_retries} attempts")
+                    return None
+                continue
+            except json.JSONDecodeError as e:
+                logger.error(f"❌ Failed to decode JSON response: {e}")
+                return None
+            except Exception as e:
+                logger.error(f"❌ Unexpected error getting video info: {e}")
+                return None
+
+        return None
+
+    def _get_stream_url(self, video_id: str, in_key: str) -> Optional[str]:
+        """Get stream URL from DASH manifest."""
+        try:
+            video_url = self.vod_url.format(video_id=video_id, in_key=in_key)
+            response = requests.get(video_url, headers={"Accept": "application/dash+xml"}, timeout=self.timeout)
             response.raise_for_status()
 
             root = ET.fromstring(response.text)
             ns = {"mpd": "urn:mpeg:dash:schema:mpd:2011", "nvod": "urn:naver:vod:2020"}
 
-            reps = []
+            representations = []
             for rep in root.findall(".//mpd:Representation", namespaces=ns):
                 width = rep.get("width")
                 height = rep.get("height")
-                resolution = min(int(width), int(height))
-                base_url = rep.find(".//mpd:BaseURL", namespaces=ns).text
-                if base_url.endswith("/hls/"):
-                    continue
-                reps.append([resolution, base_url])
+                if width and height:
+                    resolution = min(int(width), int(height))
+                    base_url_elem = rep.find(".//mpd:BaseURL", namespaces=ns)
+                    if base_url_elem is not None and base_url_elem.text:
+                        base_url = base_url_elem.text
+                        if not base_url.endswith("/hls/"):
+                            representations.append([resolution, base_url])
 
-            # 해상도(x[0])를 기준으로 오름차순 정렬
-            sorted_reps = sorted(reps, key=lambda x: x[0])
+            if not representations:
+                logger.error("❌ No valid stream representations found")
+                return None
 
-            low_resolution_url = sorted_reps[0][1]  # only need for extracting wav, not important resolution
-            print(low_resolution_url)
-            return low_resolution_url
-        except requests.RequestException as e:
-            print("Failed to fetch DASH manifest:", str(e), "\n")
-        except ET.ParseError as e:
-            print("Failed to parse DASH manifest XML:", str(e), "\n")
+            # Sort by resolution and get lowest (for audio extraction)
+            representations.sort(key=lambda x: x[0])
+            stream_url = representations[0][1]
+            logger.info(f"🔗 Stream URL obtained: {stream_url}")
+            return stream_url
 
-    def _get_vod_streams(self, session, video_no):
-        api_url = self.vod_info.format(video_no=video_no)
+        except Exception as e:
+            logger.error(f"❌ Failed to get stream URL: {e}")
+            return None
+
+    def _download_video(self, video_url: str, output_path: str, metadata: dict) -> bool:
+        """Download video with memory-efficient streaming."""
+        try:
+            # Ensure output directory exists
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
+            # Get file size
+            with requests.Session() as session:
+                response = session.head(video_url, timeout=self.timeout)
+                response.raise_for_status()
+                total_size = int(response.headers.get("content-length", 0))
+
+                if total_size == 0:
+                    logger.error("❌ Failed to get file size")
+                    return False
+
+                logger.info(f"📥 Starting download: {total_size / (1024 * 1024):.1f} MB")
+
+                # Download with progress bar
+                with session.get(video_url, stream=True, timeout=self.timeout) as r:
+                    r.raise_for_status()
+
+                    with open(output_path, "wb") as f:
+                        with tqdm(total=total_size, unit="B", unit_scale=True, desc="Downloading") as pbar:
+                            for chunk in r.iter_content(chunk_size=8192):
+                                if chunk:
+                                    f.write(chunk)
+                                    pbar.update(len(chunk))
+
+                logger.info(f"✅ Download completed: {output_path}")
+                return True
+
+        except Exception as e:
+            logger.error(f"❌ Download failed: {e}")
+            # Clean up partial file
+            if os.path.exists(output_path):
+                os.remove(output_path)
+            return False
+
+    def download_from_direct_url(self, mp4_url: str, video_no: int) -> bool:
+        """Download MP4 directly using curl -L when a full URL is provided."""
         output_path = os.path.join(self.data_dir, self.video_dir, f"{video_no}.mp4")
-        headers = {"User-Agent": self.user_agent}
         try:
-            response = requests.get(api_url, headers=headers)
-            response.raise_for_status()
-        except requests.RequestException as e:
-            print("Failed to fetch video information:", str(e), "\n")
-            return
+            # Ensure output directory exists
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-        if response.status_code == 404:
-            print("Video not found\n")
-            return
+            logger.info(f"📥 Downloading direct VOD URL for video {video_no}")
+            result = subprocess.run(
+                ["curl", "-L", mp4_url, "-o", output_path],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
 
-        try:
-            content = response.json().get("content", {})
-            video_id = content.get("videoId")
-            in_key = content.get("inKey")
+            if result.returncode != 0:
+                logger.error(f"❌ curl download failed (code {result.returncode}): {result.stderr.strip()}")
+                if os.path.exists(output_path):
+                    os.remove(output_path)
+                return False
 
-            if video_id is None or in_key is None:
-                print("This is a need to login video.", "\n")
-                cookies = load_cookies_from_file("cookies.json")
-                if cookies is not None:
-                    # Retry the request with cookies
-                    response = requests.get(api_url, cookies=cookies, headers=headers)
-                    response.raise_for_status()
+            logger.info(f"✅ Download completed: {output_path}")
+            return True
 
-                    # Update video_id and in_key with the new values
-                    content = response.json().get("content", {})
-                    video_id = content.get("videoId")
-                    in_key = content.get("inKey")
-
-            video_url = self.vod_url.format(video_id=video_id, in_key=in_key)
-
-            author = content.get("channel", {}).get("channelName")
-            category = content.get("videoCategory")
-            title = content.get("videoTitle")
-
-            print(f"Author: {author}, Title: {title}, Category: {category}")
-
-            base_url = self._print_dash_manifest(video_url)
-
-            if base_url:
-                self.download_video(base_url, output_path)
-
-        except json.JSONDecodeError as e:
-            print("Failed to decode JSON response:", str(e))
+        except Exception as e:
+            logger.error(f"❌ Direct download failed: {e}")
+            if os.path.exists(output_path):
+                os.remove(output_path)
+            return False
 
 
 if __name__ == "__main__":
+    # Test configuration
+    from config import ChzzkStreamExtractorConfig
+
+    config = ChzzkStreamExtractorConfig()
+    extractor = ChzzkStreamExtractor(config)
+
     while True:
-        link = input("Enter the video_num (or type 'q' to quit): ")
+        try:
+            video_no = input("Enter video number (or type 'q' to quit): ")
 
-        if link.lower() == "q":
+            if video_no.lower() == "q":
+                break
+
+            if not video_no.isdigit():
+                print("❌ Please enter a valid video number")
+                continue
+
+            success = extractor.extract_streams(int(video_no))
+            if success:
+                print("✅ VOD extraction completed successfully!")
+            else:
+                print("❌ VOD extraction failed")
+
+        except KeyboardInterrupt:
+            print("\n👋 Goodbye!")
             break
-
-        ChzzkStreamExtractor.extract_streams(link)
+        except Exception as e:
+            print(f"❌ Error: {e}")
+            continue

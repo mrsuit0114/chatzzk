@@ -53,3 +53,5 @@ class ContextMergeManager:
         with open(full_context_path, "w", encoding="utf-8") as f_full:
             for item in merged_data:
                 f_full.write(json.dumps(item, ensure_ascii=False) + "\n")
+
+        return merged_data
