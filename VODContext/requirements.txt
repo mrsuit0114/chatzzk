@@ -1,0 +1,8 @@
+requests
+streamlink
+tqdm
+ffmpeg-python
+loguru
+silero-vad
+whisperx
+torchvision==0.20.1
