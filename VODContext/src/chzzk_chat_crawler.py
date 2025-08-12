@@ -7,20 +7,19 @@ import time
 import requests
 from loguru import logger
 
-from config import ChzzkChatCrawlerConfig
+from config import Config
 from data_types.context_data import ContextData
 
 
 class ChzzkChatCrawler:
-    def __init__(self, config: ChzzkChatCrawlerConfig):
-        self.chat_url = config.CHAT_URL
-        self.user_agent = config.USER_AGENT
-        self.prompt_cmd_to_type_code = config.PROMPT_CMD_TO_TYPE_CODE
-        self.data_dir = config.DATA_DIR
-        self.chat_context_dir = config.CHAT_CONTEXT_DIR
-        self.message_type_code_to_prompt_cmd = config.MESSAGE_TYPE_CODE_TO_PROMPT_CMD
-        self.max_retries = config.MAX_RETRIES
-        self.base_sleep_time = config.BASE_SLEEP_TIME
+    def __init__(self, config: Config):
+        self.chat_url = config.ChzzkChat.CHAT_URL
+        self.user_agent = config.Network.USER_AGENT
+        self.prompt_cmd_to_type_code = config.Service.PROMPT_CMD_TO_TYPE_CODE
+        self.chat_context_dir = config.DataDir.CHAT_CONTEXT_DIR
+        self.message_type_code_to_prompt_cmd = config.Service.CHZZK_MESSAGE_TYPE_CODE_TO_PROMPT_CMD
+        self.max_retries = config.Network.HTTP_MAX_RETRIES
+        self.base_sleep_time = config.Network.HTTP_BASE_SLEEP_TIME
 
     def _request_chzzk_chats(self, video_no: int, player_message_time: int):
         url = self.chat_url.format(video_no=video_no)
@@ -36,7 +35,7 @@ class ChzzkChatCrawler:
             return None
 
     def _append_chats_to_jsonl(self, chats: list[ContextData], video_no: int):
-        output_path = os.path.join(self.data_dir, self.chat_context_dir, f"{video_no}.jsonl")
+        output_path = os.path.join(self.chat_context_dir, f"{video_no}.jsonl")
         try:
             # Append new chats as JSONL
             with open(output_path, "a", encoding="utf-8") as f:

@@ -16,16 +16,6 @@
 - FFmpeg
 - CUDA 지원 GPU (ASR 성능 향상을 위해 권장)
 
-## ⚙️ 설정
-
-### 환경 변수
-
-프로젝트는 환경 변수를 통해 설정을 관리합니다. 주요 설정은 다음과 같습니다:
-
-- **데이터 디렉토리**: `VOD_DATA_DIR`, `VOD_VIDEO_DIR` 등
-- **ASR 모델**: `VOD_ASR_MODEL_SIZE`, `VOD_WHISPERX_MODEL_DIR` 등
-- **네트워크**: `VOD_MAX_RETRIES`, `VOD_TIMEOUT` 등
-
 ## 🎯 사용법
 
 ### 기본 사용법
@@ -34,7 +24,7 @@
 docker build -t vod-context ./VODContext
 docker compose run --rm vod-context
 
-Enter video_num or '@<mp4_url>' (or type 'q' to exit):
+Enter video_num or '(@)<mp4_url>' (or type 'q' to exit):
 # 1234567 or @https:// ~ and 1234567(video_no for output_path)
 ```
 

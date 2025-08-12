@@ -17,11 +17,11 @@ from wav_extractor import WavExtractor
 
 class VodContextFetcher:
     def __init__(self, config: Config):
-        self.chzzk_stream_extractor = ChzzkStreamExtractor(config.chzzk_stream_extractor)
-        self.chzzk_chat_crawler = ChzzkChatCrawler(config.chzzk_chat_crawler)
-        self.wav_extractor = WavExtractor(config.wav_extractor)
-        self.audio_processor = AudioProcessor(config.audio_processor)
-        self.context_merge_manager = ContextMergeManager(config.context_merge_manager)
+        self.chzzk_stream_extractor = ChzzkStreamExtractor(config)
+        self.chzzk_chat_crawler = ChzzkChatCrawler(config)
+        self.wav_extractor = WavExtractor(config)
+        self.audio_processor = AudioProcessor(config)
+        self.context_merge_manager = ContextMergeManager(config)
 
     def run(self, video_no: int, vad_save: bool = False) -> bool:
         """Run the complete VOD context fetching pipeline with error handling.
@@ -32,31 +32,11 @@ class VodContextFetcher:
             logger.info(f"🚀 Starting VOD context fetching for video {video_no}")
 
             # Build output paths for skip checks
-            video_mp4_path = os.path.join(
-                self.chzzk_stream_extractor.data_dir,
-                self.chzzk_stream_extractor.video_dir,
-                f"{video_no}.mp4",
-            )
-            chat_jsonl_path = os.path.join(
-                self.chzzk_chat_crawler.data_dir,
-                self.chzzk_chat_crawler.chat_context_dir,
-                f"{video_no}.jsonl",
-            )
-            wav_path = os.path.join(
-                self.wav_extractor.data_dir,
-                self.wav_extractor.audio_dir,
-                f"{video_no}.wav",
-            )
-            asr_jsonl_path = os.path.join(
-                self.audio_processor.data_dir,
-                self.audio_processor.asr_context_dir,
-                f"{video_no}.jsonl",
-            )
-            full_context_jsonl_path = os.path.join(
-                self.context_merge_manager.data_dir,
-                self.context_merge_manager.full_context_dir,
-                f"{video_no}.jsonl",
-            )
+            video_mp4_path = os.path.join(self.chzzk_stream_extractor.video_dir, f"{video_no}.mp4")
+            chat_jsonl_path = os.path.join(self.chzzk_chat_crawler.chat_context_dir, f"{video_no}.jsonl")
+            wav_path = os.path.join(self.wav_extractor.audio_dir, f"{video_no}.wav")
+            asr_jsonl_path = os.path.join(self.audio_processor.asr_context_dir, f"{video_no}.jsonl")
+            full_context_jsonl_path = os.path.join(self.context_merge_manager.full_context_dir, f"{video_no}.jsonl")
 
             with ThreadPoolExecutor(max_workers=4) as executor:
                 # Step 1: Stream extraction (must complete first)

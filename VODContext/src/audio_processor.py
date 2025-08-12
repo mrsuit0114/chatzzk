@@ -11,36 +11,22 @@ from tqdm import tqdm
 
 from audio.asr import ASR
 from audio.vad import VAD
-from config import AudioProcessorConfig
+from config import Config
 from data_types.context_data import ContextData
 
 
 class AudioProcessor:
-    def __init__(self, config: AudioProcessorConfig):
-        self.data_dir = config.DATA_DIR
-        self.audio_dir = config.AUDIO_DIR
-        self.vad_dir = config.VAD_DIR
-        self.asr_context_dir = config.ASR_CONTEXT_DIR
-        self.asr_type_code = config.ASR_TYPE_CODE
-        self.asr_pay_amount = config.ASR_PAY_AMOUNT
-        self.not_expected_asr_list = config.NOT_EXPECTED_ASR_LIST
-        self.model_size = config.MODEL_SIZE
-        self.min_silence_duration_ms = config.MIN_SILENCE_DURATION_MS
-        self.max_speech_duration_s = config.MAX_SPEECH_DURATION_S
-        self.whisperx_model_dir = config.WHISPERX_MODEL_DIR
-        self.compute_type = config.COMPUTE_TYPE
-        self.batch_size = config.BATCH_SIZE
+    def __init__(self, config: Config):
+        self.audio_dir = config.DataDir.AUDIO_DIR
+        self.vad_dir = config.DataDir.VAD_DIR
+        self.asr_context_dir = config.DataDir.ASR_CONTEXT_DIR
+        self.asr_type_code = config.Service.ASR_TYPE_CODE
+        self.asr_pay_amount = config.Service.ASR_PAY_AMOUNT
 
         # Initialize ASR and VAD models
         try:
-            self.asr = ASR(
-                self.model_size,
-                self.not_expected_asr_list,
-                self.whisperx_model_dir,
-                self.compute_type,
-                self.batch_size,
-            )
-            self.vad = VAD(self.min_silence_duration_ms, self.max_speech_duration_s)
+            self.asr = ASR(config)
+            self.vad = VAD(config)
             logger.info("✅ AudioProcessor initialized successfully")
         except Exception as e:
             logger.error(f"❌ Failed to initialize AudioProcessor: {e}")
@@ -52,9 +38,9 @@ class AudioProcessor:
             logger.info(f"🎤 Starting audio processing for video {video_no}")
 
             # Setup file paths
-            input_audio_path = os.path.join(self.data_dir, self.audio_dir, f"{video_no}.wav")
-            output_vad_path = os.path.join(self.data_dir, self.vad_dir, f"{video_no}.jsonl")
-            output_asr_context_path = os.path.join(self.data_dir, self.asr_context_dir, f"{video_no}.jsonl")
+            input_audio_path = os.path.join(self.audio_dir, f"{video_no}.wav")
+            output_vad_path = os.path.join(self.vad_dir, f"{video_no}.jsonl")
+            output_asr_context_path = os.path.join(self.asr_context_dir, f"{video_no}.jsonl")
 
             # Check input file
             if not os.path.exists(input_audio_path):

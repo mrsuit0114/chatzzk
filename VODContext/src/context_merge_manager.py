@@ -4,21 +4,20 @@
 import json
 import os
 
-from config import ContextMergeManagerConfig
+from config import Config
 
 
 class ContextMergeManager:
-    def __init__(self, config: ContextMergeManagerConfig):
-        self.data_dir = config.DATA_DIR
-        self.chat_context_dir = config.CHAT_CONTEXT_DIR
-        self.asr_context_dir = config.ASR_CONTEXT_DIR
-        self.full_context_dir = config.FULL_CONTEXT_DIR
-        self.asr_context_default_offset_ms = config.ASR_CONTEXT_DEFAULT_OFFSET_MS
+    def __init__(self, config: Config):
+        self.chat_context_dir = config.DataDir.CHAT_CONTEXT_DIR
+        self.asr_context_dir = config.DataDir.ASR_CONTEXT_DIR
+        self.full_context_dir = config.DataDir.FULL_CONTEXT_DIR
+        self.asr_context_default_offset_ms = config.ContextMerge.ASR_CONTEXT_DEFAULT_OFFSET_MS
 
     def merge_context(self, video_no: int, asr_offset_ms: int = 0):
-        chat_context_path = os.path.join(self.data_dir, self.chat_context_dir, f"{video_no}.jsonl")
-        asr_context_path = os.path.join(self.data_dir, self.asr_context_dir, f"{video_no}.jsonl")
-        full_context_path = os.path.join(self.data_dir, self.full_context_dir, f"{video_no}.jsonl")
+        chat_context_path = os.path.join(self.chat_context_dir, f"{video_no}.jsonl")
+        asr_context_path = os.path.join(self.asr_context_dir, f"{video_no}.jsonl")
+        full_context_path = os.path.join(self.full_context_dir, f"{video_no}.jsonl")
         merged_data = []
 
         with (

@@ -3,17 +3,18 @@ import torch
 import whisperx
 from loguru import logger
 
+from config import Config
+
 
 class ASR:
-    def __init__(
-        self, model_size: str, not_expected_asr_list: list[str], model_dir: str, compute_type: str, batch_size: int
-    ):
+    def __init__(self, config: Config):
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.model_size = model_size
-        self.not_expected_asr_list = not_expected_asr_list
-        self.model_dir = model_dir
-        self.compute_type = compute_type
-        self.batch_size = batch_size
+        self.model_size = config.ASR.MODEL_SIZE
+        self.not_expected_asr_list = config.ASR.NOT_EXPECTED_ASR_LIST
+        self.model_dir = config.ASR.MODEL_DIR
+        self.compute_type = config.ASR.COMPUTE_TYPE
+        self.batch_size = config.ASR.BATCH_SIZE
+        self.language = config.ASR.LANGUAGE
 
         # Check device compatibility
         if self.device == "cpu":
@@ -49,15 +50,6 @@ class ASR:
             return None
 
     def _process_audio(self, audio_data: np.ndarray) -> str:
-        """
-        Transcribe a segment of audio data into text.
-
-        Args:
-            audio_data (np.ndarray): A numpy array containing audio waveform data.
-
-        Returns:
-            str: The transcribed text from the audio segment.
-        """
         try:
             if len(audio_data) == 0:
                 logger.warning("⚠️ Empty audio segment provided")
@@ -92,16 +84,6 @@ class ASR:
         return False
 
     def __call__(self, audio_data: np.ndarray, timestamps: list[tuple[int, int]]) -> list[str]:
-        """
-        Process audio segments and return transcribed text.
-
-        Args:
-            audio_data (np.ndarray): Full audio data
-            timestamps (list[tuple[int, int]]): List of (start, end) sample indices
-
-        Returns:
-            list[str]: List of transcribed text for each segment
-        """
         try:
             if not timestamps:
                 logger.warning("⚠️ No timestamps provided for ASR")
