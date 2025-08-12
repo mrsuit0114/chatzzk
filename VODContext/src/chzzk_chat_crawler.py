@@ -7,20 +7,19 @@ import time
 import requests
 from loguru import logger
 
-from config import ChzzkChatCrawlerConfig
+from config import Config
 from data_types.context_data import ContextData
 
 
 class ChzzkChatCrawler:
-    MAX_RETRIES = 3
-
-    def __init__(self, config: ChzzkChatCrawlerConfig):
-        self.chat_url = config.CHAT_URL
-        self.user_agent = config.USER_AGENT
-        self.prompt_cmd_to_type_code = config.PROMPT_CMD_TO_TYPE_CODE
-        self.data_dir = config.DATA_DIR
-        self.chat_context_dir = config.CHAT_CONTEXT_DIR
-        self.message_type_code_to_prompt_cmd = config.MESSAGE_TYPE_CODE_TO_PROMPT_CMD
+    def __init__(self, config: Config):
+        self.chat_url = config.ChzzkChat.CHAT_URL
+        self.user_agent = config.Network.USER_AGENT
+        self.prompt_cmd_to_type_code = config.Service.PROMPT_CMD_TO_TYPE_CODE
+        self.chat_context_dir = config.DataDir.CHAT_CONTEXT_DIR
+        self.message_type_code_to_prompt_cmd = config.Service.CHZZK_MESSAGE_TYPE_CODE_TO_PROMPT_CMD
+        self.max_retries = config.Network.HTTP_MAX_RETRIES
+        self.base_sleep_time = config.Network.HTTP_BASE_SLEEP_TIME
 
     def _request_chzzk_chats(self, video_no: int, player_message_time: int):
         url = self.chat_url.format(video_no=video_no)
@@ -36,7 +35,7 @@ class ChzzkChatCrawler:
             return None
 
     def _append_chats_to_jsonl(self, chats: list[ContextData], video_no: int):
-        output_path = os.path.join(self.data_dir, self.chat_context_dir, f"{video_no}.jsonl")
+        output_path = os.path.join(self.chat_context_dir, f"{video_no}.jsonl")
         try:
             # Append new chats as JSONL
             with open(output_path, "a", encoding="utf-8") as f:
@@ -86,6 +85,7 @@ class ChzzkChatCrawler:
                 extras = json.loads(extras)
                 pay_amount = extras.get("payAmount", 0)
             prompt_str = self._preprocess_chat_message_to_prompt_str(content)
+            # chzzk 서비스에 적용하는 chat, donation의 msg_type_code -> 'chat', 'donation' -> 내 서비스에서 사용할 chat, donation의 코드드 매핑 적용
             type_code = self.prompt_cmd_to_type_code[self.message_type_code_to_prompt_cmd[msg_type_code]]
 
             context_data = ContextData(timestamp_ms, content, type_code, prompt_str, pay_amount)
@@ -93,20 +93,21 @@ class ChzzkChatCrawler:
 
         return result, next_player_message_time
 
-    def crawl_chat(self, video_no: int, base_sleep_time: float = 0.5):
+    def crawl_chat(self, video_no: int, additional_sleep_time: float = 0):
         next_player_message_time = 0
         retry_count = 0
+        sleep_time = self.base_sleep_time + additional_sleep_time
 
         while next_player_message_time is not None:
             try:
                 data = self._request_chzzk_chats(video_no, next_player_message_time)
                 if not data:
-                    if retry_count < self.MAX_RETRIES:
+                    if retry_count < self.max_retries:
                         retry_count += 1
-                        logger.warning(f"Retrying ({retry_count}/{self.MAX_RETRIES}) for video_no: {video_no}")
+                        logger.warning(f"Retrying ({retry_count}/{self.max_retries}) for video_no: {video_no}")
                         continue
                     logger.error(
-                        f"❌ Failed to crawl chat data for video_no: {video_no} after {self.MAX_RETRIES} retries"
+                        f"❌ Failed to crawl chat data for video_no: {video_no} after {self.max_retries} retries"
                     )
                     return False
 
@@ -114,7 +115,7 @@ class ChzzkChatCrawler:
                 logger.info(f"next_player_message_time :{next_player_message_time}")
                 self._append_chats_to_jsonl(video_chats, video_no)
                 retry_count = 0  # Reset retry count on success
-                time.sleep(base_sleep_time * random.uniform(0.5, 1.5))
+                time.sleep(sleep_time * random.uniform(0.5, 1.5))
             except Exception as e:
                 logger.error(f"❌ Error crawling chat data for video_no {video_no}: {e}")
                 return False

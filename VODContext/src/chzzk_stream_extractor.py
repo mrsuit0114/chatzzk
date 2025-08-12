@@ -8,7 +8,7 @@ import requests
 from loguru import logger
 from tqdm import tqdm
 
-from config import ChzzkStreamExtractorConfig
+from config import Config
 
 
 def load_cookies_from_file(file_path: str) -> Optional[dict]:
@@ -32,15 +32,14 @@ def load_cookies_from_file(file_path: str) -> Optional[dict]:
 
 
 class ChzzkStreamExtractor:
-    def __init__(self, config: ChzzkStreamExtractorConfig):
-        self.vod_url = config.VOD_URL
-        self.vod_info = config.VOD_INFO
-        self.data_dir = config.DATA_DIR
-        self.video_dir = config.VIDEO_DIR
-        self.user_agent = config.USER_AGENT
-        self.cookies_file = config.COOKIES_FILE
-        self.max_retries = config.MAX_RETRIES
-        self.timeout = config.TIMEOUT
+    def __init__(self, config: Config):
+        self.vod_url = config.ChzzkStream.VOD_URL
+        self.vod_info = config.ChzzkStream.VOD_INFO
+        self.cookies_file = config.ChzzkStream.COOKIES_FILE
+        self.video_dir = config.DataDir.VIDEO_DIR
+        self.user_agent = config.Network.USER_AGENT
+        self.max_retries = config.Network.HTTP_MAX_RETRIES
+        self.timeout = config.Network.HTTP_TIMEOUT
 
     def extract_streams(self, video_no: int) -> bool:
         """Extract and download VOD streams with proper error handling."""
@@ -62,7 +61,7 @@ class ChzzkStreamExtractor:
                 return False
 
             # Download video
-            output_path = os.path.join(self.data_dir, self.video_dir, f"{video_no}.mp4")
+            output_path = os.path.join(self.video_dir, f"{video_no}.mp4")
             success = self._download_video(stream_url, output_path, metadata)
 
             if success:
@@ -217,7 +216,7 @@ class ChzzkStreamExtractor:
 
     def download_from_direct_url(self, mp4_url: str, video_no: int) -> bool:
         """Download MP4 directly using curl -L when a full URL is provided."""
-        output_path = os.path.join(self.data_dir, self.video_dir, f"{video_no}.mp4")
+        output_path = os.path.join(self.video_dir, f"{video_no}.mp4")
         try:
             # Ensure output directory exists
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -244,35 +243,3 @@ class ChzzkStreamExtractor:
             if os.path.exists(output_path):
                 os.remove(output_path)
             return False
-
-
-if __name__ == "__main__":
-    # Test configuration
-    from config import ChzzkStreamExtractorConfig
-
-    config = ChzzkStreamExtractorConfig()
-    extractor = ChzzkStreamExtractor(config)
-
-    while True:
-        try:
-            video_no = input("Enter video number (or type 'q' to quit): ")
-
-            if video_no.lower() == "q":
-                break
-
-            if not video_no.isdigit():
-                print("❌ Please enter a valid video number")
-                continue
-
-            success = extractor.extract_streams(int(video_no))
-            if success:
-                print("✅ VOD extraction completed successfully!")
-            else:
-                print("❌ VOD extraction failed")
-
-        except KeyboardInterrupt:
-            print("\n👋 Goodbye!")
-            break
-        except Exception as e:
-            print(f"❌ Error: {e}")
-            continue

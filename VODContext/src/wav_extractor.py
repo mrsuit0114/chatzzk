@@ -5,23 +5,22 @@ import time
 from loguru import logger
 from tqdm import tqdm
 
-from config import WavExtractorConfig
+from config import Config
 
 
 class WavExtractor:
-    def __init__(self, config: WavExtractorConfig):
-        self.data_dir = config.DATA_DIR
-        self.video_dir = config.VIDEO_DIR
-        self.audio_dir = config.AUDIO_DIR
-        self.target_sampling_rate = config.TARGET_SAMPLING_RATE
+    def __init__(self, config: Config):
+        self.video_dir = config.DataDir.VIDEO_DIR
+        self.audio_dir = config.DataDir.AUDIO_DIR
+        self.target_sampling_rate = config.Audio.TARGET_SAMPLING_RATE
 
     def extract_wav_from_mp4(self, video_no: int) -> bool:
         """
         Extract a WAV file from an MP4 file with specified configurations.
         Returns True on success, False on failure.
         """
-        input_mp4_path = os.path.join(self.data_dir, self.video_dir, f"{video_no}.mp4")
-        output_wav_path = os.path.join(self.data_dir, self.audio_dir, f"{video_no}.wav")
+        input_mp4_path = os.path.join(self.video_dir, f"{video_no}.mp4")
+        output_wav_path = os.path.join(self.audio_dir, f"{video_no}.wav")
 
         # Check if the input MP4 file exists
         if not os.path.exists(input_mp4_path):
