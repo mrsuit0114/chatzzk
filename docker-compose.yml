@@ -16,6 +16,16 @@ services:
               capabilities: [gpu]
     env_file:
       - ./VODContext/env.example
+
+  llm-service:
+    container_name: llm-service
+    image: llm-service
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./LLMService/.env
+
+
   redis:
     image: redis
     container_name: redis
