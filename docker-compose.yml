@@ -20,6 +20,7 @@ services:
   litellm-proxy:
     container_name: litellm-proxy
     image: litellm-proxy
+    build: ./LitellmProxy
     ports:
       - "4000:4000"
     env_file:
