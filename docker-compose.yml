@@ -17,13 +17,13 @@ services:
     env_file:
       - ./VODContext/env.example
 
-  llm-service:
-    container_name: llm-service
-    image: llm-service
+  litellm-proxy:
+    container_name: litellm-proxy
+    image: litellm-proxy
     ports:
       - "4000:4000"
     env_file:
-      - ./LLMService/.env
+      - ./LitellmProxy/.env
 
 
   redis:
