@@ -1,0 +1,3 @@
+# 받은 프롬프트로 llm을 호출(직접 호출하지 않아도됨, 프록시에 요청 등 가능)해서 받은 응답을 반환하는 클래스
+# LiteLLMClient, OpenAIClient...
+# 지금은 LiteLLM Proxy를 사용하는 LiteLLMClient만 있음
