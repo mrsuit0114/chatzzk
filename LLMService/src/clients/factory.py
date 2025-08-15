@@ -1,7 +1,8 @@
 from loguru import logger
 
-from clients import LiteLLMClient, LLMClient
-from enums import LLMClientType
+from clients.base import LLMClient
+from clients.litellm import LiteLLMClient
+from core.enums import LLMClientType
 
 
 class LLMClientFactory:
