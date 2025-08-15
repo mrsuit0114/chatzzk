@@ -7,12 +7,12 @@ from concurrent.futures import ThreadPoolExecutor
 
 from loguru import logger
 
-from audio_processor import AudioProcessor
-from chzzk_chat_crawler import ChzzkChatCrawler
-from chzzk_stream_extractor import ChzzkStreamExtractor
+from clients.chzzk_chat_crawler import ChzzkChatCrawler
+from clients.chzzk_stream_extractor import ChzzkStreamExtractor
 from config import Config
-from context_merge_manager import ContextMergeManager
-from wav_extractor import WavExtractor
+from processing.audio_processor import AudioProcessor
+from processing.context_merge_manager import ContextMergeManager
+from processing.wav_extractor import WavExtractor
 
 
 class VodContextFetcher:

@@ -9,10 +9,10 @@ import torchaudio
 from loguru import logger
 from tqdm import tqdm
 
-from audio.asr import ASR
-from audio.vad import VAD
 from config import Config
-from data_types.context_data import ContextData
+from processing.audio.asr import ASR
+from processing.audio.vad import VAD
+from schemas.context_data import ContextData
 
 
 class AudioProcessor:
@@ -103,7 +103,7 @@ class AudioProcessor:
             logger.error(f"❌ Failed to load audio from {input_audio_path}: {e}")
             return None
 
-    def _process_vad(self, audio_data: np.ndarray, output_vad_path: str, vad_save: bool) -> Optional[list[tuple]]:
+    def _process_vad(self, audio_data: np.ndarray, output_vad_path: str, vad_save: bool) -> list[tuple]:
         """Process Voice Activity Detection."""
         try:
             if os.path.exists(output_vad_path):
@@ -216,7 +216,7 @@ class AudioProcessor:
         try:
             with open(output_path, "w", encoding="utf-8") as f:
                 for context in asr_contexts:
-                    f.write(json.dumps(context._asdict(), ensure_ascii=False) + "\n")
+                    f.write(json.dumps(context.model_dump(), ensure_ascii=False) + "\n")
             logger.info(f"💾 ASR contexts saved to {output_path}")
             return True
         except Exception as e:

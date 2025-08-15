@@ -5,6 +5,7 @@ import json
 import os
 
 from config import Config
+from schemas.context_data import ContextData
 
 
 class ContextMergeManager:
@@ -18,7 +19,7 @@ class ContextMergeManager:
         chat_context_path = os.path.join(self.chat_context_dir, f"{video_no}.jsonl")
         asr_context_path = os.path.join(self.asr_context_dir, f"{video_no}.jsonl")
         full_context_path = os.path.join(self.full_context_dir, f"{video_no}.jsonl")
-        merged_data = []
+        merged_data: list[ContextData] = []
 
         with (
             open(chat_context_path, encoding="utf-8") as f_chat,
@@ -28,12 +29,12 @@ class ContextMergeManager:
             line_asr = f_asr.readline()
 
             while line_chat and line_asr:
-                data_chat = json.loads(line_chat)
-                data_asr = json.loads(line_asr)
+                data_chat = ContextData.model_validate(json.loads(line_chat))
+                data_asr = ContextData.model_validate(json.loads(line_asr))
 
                 if (
-                    data_chat["timestamp_ms"]
-                    <= data_asr["timestamp_ms"] + self.asr_context_default_offset_ms + asr_offset_ms
+                    data_chat.timestamp_ms
+                    <= data_asr.timestamp_ms + self.asr_context_default_offset_ms + asr_offset_ms
                 ):
                     merged_data.append(data_chat)
                     line_chat = f_chat.readline()
@@ -42,15 +43,15 @@ class ContextMergeManager:
                     line_asr = f_asr.readline()
 
             while line_chat:
-                merged_data.append(data_chat)
+                merged_data.append(ContextData.model_validate(json.loads(line_chat)))
                 line_chat = f_chat.readline()
 
             while line_asr:
-                merged_data.append(data_asr)
+                merged_data.append(ContextData.model_validate(json.loads(line_asr)))
                 line_asr = f_asr.readline()
 
         with open(full_context_path, "w", encoding="utf-8") as f_full:
             for item in merged_data:
-                f_full.write(json.dumps(item, ensure_ascii=False) + "\n")
+                f_full.write(json.dumps(item.model_dump(), ensure_ascii=False) + "\n")
 
         return merged_data

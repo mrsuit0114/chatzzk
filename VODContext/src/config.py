@@ -42,7 +42,7 @@ class Config:
     class Network:
         USER_AGENT = os.getenv(
             "VOD_USER_AGENT",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+            "",
         )
         HTTP_MAX_RETRIES = int(os.getenv("VOD_HTTP_MAX_RETRIES", "3"))
         HTTP_TIMEOUT = int(os.getenv("VOD_HTTP_TIMEOUT", "30"))
@@ -55,12 +55,12 @@ class Config:
         ASR_PAY_AMOUNT = 0
 
     class ChzzkStream:
-        VOD_URL = "https://apis.naver.com/neonplayer/vodplay/v2/playback/{video_id}?key={in_key}"
-        VOD_INFO = "https://api.chzzk.naver.com/service/v2/videos/{video_no}"
+        VOD_URL = os.getenv("VOD_URL", "")
+        VOD_INFO = os.getenv("VOD_INFO", "")
         COOKIES_FILE = os.getenv("VOD_COOKIES_FILE", "cookies.json")
 
     class ChzzkChat:
-        CHAT_URL = "https://api.chzzk.naver.com/service/v1/videos/{video_no}/chats"
+        CHAT_URL = os.getenv("VOD_CHAT_URL", "")
 
     class Audio:
         TARGET_SAMPLING_RATE = int(os.getenv("VOD_TARGET_SAMPLING_RATE", "16000"))

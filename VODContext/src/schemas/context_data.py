@@ -1,7 +1,7 @@
-from typing import NamedTuple
+from pydantic import BaseModel
 
 
-class ContextData(NamedTuple):
+class ContextData(BaseModel):
     """Data structure for context information.
 
     Attributes:

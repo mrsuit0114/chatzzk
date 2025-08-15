@@ -8,7 +8,7 @@ import requests
 from loguru import logger
 
 from config import Config
-from data_types.context_data import ContextData
+from schemas.context_data import ContextData
 
 
 class ChzzkChatCrawler:
@@ -34,20 +34,13 @@ class ChzzkChatCrawler:
             logger.error(f"❌ API request failed: {e}")
             return None
 
-    def _append_chats_to_jsonl(self, chats: list[ContextData], video_no: int):
+    def _append_chats_to_jsonl(self, chat_contexts: list[ContextData], video_no: int):
         output_path = os.path.join(self.chat_context_dir, f"{video_no}.jsonl")
         try:
             # Append new chats as JSONL
             with open(output_path, "a", encoding="utf-8") as f:
-                for chat in chats:
-                    chat_obj = {
-                        "timestamp_ms": chat.timestamp_ms,
-                        "content": chat.content,
-                        "type_code": chat.type_code,
-                        "prompt_str": chat.prompt_str,
-                        "pay_amount": chat.pay_amount,
-                    }
-                    f.write(json.dumps(chat_obj, ensure_ascii=False) + "\n")
+                for context in chat_contexts:
+                    f.write(json.dumps(context.model_dump(), ensure_ascii=False) + "\n")
         except Exception as e:
             logger.error(f"Error appending chats to jsonl file: {e}")
             raise e
@@ -58,7 +51,7 @@ class ChzzkChatCrawler:
 
         return chat_message.strip()
 
-    def _parse_video_chats(self, data):
+    def _parse_video_chats(self, data) -> tuple[list[ContextData], int]:
         content = data.get("content")
         if not content:
             logger.error(f"❌ No content found in data: {data}")
@@ -88,12 +81,18 @@ class ChzzkChatCrawler:
             # chzzk 서비스에 적용하는 chat, donation의 msg_type_code -> 'chat', 'donation' -> 내 서비스에서 사용할 chat, donation의 코드드 매핑 적용
             type_code = self.prompt_cmd_to_type_code[self.message_type_code_to_prompt_cmd[msg_type_code]]
 
-            context_data = ContextData(timestamp_ms, content, type_code, prompt_str, pay_amount)
+            context_data = ContextData(
+                timestamp_ms=timestamp_ms,
+                content=content,
+                type_code=type_code,
+                prompt_str=prompt_str,
+                pay_amount=pay_amount,
+            )
             result.append(context_data)
 
         return result, next_player_message_time
 
-    def crawl_chat(self, video_no: int, additional_sleep_time: float = 0):
+    def crawl_chat(self, video_no: int, additional_sleep_time: float = 0) -> bool:
         next_player_message_time = 0
         retry_count = 0
         sleep_time = self.base_sleep_time + additional_sleep_time
