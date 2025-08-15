@@ -65,9 +65,6 @@ class Config:
     class Audio:
         TARGET_SAMPLING_RATE = int(os.getenv("VOD_TARGET_SAMPLING_RATE", "16000"))
 
-    class ContextMerge:
-        ASR_CONTEXT_DEFAULT_OFFSET_MS = 500
-
     def __init__(self):
         try:
             for directory in self.DataDir.ALL_DIRS:

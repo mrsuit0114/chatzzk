@@ -13,9 +13,8 @@ class ContextMergeManager:
         self.chat_context_dir = config.DataDir.CHAT_CONTEXT_DIR
         self.asr_context_dir = config.DataDir.ASR_CONTEXT_DIR
         self.full_context_dir = config.DataDir.FULL_CONTEXT_DIR
-        self.asr_context_default_offset_ms = config.ContextMerge.ASR_CONTEXT_DEFAULT_OFFSET_MS
 
-    def merge_context(self, video_no: int, asr_offset_ms: int = 0):
+    def merge_context(self, video_no: int):
         chat_context_path = os.path.join(self.chat_context_dir, f"{video_no}.jsonl")
         asr_context_path = os.path.join(self.asr_context_dir, f"{video_no}.jsonl")
         full_context_path = os.path.join(self.full_context_dir, f"{video_no}.jsonl")
@@ -32,10 +31,7 @@ class ContextMergeManager:
                 data_chat = ContextData.model_validate(json.loads(line_chat))
                 data_asr = ContextData.model_validate(json.loads(line_asr))
 
-                if (
-                    data_chat.timestamp_ms
-                    <= data_asr.timestamp_ms + self.asr_context_default_offset_ms + asr_offset_ms
-                ):
+                if data_chat.timestamp_ms <= data_asr.timestamp_ms:
                     merged_data.append(data_chat)
                     line_chat = f_chat.readline()
                 else:
