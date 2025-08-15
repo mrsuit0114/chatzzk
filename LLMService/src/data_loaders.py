@@ -3,3 +3,4 @@
 # user prompt에서 포메팅에 필요한 데이터도 여기서 가져오도록
 # JsonlDataLoader, CsvDataLoader, DBDataLoader ...
 # 현재는 방송인의 메타데이터, 플랫폼의 메타데이터 용도로 ./LLMService/data 임시저장소를 사용예정
+# https://python.langchain.com/docs/integrations/document_loaders/json/ 참고

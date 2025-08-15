@@ -1,13 +1,19 @@
 from dotenv import load_dotenv
-from litellm import completion
-from loguru import logger
+
+from llm_tasks import LLMTask
+
+PROMPT_BUILDER_TYPE = "langfuse"
+LLM_CLIENT_TYPE = "litellm"
+DATAS = {"request": "세계에서 가장 인구가 적은 나라는 어디인가요?"}
 
 load_dotenv("./LLMService/.env")
 
 
-messages = [{"content": "Hello, how are you?", "role": "user"}]
+def main():
+    llm_task = LLMTask(PROMPT_BUILDER_TYPE, LLM_CLIENT_TYPE)
 
-# Call the completion function, referencing the model in the proxy's config
-response = completion(model="litellm_proxy/gemini", messages=messages)
+    res = llm_task.short_term_summary(DATAS)
+    print(res)
 
-logger.info(response.choices[0].message.content)
+
+main()
