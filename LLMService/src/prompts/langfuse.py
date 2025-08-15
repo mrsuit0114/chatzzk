@@ -1,6 +1,6 @@
-from langfuse import get_client
+from langfuse import get_client, observe
 
-from .base import PromptBuilder
+from prompts.base import PromptBuilder
 
 
 class LangfusePromptBuilder(PromptBuilder):
@@ -15,9 +15,10 @@ class LangfusePromptBuilder(PromptBuilder):
 
         return langfuse_prompt_template
 
+    @observe(as_type="generation")
     def get_prompt(self, task_type: str, data: dict) -> list[tuple]:
         langfuse_prompt_template = self._get_prompt_template(task_type)
-
+        self.langfuse.update_current_generation(prompt=langfuse_prompt_template)
         langfuse_prompt = langfuse_prompt_template.get_langchain_prompt(**data)
 
         return langfuse_prompt

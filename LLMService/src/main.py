@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
 
 from core import schemas
-from tasks import LLMTask
+from llm_tasks import LLMTask
 
 PROMPT_BUILDER_TYPE = "langfuse"
 LLM_CLIENT_TYPE = "litellm"
