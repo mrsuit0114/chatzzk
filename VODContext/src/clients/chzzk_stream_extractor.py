@@ -1,9 +1,9 @@
-import json
 import os
 import subprocess
 import xml.etree.ElementTree as ET
-from typing import Optional, Tuple
+from typing import Optional
 
+import orjson
 import requests
 from loguru import logger
 from tqdm import tqdm
@@ -18,12 +18,12 @@ def load_cookies_from_file(file_path: str) -> Optional[dict]:
             logger.warning(f"Cookie file not found: {file_path}")
             return None
 
-        with open(file_path, encoding="utf-8") as file:
-            cookies = json.load(file)
+        with open(file_path, "rb") as file:
+            cookies = orjson.loads(file.read())
         logger.info(f"✅ Cookies loaded from {file_path}")
         return cookies
 
-    except json.JSONDecodeError as e:
+    except orjson.JSONDecodeError as e:
         logger.error(f"❌ Error decoding JSON from file {file_path}: {e}")
         return None
     except Exception as e:
@@ -75,7 +75,7 @@ class ChzzkStreamExtractor:
             logger.error(f"❌ Unexpected error during VOD extraction for {video_no}: {e}")
             return False
 
-    def _get_video_info(self, video_no: int) -> Optional[Tuple[str, str, dict]]:
+    def _get_video_info(self, video_no: int) -> Optional[tuple[str, str, dict]]:
         """Get video information from API with retry logic."""
         api_url = self.vod_info.format(video_no=video_no)
         headers = {"User-Agent": self.user_agent}
@@ -130,7 +130,7 @@ class ChzzkStreamExtractor:
                     logger.error(f"❌ Failed to fetch video information after {self.max_retries} attempts")
                     return None
                 continue
-            except json.JSONDecodeError as e:
+            except orjson.JSONDecodeError as e:
                 logger.error(f"❌ Failed to decode JSON response: {e}")
                 return None
             except Exception as e:

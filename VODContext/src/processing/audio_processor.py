@@ -1,9 +1,9 @@
-import json
 import os
 import time
 from typing import Optional
 
 import numpy as np
+import orjson
 import torch
 import torchaudio
 from loguru import logger
@@ -143,10 +143,10 @@ class AudioProcessor:
         """Load VAD timestamps from file."""
         try:
             timestamps = []
-            with open(vad_path, encoding="utf-8") as f:
+            with open(vad_path, "rb") as f:
                 for line in f:
                     if line.strip():
-                        timestamps.append(json.loads(line))
+                        timestamps.append(orjson.loads(line))
             return timestamps
         except Exception as e:
             logger.error(f"❌ Failed to load VAD timestamps: {e}")
@@ -155,9 +155,9 @@ class AudioProcessor:
     def _save_vad_timestamps(self, timestamps: list[tuple], output_path: str) -> bool:
         """Save VAD timestamps to file."""
         try:
-            with open(output_path, "w", encoding="utf-8") as f:
+            with open(output_path, "wb") as f:
                 for timestamp in timestamps:
-                    f.write(json.dumps(timestamp, ensure_ascii=False) + "\n")
+                    f.write(orjson.dumps(timestamp) + b"\n")
             logger.info(f"💾 VAD timestamps saved to {output_path}")
             return True
         except Exception as e:
@@ -214,9 +214,9 @@ class AudioProcessor:
     def _save_asr_contexts(self, asr_contexts: list[ContextData], output_path: str) -> bool:
         """Save ASR contexts to file."""
         try:
-            with open(output_path, "w", encoding="utf-8") as f:
+            with open(output_path, "wb") as f:
                 for context in asr_contexts:
-                    f.write(json.dumps(context.model_dump(), ensure_ascii=False) + "\n")
+                    f.write(orjson.dumps(context.model_dump()) + b"\n")
             logger.info(f"💾 ASR contexts saved to {output_path}")
             return True
         except Exception as e:

@@ -1,8 +1,9 @@
 # jsonl 파일을 토대로 fullcontext를 구성함
 # 오디오의 경우 싱크를 위한 offset을 반영할 수 있음 - 발언 이후 시청자가 반응하기 까지의 시간
 
-import json
 import os
+
+import orjson
 
 from config import Config
 from schemas.context_data import ContextData
@@ -21,15 +22,15 @@ class ContextMergeManager:
         merged_data: list[ContextData] = []
 
         with (
-            open(chat_context_path, encoding="utf-8") as f_chat,
-            open(asr_context_path, encoding="utf-8") as f_asr,
+            open(chat_context_path, "rb") as f_chat,
+            open(asr_context_path, "rb") as f_asr,
         ):
             line_chat = f_chat.readline()
             line_asr = f_asr.readline()
 
             while line_chat and line_asr:
-                data_chat = ContextData.model_validate(json.loads(line_chat))
-                data_asr = ContextData.model_validate(json.loads(line_asr))
+                data_chat = ContextData.model_validate(orjson.loads(line_chat))
+                data_asr = ContextData.model_validate(orjson.loads(line_asr))
 
                 if data_chat.timestamp_ms <= data_asr.timestamp_ms:
                     merged_data.append(data_chat)
@@ -39,15 +40,15 @@ class ContextMergeManager:
                     line_asr = f_asr.readline()
 
             while line_chat:
-                merged_data.append(ContextData.model_validate(json.loads(line_chat)))
+                merged_data.append(ContextData.model_validate(orjson.loads(line_chat)))
                 line_chat = f_chat.readline()
 
             while line_asr:
-                merged_data.append(ContextData.model_validate(json.loads(line_asr)))
+                merged_data.append(ContextData.model_validate(orjson.loads(line_asr)))
                 line_asr = f_asr.readline()
 
-        with open(full_context_path, "w", encoding="utf-8") as f_full:
+        with open(full_context_path, "wb") as f_full:
             for item in merged_data:
-                f_full.write(json.dumps(item.model_dump(), ensure_ascii=False) + "\n")
+                f_full.write(orjson.dumps(item.model_dump()) + b"\n")
 
         return merged_data

@@ -7,3 +7,4 @@ silero-vad
 whisperx
 torchvision==0.20.1
 pydantic
+orjson

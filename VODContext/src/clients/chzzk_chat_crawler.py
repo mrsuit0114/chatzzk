@@ -1,9 +1,9 @@
-import json
 import os
 import random
 import re
 import time
 
+import orjson
 import requests
 from loguru import logger
 
@@ -38,9 +38,9 @@ class ChzzkChatCrawler:
         output_path = os.path.join(self.chat_context_dir, f"{video_no}.jsonl")
         try:
             # Append new chats as JSONL
-            with open(output_path, "a", encoding="utf-8") as f:
+            with open(output_path, "ab") as f:
                 for context in chat_contexts:
-                    f.write(json.dumps(context.model_dump(), ensure_ascii=False) + "\n")
+                    f.write(orjson.dumps(context.model_dump()) + b"\n")
         except Exception as e:
             logger.error(f"Error appending chats to jsonl file: {e}")
             raise e
@@ -75,7 +75,7 @@ class ChzzkChatCrawler:
             extras = video_chat.get("extras", None)
             pay_amount = 0
             if extras:
-                extras = json.loads(extras)
+                extras = orjson.loads(extras)
                 pay_amount = extras.get("payAmount", 0)
             prompt_str = self._preprocess_chat_message_to_prompt_str(content)
             # chzzk 서비스에 적용하는 chat, donation의 msg_type_code -> 'chat', 'donation' -> 내 서비스에서 사용할 chat, donation의 코드드 매핑 적용
