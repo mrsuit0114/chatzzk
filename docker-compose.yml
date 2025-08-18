@@ -5,17 +5,17 @@ services:
     volumes:
       - ./VODContext/whisperx_models:/app/whisperx_models
       - ./VODContext/data:/app/data
-    stdin_open: true  # -i 옵션과 동일
-    tty: true         # -t 옵션과 동일
+    stdin_open: true # -i 옵션과 동일
+    tty: true # -t 옵션과 동일
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
               count: all
-              capabilities: [gpu]
+              capabilities: [ gpu ]
     env_file:
-      - ./VODContext/env.example
+      - ./VODContext/.env
 
   litellm-proxy:
     container_name: litellm-proxy
@@ -26,6 +26,13 @@ services:
     env_file:
       - ./LitellmProxy/.env
 
+  llm-service:
+    container_name: llm-service
+    image: llm-service
+    build: ./LLMService
+
+    env_file:
+      - ./LLMService/.env
 
   redis:
     image: redis

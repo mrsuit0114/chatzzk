@@ -10,4 +10,16 @@ class PromptBuilderType(Enum):
 
 
 class TaskType(Enum):
-    SHORTTERMSUMMARY = "short_term_summary"
+    SHORT_TERM_SUMMARY = "short_term_summary"
+
+
+class DataSourceType(Enum):
+    LOCAL_FILE = "local_file"
+    DATABASE = "database"
+    # API = "api" # for future extension
+
+
+class DataFormatType(Enum):
+    JSON = "json"
+    JSONL = "jsonl"
+    # CSV = "csv" # for future extension
