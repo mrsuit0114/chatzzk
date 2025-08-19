@@ -1,5 +1,5 @@
 [tool.ruff]
-src = ["MonitorWorker/src", "BroadcasterStatusWatcher/src", "MonitorManager/src", "VODContext/src", "LLMService/src"]
+src = ["monitor_worker/src", "BroadcasterStatusWatcher/src", "MonitorManager/src", "vod_context/src", "llm_service/src"]
 
 target-version = "py311"
 line-length = 119
