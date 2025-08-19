@@ -1,8 +1,8 @@
 from loguru import logger
 
-from core.enums import PromptBuilderType
 from prompts.base import PromptBuilder
 from prompts.langfuse import LangfusePromptBuilder
+from schemas.enums import PromptBuilderType
 
 
 class PromptBuilderFactory:

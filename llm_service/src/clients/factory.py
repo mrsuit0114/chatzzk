@@ -2,7 +2,7 @@ from loguru import logger
 
 from clients.base import LLMClient
 from clients.litellm import LiteLLMClient
-from core.enums import LLMClientType
+from schemas.enums import LLMClientType
 
 
 class LLMClientFactory:

@@ -1,0 +1,92 @@
+from common.schemas.context_data import ContextData
+
+from config import Config
+
+
+class DataProcessor:
+    """
+    A class for processing lists of ContextData.
+    All methods are stateless and receive the data to be processed as an argument.
+    """
+
+    def __init__(self, config: Config):
+        self.type_code_to_prompt_cmd = {v: k.upper() for k, v in config.DataProcessor.PROMPT_CMD_TO_TYPE_CODE.items()}
+
+    def create_sliding_windows(
+        self, contexts: list[ContextData], window_ms: int, shift_ms: int
+    ) -> list[list[ContextData]]:
+        """
+        Creates sliding windows of ContextData based on timestamps.
+
+        Args:
+            contexts: A list of ContextData objects, assumed to be sorted by timestamp_ms.
+            window_ms: The size of each window in milliseconds.
+            shift_ms: The step size (stride) for the sliding window in milliseconds.
+
+        Returns:
+            A list of lists, where each inner list is a window of ContextData.
+        """
+        if not contexts:
+            return []
+
+        windows = []
+
+        start_ts = contexts[0].timestamp_ms
+        max_ts = contexts[-1].timestamp_ms
+
+        current_window_start_ts = start_ts
+        search_start_idx = 0
+
+        while current_window_start_ts <= max_ts:
+            current_window_end_ts = current_window_start_ts + window_ms
+
+            window_contexts = []
+
+            i = search_start_idx
+            while i < len(contexts) and contexts[i].timestamp_ms < current_window_start_ts:
+                i += 1
+
+            search_start_idx = i
+
+            while i < len(contexts) and contexts[i].timestamp_ms < current_window_end_ts:
+                window_contexts.append(contexts[i])
+                i += 1
+
+            if window_contexts:
+                windows.append(window_contexts)
+
+            current_window_start_ts += shift_ms
+
+        return windows
+
+    def _get_prompt_content(self, context_data: ContextData):
+        cmd = self.type_code_to_prompt_cmd[context_data.type_code]
+        prompt_content = f"[{cmd}] {context_data.prompt_str}"
+        return prompt_content
+
+    def get_prompt_strings(self, contexts: list[ContextData]) -> str:
+        """
+        Extracts the prompt_str from a list of ContextData objects.
+
+        Args:
+            contexts: A list of ContextData objects.
+
+        Returns:
+            A list of strings, where each string is the prompt_str.
+        """
+        return "\n".join(self._get_prompt_content(context) for context in contexts if context.prompt_str)
+
+    def slice_by_timestamp(self, contexts: list[ContextData], start_ms: int, length_ms: int) -> list[ContextData]:
+        """
+        Filters a list of ContextData to a specific time range.
+
+        Args:
+            contexts: A list of ContextData objects, assumed to be sorted by timestamp_ms.
+            start_ms: The start of the time range in milliseconds (inclusive).
+            end_ms: The end of the time range in milliseconds (exclusive).
+
+        Returns:
+            A new list of ContextData objects within the specified time range.
+        """
+        end_ms = start_ms + length_ms
+        return [context for context in contexts if start_ms <= context.timestamp_ms < end_ms]
