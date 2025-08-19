@@ -35,10 +35,7 @@ class DataLoader:
         return reader
 
     def load(
-        self,
-        source_type: DataSourceType,
-        format_type: DataFormatType,
-        source_identifier: str,
+        self, source_type: DataSourceType, format_type: DataFormatType, source_identifier: str
     ) -> list[dict[str, Any]]:
         """
         지정된 소스와 포맷으로 데이터를 로드합니다.
