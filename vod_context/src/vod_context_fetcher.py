@@ -1,6 +1,7 @@
 import os
 from concurrent.futures import ThreadPoolExecutor
 
+from common.clients.storage import MinioStorageClient
 from loguru import logger
 
 from clients.chzzk_chat_crawler import ChzzkChatCrawler
@@ -20,6 +21,7 @@ class VodContextFetcher:
         self.wav_extractor = WavExtractor(config, self.data_manager)
         self.audio_processor = AudioProcessor(config)
         self.context_merge_manager = ContextMergeManager()
+        self.storage_client = MinioStorageClient(config.storage_config)
 
     def run(self, video_no: int, vad_save: bool = False) -> bool:
         """Run the complete VOD context fetching pipeline with error handling."""
@@ -64,11 +66,26 @@ class VodContextFetcher:
             # Step 5: Context merging
             if os.path.exists(full_context_jsonl_path):
                 logger.info(f"⏭️ Skipping Context Merge: file exists at {full_context_jsonl_path}")
+                merged_context_saved = True
             else:
                 logger.info("🔗 Step 5: Merging contexts...")
                 merged_context = self.context_merge_manager.merge_context(chat_contexts, asr_contexts)
-                self.data_manager.save_jsonl(merged_context, full_context_jsonl_path)
-                logger.info("✅ Step 5 completed: Contexts merged successfully")
+                merged_context_saved = self.data_manager.save_jsonl(merged_context, full_context_jsonl_path)
+                if merged_context_saved:
+                    logger.info("✅ Step 5 completed: Contexts merged successfully")
+                else:
+                    logger.error("❌ Step 5 failed: Could not save merged context")
+
+            # Step 6: Upload to MinIO
+            if merged_context_saved:
+                logger.info("📤 Step 6: Uploading full context to storage...")
+                try:
+                    with open(full_context_jsonl_path, "rb") as f:
+                        self.storage_client.upload(f"{video_no}.jsonl", f.read())
+                    logger.info("✅ Step 6 completed: Upload successful")
+                except Exception as e:
+                    logger.error(f"❌ Step 6 failed: Could not upload to storage. {e}")
+                    # Not returning false, just logging the error.
 
             logger.info(f"🎉 VOD context fetching completed successfully for video {video_no}")
             return True

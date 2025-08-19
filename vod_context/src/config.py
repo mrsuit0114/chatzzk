@@ -1,5 +1,7 @@
 import os
 
+from common.buckets import BucketNames
+from common.clients.storage import StorageConfig
 from loguru import logger
 
 
@@ -65,6 +67,12 @@ class Config:
     class Audio:
         TARGET_SAMPLING_RATE = int(os.getenv("VOD_TARGET_SAMPLING_RATE", "16000"))
 
+    class Minio:
+        ENDPOINT = os.getenv("MINIO_ENDPOINT", "localhost:9000")
+        ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "admin")
+        SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "adminadmin")
+        SECURE = os.getenv("MINIO_SECURE", "false").lower() == "true"
+
     def __init__(self):
         try:
             for directory in self.DataDir.ALL_DIRS:
@@ -73,3 +81,11 @@ class Config:
         except Exception as e:
             logger.error(f"❌ Failed to create directories: {e}")
             raise
+
+        self.storage_config = StorageConfig(
+            endpoint=self.Minio.ENDPOINT,
+            access_key=self.Minio.ACCESS_KEY,
+            secret_key=self.Minio.SECRET_KEY,
+            secure=self.Minio.SECURE,
+            default_bucket=BucketNames.VOD_CONTEXTS,
+        )

@@ -1,0 +1,43 @@
+# Git 관련 파일 제외
+.git
+.gitignore
+.gitmessage
+
+# Python 가상환경 및 캐시 파일 제외
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# IDE 및 에디터 설정 파일 제외
+.vscode/
+.idea/
+
+# 개발 도구 캐시 제외
+.ruff_cache/
+.pytest_cache/
+
+# 운영체제 생성 파일 제외
+.DS_Store
+Thumbs.db
+
+# 이미지에 포함될 필요 없는 최상위 파일들 제외
+README.md
+makefile
+environment.yml
+.pre-commit-config.yaml
+
+# 환경변수 파일은 이미지에 포함시키지 않음
+*.env
+*.env.example
+
+# 어차피 볼륨으로 마운트되는 데이터 폴더들은 제외
+minio/data/
+vod_context/data/
+vod_context/whisperx_models/
