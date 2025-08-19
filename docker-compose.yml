@@ -2,9 +2,12 @@ services:
   vod-context:
     container_name: vod-context
     image: vod-context
+    build:
+      context: .
+      dockerfile: vod_context/Dockerfile
     volumes:
-      - ./VODContext/whisperx_models:/app/whisperx_models
-      - ./VODContext/data:/app/data
+      - ./vod_context/whisperx_models:/app/whisperx_models
+      - ./vod_context/data:/app/data
     stdin_open: true # -i 옵션과 동일
     tty: true # -t 옵션과 동일
     deploy:
@@ -15,51 +18,33 @@ services:
               count: all
               capabilities: [ gpu ]
     env_file:
-      - ./VODContext/.env
+      - ./vod_context/.env
 
   litellm-proxy:
     container_name: litellm-proxy
     image: litellm-proxy
-    build: ./LitellmProxy
+    build: ./litellm_proxy
     ports:
       - "4000:4000"
     env_file:
-      - ./LitellmProxy/.env
+      - ./litellm_proxy/.env
+
+  minio:
+    container_name: minio
+    image: minio
+    volumes:
+      - ./minio/data:/data
+    build: ./minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    env_file:
+      - ./minio/.env
 
   llm-service:
     container_name: llm-service
     image: llm-service
-    build: ./LLMService
+    build: ./llm_service
 
     env_file:
-      - ./LLMService/.env
-
-  redis:
-    image: redis
-    container_name: redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
-    command: redis-server --appendonly yes
-    networks:
-      - app-network
-
-  watcher:
-    build:
-      context: ./BroadcasterStatusWatcher
-    container_name: broadcaster_watcher
-    env_file:
-      - ./BroadcasterStatusWatcher/.env
-    networks:
-      - app-network
-    depends_on:
-      - redis
-
-volumes:
-  redis-data:
-
-
-networks:
-  app-network:
-    driver: bridge
+      - ./llm_service/.env

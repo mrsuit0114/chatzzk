@@ -6,12 +6,12 @@ from loguru import logger
 from tqdm import tqdm
 
 from config import Config
+from core.data_manager import DataManager
 
 
 class WavExtractor:
-    def __init__(self, config: Config):
-        self.video_dir = config.DataDir.VIDEO_DIR
-        self.audio_dir = config.DataDir.AUDIO_DIR
+    def __init__(self, config: Config, data_manager: DataManager):
+        self.data_manager = data_manager
         self.target_sampling_rate = config.Audio.TARGET_SAMPLING_RATE
 
     def extract_wav_from_mp4(self, video_no: int) -> bool:
@@ -19,8 +19,8 @@ class WavExtractor:
         Extract a WAV file from an MP4 file with specified configurations.
         Returns True on success, False on failure.
         """
-        input_mp4_path = os.path.join(self.video_dir, f"{video_no}.mp4")
-        output_wav_path = os.path.join(self.audio_dir, f"{video_no}.wav")
+        input_mp4_path = self.data_manager.get_video_path(video_no)
+        output_wav_path = self.data_manager.get_audio_path(video_no)
 
         # Check if the input MP4 file exists
         if not os.path.exists(input_mp4_path):

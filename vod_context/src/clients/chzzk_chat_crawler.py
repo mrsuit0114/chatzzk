@@ -1,14 +1,13 @@
-import os
 import random
 import re
 import time
 
 import orjson
 import requests
+from common.schemas.context_data import ContextData
 from loguru import logger
 
 from config import Config
-from schemas.context_data import ContextData
 
 
 class ChzzkChatCrawler:
@@ -16,7 +15,6 @@ class ChzzkChatCrawler:
         self.chat_url = config.ChzzkChat.CHAT_URL
         self.user_agent = config.Network.USER_AGENT
         self.prompt_cmd_to_type_code = config.Service.PROMPT_CMD_TO_TYPE_CODE
-        self.chat_context_dir = config.DataDir.CHAT_CONTEXT_DIR
         self.message_type_code_to_prompt_cmd = config.Service.CHZZK_MESSAGE_TYPE_CODE_TO_PROMPT_CMD
         self.max_retries = config.Network.HTTP_MAX_RETRIES
         self.base_sleep_time = config.Network.HTTP_BASE_SLEEP_TIME
@@ -33,17 +31,6 @@ class ChzzkChatCrawler:
         except requests.exceptions.RequestException as e:
             logger.error(f"❌ API request failed: {e}")
             return None
-
-    def _append_chats_to_jsonl(self, chat_contexts: list[ContextData], video_no: int):
-        output_path = os.path.join(self.chat_context_dir, f"{video_no}.jsonl")
-        try:
-            # Append new chats as JSONL
-            with open(output_path, "ab") as f:
-                for context in chat_contexts:
-                    f.write(orjson.dumps(context.model_dump()) + b"\n")
-        except Exception as e:
-            logger.error(f"Error appending chats to jsonl file: {e}")
-            raise e
 
     def _preprocess_chat_message_to_prompt_str(self, chat_message: str) -> str:
         chat_message = re.sub(r"\{:[^:]*:\}", "", chat_message)
@@ -78,7 +65,6 @@ class ChzzkChatCrawler:
                 extras = orjson.loads(extras)
                 pay_amount = extras.get("payAmount", 0)
             prompt_str = self._preprocess_chat_message_to_prompt_str(content)
-            # chzzk 서비스에 적용하는 chat, donation의 msg_type_code -> 'chat', 'donation' -> 내 서비스에서 사용할 chat, donation의 코드드 매핑 적용
             type_code = self.prompt_cmd_to_type_code[self.message_type_code_to_prompt_cmd[msg_type_code]]
 
             context_data = ContextData(
@@ -92,7 +78,8 @@ class ChzzkChatCrawler:
 
         return result, next_player_message_time
 
-    def crawl_chat(self, video_no: int, additional_sleep_time: float = 0) -> bool:
+    def crawl_chat(self, video_no: int, additional_sleep_time: float = 0) -> list[ContextData]:
+        all_contexts = []
         next_player_message_time = 0
         retry_count = 0
         sleep_time = self.base_sleep_time + additional_sleep_time
@@ -108,14 +95,15 @@ class ChzzkChatCrawler:
                     logger.error(
                         f"❌ Failed to crawl chat data for video_no: {video_no} after {self.max_retries} retries"
                     )
-                    return False
+                    raise RuntimeError(f"Failed to crawl chat data for video_no: {video_no}")
 
                 video_chats, next_player_message_time = self._parse_video_chats(data)
+                if video_chats:
+                    all_contexts.extend(video_chats)
                 logger.info(f"next_player_message_time :{next_player_message_time}")
-                self._append_chats_to_jsonl(video_chats, video_no)
-                retry_count = 0  # Reset retry count on success
+                retry_count = 0
                 time.sleep(sleep_time * random.uniform(0.5, 1.5))
             except Exception as e:
                 logger.error(f"❌ Error crawling chat data for video_no {video_no}: {e}")
-                return False
-        return True
+                raise e
+        return all_contexts

@@ -9,6 +9,7 @@ from loguru import logger
 from tqdm import tqdm
 
 from config import Config
+from core.data_manager import DataManager
 
 
 def load_cookies_from_file(file_path: str) -> Optional[dict]:
@@ -32,11 +33,11 @@ def load_cookies_from_file(file_path: str) -> Optional[dict]:
 
 
 class ChzzkStreamExtractor:
-    def __init__(self, config: Config):
+    def __init__(self, config: Config, data_manager: DataManager):
         self.vod_url = config.ChzzkStream.VOD_URL
         self.vod_info = config.ChzzkStream.VOD_INFO
         self.cookies_file = config.ChzzkStream.COOKIES_FILE
-        self.video_dir = config.DataDir.VIDEO_DIR
+        self.data_manager = data_manager
         self.user_agent = config.Network.USER_AGENT
         self.max_retries = config.Network.HTTP_MAX_RETRIES
         self.timeout = config.Network.HTTP_TIMEOUT
@@ -61,7 +62,7 @@ class ChzzkStreamExtractor:
                 return False
 
             # Download video
-            output_path = os.path.join(self.video_dir, f"{video_no}.mp4")
+            output_path = self.data_manager.get_video_path(video_no)
             success = self._download_video(stream_url, output_path, metadata)
 
             if success:
@@ -216,7 +217,7 @@ class ChzzkStreamExtractor:
 
     def download_from_direct_url(self, mp4_url: str, video_no: int) -> bool:
         """Download MP4 directly using curl -L when a full URL is provided."""
-        output_path = os.path.join(self.video_dir, f"{video_no}.mp4")
+        output_path = self.data_manager.get_video_path(video_no)
         try:
             # Ensure output directory exists
             os.makedirs(os.path.dirname(output_path), exist_ok=True)

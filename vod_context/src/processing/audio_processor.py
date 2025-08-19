@@ -1,25 +1,21 @@
 import os
 import time
-from typing import Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
-import orjson
 import torch
 import torchaudio
+from common.schemas.context_data import ContextData
 from loguru import logger
 from tqdm import tqdm
 
 from config import Config
 from processing.audio.asr import ASR
 from processing.audio.vad import VAD
-from schemas.context_data import ContextData
 
 
 class AudioProcessor:
     def __init__(self, config: Config):
-        self.audio_dir = config.DataDir.AUDIO_DIR
-        self.vad_dir = config.DataDir.VAD_DIR
-        self.asr_context_dir = config.DataDir.ASR_CONTEXT_DIR
         self.asr_type_code = config.Service.ASR_TYPE_CODE
         self.asr_pay_amount = config.Service.ASR_PAY_AMOUNT
 
@@ -32,53 +28,38 @@ class AudioProcessor:
             logger.error(f"❌ Failed to initialize AudioProcessor: {e}")
             raise
 
-    def process_audio(self, video_no: int, vad_save: bool = False) -> bool:
+    def process_audio(self, audio_path: str) -> Tuple[List[tuple], List[ContextData]]:
         """Process audio with comprehensive error handling."""
         try:
-            logger.info(f"🎤 Starting audio processing for video {video_no}")
-
-            # Setup file paths
-            input_audio_path = os.path.join(self.audio_dir, f"{video_no}.wav")
-            output_vad_path = os.path.join(self.vad_dir, f"{video_no}.jsonl")
-            output_asr_context_path = os.path.join(self.asr_context_dir, f"{video_no}.jsonl")
+            logger.info(f"🎤 Starting audio processing for {audio_path}")
 
             # Check input file
-            if not os.path.exists(input_audio_path):
-                logger.error(f"❌ Input audio file not found: {input_audio_path}")
-                return False
-
-            # Ensure output directories exist
-            os.makedirs(os.path.dirname(output_vad_path), exist_ok=True)
-            os.makedirs(os.path.dirname(output_asr_context_path), exist_ok=True)
+            if not os.path.exists(audio_path):
+                logger.error(f"❌ Input audio file not found: {audio_path}")
+                raise FileNotFoundError(f"Input audio file not found: {audio_path}")
 
             # Load audio
-            audio_data = self._load_audio(input_audio_path)
+            audio_data = self._load_audio(audio_path)
             if audio_data is None:
-                return False
+                raise ValueError("Failed to load audio data")
 
             # Process VAD
-            timestamps = self._process_vad(audio_data, output_vad_path, vad_save)
+            timestamps = self._process_vad(audio_data)
             if not timestamps:
                 logger.error("❌ VAD processing failed")
-                return False
+                return [], []
 
             # Process ASR
             asr_contexts = self._process_asr(audio_data, timestamps)
             if asr_contexts is None:
-                return False
+                raise ValueError("Failed to process ASR")
 
-            # Save ASR contexts
-            success = self._save_asr_contexts(asr_contexts, output_asr_context_path)
-            if success:
-                logger.info(f"✅ Audio processing completed for video {video_no}")
-                return True
-            else:
-                logger.error(f"❌ Failed to save ASR contexts for video {video_no}")
-                return False
+            logger.info(f"✅ Audio processing completed for {audio_path}")
+            return timestamps, asr_contexts
 
         except Exception as e:
-            logger.error(f"❌ Unexpected error during audio processing for video {video_no}: {e}")
-            return False
+            logger.error(f"❌ Unexpected error during audio processing for {audio_path}: {e}")
+            raise e
 
     def _load_audio(self, input_audio_path: str) -> Optional[np.ndarray]:
         """Load and preprocess audio data."""
@@ -103,18 +84,9 @@ class AudioProcessor:
             logger.error(f"❌ Failed to load audio from {input_audio_path}: {e}")
             return None
 
-    def _process_vad(self, audio_data: np.ndarray, output_vad_path: str, vad_save: bool) -> list[tuple]:
+    def _process_vad(self, audio_data: np.ndarray) -> list[tuple]:
         """Process Voice Activity Detection."""
         try:
-            if os.path.exists(output_vad_path):
-                logger.info(f"📁 VAD file already exists at {output_vad_path}. Loading timestamps...")
-                timestamps = self._load_vad_timestamps(output_vad_path)
-                if timestamps:
-                    logger.info(f"✅ Loaded {len(timestamps)} VAD timestamps from file")
-                    return timestamps
-                else:
-                    logger.warning("⚠️ Failed to load VAD timestamps, reprocessing...")
-
             logger.info("🎯 Performing VAD processing...")
             vad_start_time = time.time()
             timestamps = self.vad(audio_data)
@@ -127,42 +99,11 @@ class AudioProcessor:
             logger.info(f"⏱️ VAD processing time: {vad_end_time - vad_start_time:.2f}s")
             logger.info(f"🎯 Detected {len(timestamps)} speech segments")
 
-            # Save VAD results if requested
-            if vad_save:
-                success = self._save_vad_timestamps(timestamps, output_vad_path)
-                if not success:
-                    logger.warning("⚠️ Failed to save VAD timestamps")
-
             return timestamps
 
         except Exception as e:
             logger.error(f"❌ VAD processing failed: {e}")
-            return None
-
-    def _load_vad_timestamps(self, vad_path: str) -> Optional[list[tuple]]:
-        """Load VAD timestamps from file."""
-        try:
-            timestamps = []
-            with open(vad_path, "rb") as f:
-                for line in f:
-                    if line.strip():
-                        timestamps.append(orjson.loads(line))
-            return timestamps
-        except Exception as e:
-            logger.error(f"❌ Failed to load VAD timestamps: {e}")
-            return None
-
-    def _save_vad_timestamps(self, timestamps: list[tuple], output_path: str) -> bool:
-        """Save VAD timestamps to file."""
-        try:
-            with open(output_path, "wb") as f:
-                for timestamp in timestamps:
-                    f.write(orjson.dumps(timestamp) + b"\n")
-            logger.info(f"💾 VAD timestamps saved to {output_path}")
-            return True
-        except Exception as e:
-            logger.error(f"❌ Failed to save VAD timestamps: {e}")
-            return False
+            raise e
 
     def _process_asr(self, audio_data: np.ndarray, timestamps: list[tuple]) -> Optional[list[ContextData]]:
         """Process Automatic Speech Recognition."""
@@ -210,15 +151,3 @@ class AudioProcessor:
         except Exception as e:
             logger.error(f"❌ ASR processing failed: {e}")
             return None
-
-    def _save_asr_contexts(self, asr_contexts: list[ContextData], output_path: str) -> bool:
-        """Save ASR contexts to file."""
-        try:
-            with open(output_path, "wb") as f:
-                for context in asr_contexts:
-                    f.write(orjson.dumps(context.model_dump()) + b"\n")
-            logger.info(f"💾 ASR contexts saved to {output_path}")
-            return True
-        except Exception as e:
-            logger.error(f"❌ Failed to save ASR contexts: {e}")
-            return False
