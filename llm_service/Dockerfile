@@ -12,4 +12,4 @@ RUN pip install /app/common
 COPY llm_service/src/ ./src/
 
 
-CMD ["python", "-u", "src/test.py"]
+CMD ["python", "-u", "src/main.py"]

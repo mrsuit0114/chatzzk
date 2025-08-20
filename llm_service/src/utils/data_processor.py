@@ -1,3 +1,5 @@
+import bisect
+
 from common.schemas.context_data import ContextData
 
 from config import Config
@@ -16,7 +18,7 @@ class DataProcessor:
         self, contexts: list[ContextData], window_ms: int, shift_ms: int
     ) -> list[list[ContextData]]:
         """
-        Creates sliding windows of ContextData based on timestamps.
+        Creates sliding windows of ContextData based on timestamps using bisect for performance.
 
         Args:
             contexts: A list of ContextData objects, assumed to be sorted by timestamp_ms.
@@ -30,9 +32,10 @@ class DataProcessor:
             return []
 
         windows = []
+        timestamps = [c.timestamp_ms for c in contexts]
 
-        start_ts = contexts[0].timestamp_ms
-        max_ts = contexts[-1].timestamp_ms
+        start_ts = 0
+        max_ts = timestamps[-1]
 
         current_window_start_ts = start_ts
         search_start_idx = 0
@@ -40,22 +43,16 @@ class DataProcessor:
         while current_window_start_ts <= max_ts:
             current_window_end_ts = current_window_start_ts + window_ms
 
-            window_contexts = []
+            # Find window boundaries using binary search
+            start_idx = bisect.bisect_left(timestamps, current_window_start_ts, lo=search_start_idx)
+            end_idx = bisect.bisect_left(timestamps, current_window_end_ts, lo=start_idx)
 
-            i = search_start_idx
-            while i < len(contexts) and contexts[i].timestamp_ms < current_window_start_ts:
-                i += 1
+            if start_idx < end_idx:
+                windows.append(contexts[start_idx:end_idx])
 
-            search_start_idx = i
-
-            while i < len(contexts) and contexts[i].timestamp_ms < current_window_end_ts:
-                window_contexts.append(contexts[i])
-                i += 1
-
-            if window_contexts:
-                windows.append(window_contexts)
-
+            # Move to the next window
             current_window_start_ts += shift_ms
+            search_start_idx = start_idx
 
         return windows
 
