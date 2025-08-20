@@ -44,7 +44,11 @@ services:
   llm-service:
     container_name: llm-service
     image: llm-service
-    build: ./llm_service
+    volumes:
+      - ./llm_service/data:/app/data
+    build:
+      context: .
+      dockerfile: llm_service/Dockerfile
 
     env_file:
       - ./llm_service/.env

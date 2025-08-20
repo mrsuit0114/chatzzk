@@ -10,7 +10,7 @@ class LangfusePromptBuilder(PromptBuilder):
 
     def _get_prompt_template(self, task_type: str):
         langfuse_prompt_template = self.langfuse.get_prompt(
-            task_type, type="chat", cache_ttl_seconds=self.cache_ttl_seconds
+            task_type, type="chat", cache_ttl_seconds=self.cache_ttl_seconds, label="latest"
         )
 
         return langfuse_prompt_template

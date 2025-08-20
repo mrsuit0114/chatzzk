@@ -2,7 +2,7 @@ import time
 
 from litellm import completion, exceptions
 
-from clients.base import LLMClient
+from llm_clients.base import LLMClient
 
 
 class LiteLLMClient(LLMClient):
