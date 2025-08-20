@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import torchaudio
 from common.schemas.context_data import ContextData
+from common.schemas.service_codes import ASR_PAY_AMOUNT, PromptType
 from loguru import logger
 from tqdm import tqdm
 
@@ -16,8 +17,8 @@ from processing.audio.vad import VAD
 
 class AudioProcessor:
     def __init__(self, config: Config):
-        self.asr_type_code = config.Service.ASR_TYPE_CODE
-        self.asr_pay_amount = config.Service.ASR_PAY_AMOUNT
+        self.asr_type_code = PromptType.ASR
+        self.asr_pay_amount = ASR_PAY_AMOUNT
 
         # Initialize ASR and VAD models
         try:
@@ -132,7 +133,7 @@ class AudioProcessor:
                             asr_context = ContextData(
                                 timestamp_ms=timestamp_ms,
                                 content=asr_text,
-                                type_code=self.asr_type_code,
+                                type_code=self.asr_type_code.value,
                                 prompt_str=asr_text,
                                 pay_amount=self.asr_pay_amount,
                             )

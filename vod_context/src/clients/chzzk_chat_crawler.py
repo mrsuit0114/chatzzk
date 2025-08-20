@@ -5,6 +5,9 @@ import time
 import orjson
 import requests
 from common.schemas.context_data import ContextData
+from common.schemas.service_codes import (
+    CHZZK_MESSAGE_TYPE_CODE_TO_PROMPT_TYPE,
+)
 from loguru import logger
 
 from config import Config
@@ -14,8 +17,7 @@ class ChzzkChatCrawler:
     def __init__(self, config: Config):
         self.chat_url = config.ChzzkChat.CHAT_URL
         self.user_agent = config.Network.USER_AGENT
-        self.prompt_cmd_to_type_code = config.Service.PROMPT_CMD_TO_TYPE_CODE
-        self.message_type_code_to_prompt_cmd = config.Service.CHZZK_MESSAGE_TYPE_CODE_TO_PROMPT_CMD
+        self.message_type_code_to_prompt_cmd = CHZZK_MESSAGE_TYPE_CODE_TO_PROMPT_TYPE
         self.max_retries = config.Network.HTTP_MAX_RETRIES
         self.base_sleep_time = config.Network.HTTP_BASE_SLEEP_TIME
 
@@ -54,7 +56,8 @@ class ChzzkChatCrawler:
 
         for video_chat in video_chats:
             msg_type_code = video_chat.get("messageTypeCode")
-            if msg_type_code not in self.message_type_code_to_prompt_cmd:
+            prompt_type = self.message_type_code_to_prompt_cmd.get(msg_type_code)
+            if not prompt_type:
                 continue
 
             timestamp_ms = video_chat.get("playerMessageTime")
@@ -65,7 +68,7 @@ class ChzzkChatCrawler:
                 extras = orjson.loads(extras)
                 pay_amount = extras.get("payAmount", 0)
             prompt_str = self._preprocess_chat_message_to_prompt_str(content)
-            type_code = self.prompt_cmd_to_type_code[self.message_type_code_to_prompt_cmd[msg_type_code]]
+            type_code = prompt_type.value
 
             context_data = ContextData(
                 timestamp_ms=timestamp_ms,

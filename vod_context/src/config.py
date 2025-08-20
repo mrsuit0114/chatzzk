@@ -50,12 +50,6 @@ class Config:
         HTTP_TIMEOUT = int(os.getenv("VOD_HTTP_TIMEOUT", "30"))
         HTTP_BASE_SLEEP_TIME = float(os.getenv("VOD_HTTP_BASE_SLEEP_TIME", "0.5"))
 
-    class Service:
-        PROMPT_CMD_TO_TYPE_CODE = {"chat": 100, "donation": 1000, "asr": 10000}
-        CHZZK_MESSAGE_TYPE_CODE_TO_PROMPT_CMD = {1: "chat", 10: "donation"}
-        ASR_TYPE_CODE = 10000
-        ASR_PAY_AMOUNT = 0
-
     class ChzzkStream:
         VOD_URL = os.getenv("VOD_URL", "")
         VOD_INFO = os.getenv("VOD_INFO", "")
@@ -68,7 +62,7 @@ class Config:
         TARGET_SAMPLING_RATE = int(os.getenv("VOD_TARGET_SAMPLING_RATE", "16000"))
 
     class Minio:
-        ENDPOINT = os.getenv("MINIO_ENDPOINT", "localhost:9000")
+        ENDPOINT = os.getenv("MINIO_ENDPOINT", "minio:9000")
         ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "admin")
         SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "adminadmin")
         SECURE = os.getenv("MINIO_SECURE", "false").lower() == "true"
