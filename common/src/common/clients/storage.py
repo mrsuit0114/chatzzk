@@ -1,6 +1,6 @@
 import io
 from abc import ABC, abstractmethod
-from typing import Optional, Union
+from typing import Union
 
 from loguru import logger
 from minio import Minio
@@ -66,7 +66,7 @@ class MinioStorageClient(StorageClient):
             logger.error(f"❌ Failed to upload '{object_name}': {e}")
             raise
 
-    def download(self, object_name: str, bucket_name: Optional[str] = None) -> bytes:
+    def download(self, object_name: str, bucket_name: str) -> bytes:
         response = None
         try:
             response = self.client.get_object(bucket_name, object_name)

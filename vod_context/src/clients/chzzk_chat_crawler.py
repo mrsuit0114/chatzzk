@@ -6,7 +6,7 @@ import orjson
 import requests
 from common.schemas.context_data import ContextData
 from common.schemas.service_codes import (
-    CHZZK_MESSAGE_TYPE_CODE_TO_PROMPT_TYPE,
+    CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE,
 )
 from loguru import logger
 
@@ -17,7 +17,7 @@ class ChzzkChatCrawler:
     def __init__(self, config: Config):
         self.chat_url = config.ChzzkChat.CHAT_URL
         self.user_agent = config.Network.USER_AGENT
-        self.message_type_code_to_prompt_cmd = CHZZK_MESSAGE_TYPE_CODE_TO_PROMPT_TYPE
+        self.message_type_code_to_prompt_cmd = CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE
         self.max_retries = config.Network.HTTP_MAX_RETRIES
         self.base_sleep_time = config.Network.HTTP_BASE_SLEEP_TIME
 

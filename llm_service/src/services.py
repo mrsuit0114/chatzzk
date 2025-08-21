@@ -1,6 +1,7 @@
+from common.schemas.summary import SummarySegment
+from common.utils.data_loader import DataLoader
+
 from llm_tasks import LLMTask
-from schemas.task_models import SummarySegment
-from utils.data_loader import DataLoader
 from utils.data_processor import DataProcessor
 
 

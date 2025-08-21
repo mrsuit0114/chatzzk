@@ -1,3 +1,5 @@
+from common.schemas.enums import TaskType
+
 from llm_clients.base import LLMClient
 from llm_clients.factory import LLMClientFactory
 from prompts.base import PromptBuilder
@@ -11,7 +13,7 @@ class LLMTask:
         self.client: LLMClient = LLMClientFactory.create_llm_client(llm_client_type)
 
     def short_term_summary(self, data: dict):
-        task_type = "short_term_summary"
+        task_type = TaskType.SHORT_TERM_SUMMARY.value
 
         summary_data = task_models.ShortTermSummaryData(**data)
 

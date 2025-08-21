@@ -3,15 +3,15 @@
 from enum import IntEnum
 
 
-class PromptType(IntEnum):
+class ContextType(IntEnum):
     CHAT = 100
     DONATION = 1000
     ASR = 10000
 
 
-CHZZK_MESSAGE_TYPE_CODE_TO_PROMPT_TYPE = {
-    1: PromptType.CHAT,
-    10: PromptType.DONATION,
+CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE = {
+    1: ContextType.CHAT,
+    10: ContextType.DONATION,
 }
 
 ASR_PAY_AMOUNT = 0

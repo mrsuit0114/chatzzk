@@ -1,4 +1,5 @@
 import orjson
+from common.buckets import BucketNames
 from common.clients.storage import MinioStorageClient
 from common.schemas.context_data import ContextData
 from loguru import logger
@@ -37,8 +38,9 @@ class DataLoader:
         and returns a sorted list of ContextData objects.
         """
         file_path = f"{video_no}.jsonl"
+        context_bucket_name = BucketNames.VOD_CONTEXTS
         try:
-            downloaded_bytes = self.storage.download(file_path)
+            downloaded_bytes = self.storage.download(file_path, context_bucket_name)
             if not downloaded_bytes:
                 logger.warning(f"File is empty or does not exist: {file_path}")
                 return []

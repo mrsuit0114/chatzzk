@@ -7,7 +7,3 @@ class LLMClientType(Enum):
 
 class PromptBuilderType(Enum):
     LANGFUSE = "langfuse"
-
-
-class TaskType(Enum):
-    SHORT_TERM_SUMMARY = "short_term_summary"
