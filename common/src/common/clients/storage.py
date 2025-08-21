@@ -12,17 +12,16 @@ class StorageConfig(BaseModel):
     access_key: str
     secret_key: str
     secure: bool = True
-    default_bucket: Optional[str] = None
 
 
 class StorageClient(ABC):
     @abstractmethod
-    def upload(self, object_name: str, data: Union[bytes, str], bucket_name: Optional[str] = None) -> None:
+    def upload(self, object_name: str, data: Union[bytes, str], bucket_name: str) -> None:
         """Uploads data to the storage."""
         pass
 
     @abstractmethod
-    def download(self, object_name: str, bucket_name: Optional[str] = None) -> bytes:
+    def download(self, object_name: str, bucket_name: str) -> bytes:
         """Downloads data from the storage."""
         pass
 
@@ -42,15 +41,7 @@ class MinioStorageClient(StorageClient):
             logger.error(f"❌ Failed to initialize MinIO client: {e}")
             raise
 
-    def _get_bucket(self, bucket_name: Optional[str] = None) -> str:
-        target_bucket = bucket_name or self.config.default_bucket
-        if not target_bucket:
-            raise ValueError("Bucket name must be provided or set as a default in the config.")
-        return target_bucket
-
-    def upload(self, object_name: str, data: Union[bytes, str], bucket_name: Optional[str] = None) -> None:
-        target_bucket = self._get_bucket(bucket_name)
-
+    def upload(self, object_name: str, data: Union[bytes, str], bucket_name: str) -> None:
         if isinstance(data, str):
             data = data.encode("utf-8")
 
@@ -58,30 +49,29 @@ class MinioStorageClient(StorageClient):
         data_len = len(data)
 
         try:
-            found = self.client.bucket_exists(target_bucket)
+            found = self.client.bucket_exists(bucket_name)
             if not found:
-                self.client.make_bucket(target_bucket)
-                logger.info(f"Bucket '{target_bucket}' created.")
+                self.client.make_bucket(bucket_name)
+                logger.info(f"Bucket '{bucket_name}' created.")
 
             self.client.put_object(
-                bucket_name=target_bucket,
+                bucket_name=bucket_name,
                 object_name=object_name,
                 data=data_stream,
                 length=data_len,
                 content_type="application/octet-stream",
             )
-            logger.info(f"Successfully uploaded '{object_name}' to bucket '{target_bucket}'.")
+            logger.info(f"Successfully uploaded '{object_name}' to bucket '{bucket_name}'.")
         except Exception as e:
             logger.error(f"❌ Failed to upload '{object_name}': {e}")
             raise
 
     def download(self, object_name: str, bucket_name: Optional[str] = None) -> bytes:
-        target_bucket = self._get_bucket(bucket_name)
         response = None
         try:
-            response = self.client.get_object(target_bucket, object_name)
+            response = self.client.get_object(bucket_name, object_name)
             content = response.read()
-            logger.info(f"Successfully downloaded '{object_name}' from bucket '{target_bucket}'.")
+            logger.info(f"Successfully downloaded '{object_name}' from bucket '{bucket_name}'.")
             return content
         except Exception as e:
             logger.error(f"❌ Failed to download '{object_name}': {e}")

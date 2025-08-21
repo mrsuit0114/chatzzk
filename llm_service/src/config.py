@@ -1,6 +1,5 @@
 import os
 
-from common.buckets import BucketNames
 from common.clients.storage import StorageConfig
 
 
@@ -20,5 +19,4 @@ class Config:
             access_key=self.Minio.ACCESS_KEY,
             secret_key=self.Minio.SECRET_KEY,
             secure=self.Minio.SECURE,
-            default_bucket=BucketNames.VOD_CONTEXTS,
         )

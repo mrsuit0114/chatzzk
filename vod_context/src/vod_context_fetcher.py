@@ -1,6 +1,7 @@
 import os
 from concurrent.futures import ThreadPoolExecutor
 
+from common.buckets import BucketNames
 from common.clients.storage import MinioStorageClient
 from loguru import logger
 
@@ -81,7 +82,7 @@ class VodContextFetcher:
                 logger.info("📤 Step 6: Uploading full context to storage...")
                 try:
                     with open(full_context_jsonl_path, "rb") as f:
-                        self.storage_client.upload(f"{video_no}.jsonl", f.read())
+                        self.storage_client.upload(f"{video_no}.jsonl", f.read(), BucketNames.VOD_CONTEXTS)
                     logger.info("✅ Step 6 completed: Upload successful")
                 except Exception as e:
                     logger.error(f"❌ Step 6 failed: Could not upload to storage. {e}")
