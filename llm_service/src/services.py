@@ -22,8 +22,8 @@ class LLMService:
         self,
         video_no: int,
         task_data: dict,
-        window_ms: int = 120000,
-        shift_ms: int = 120000,
+        window_ms: int,
+        shift_ms: int,
     ) -> list[SummarySegment]:
         """
         Generates a full summary for a given video_no by processing the content in sliding windows.

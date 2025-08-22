@@ -4,9 +4,6 @@ from common.clients.storage import StorageConfig
 
 
 class Config:
-    class DataProcessor:
-        PROMPT_CMD_TO_TYPE_CODE = {"chat": 100, "donation": 1000, "asr": 10000}
-
     class Minio:
         ENDPOINT = os.getenv("MINIO_ENDPOINT", "minio:9000")
         ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "admin")
