@@ -4,7 +4,7 @@
 
 # import numpy as np
 # from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-# from packages.schemas.asr import ASRResponse, ErrorResponse
+# from chatzzk.packages.schemas.asr import ASRResponse, ErrorResponse
 
 # app = FastAPI()
 

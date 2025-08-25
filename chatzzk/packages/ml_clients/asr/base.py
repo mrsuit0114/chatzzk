@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
-from packages.schemas.asr import ASRResponse  # 기존 스키마 재활용
+from chatzzk.packages.schemas.asr import ASRResponse  # 기존 스키마 재활용
 
 
 class ASRClientInterface(ABC):

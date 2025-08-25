@@ -1,6 +1,5 @@
 # packages/schemas/asr.py
 
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -27,7 +26,7 @@ class ASRResponse(BaseModel):
     ASR Inference API의 최종 응답 모델
     """
 
-    task_id: Optional[str] = Field(None, description="요청을 식별하기 위한 고유 ID")
+    task_id: str | None = Field(None, description="요청을 식별하기 위한 고유 ID")
     transcription: ASRTranscription = Field(..., description="ASR 처리 결과")
 
 

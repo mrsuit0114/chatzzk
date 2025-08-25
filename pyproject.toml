@@ -1,23 +1,64 @@
 [tool.ruff]
-src = ["monitor_worker/src", "BroadcasterStatusWatcher/src", "MonitorManager/src", "vod_context/src", "llm_service/src"]
+# src 설정을 통해 Ruff가 'chatzzk'를 프로젝트의 소스 루트로 인식하게 함
+src = ["chatzzk"]
 
 target-version = "py311"
-line-length = 119
-exclude = [
-    "*_copy.py",
-]
+line-length = 120
+exclude = ["legacy","vod_context","monitor_worker","llm_service", "common", "analysis"]
 
 [tool.ruff.lint]
-# Never enforce `E501` (line length violations).
-ignore = ["C901", "E501", "E741", "F402", "F823" ]
-select = ["C", "E", "F", "I", "W"]
+select = [
+    "C",   # McCabe complexity
+    "E",   # pycodestyle errors
+    "F",   # Pyflakes
+    "I",   # isort (import sorting)
+    "W",   # pycodestyle warnings
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear (potential bugs)
+]
+ignore = [
+    "C901", # Function is too complex
+    "E501", # Line too long (handled by formatter)
+]
 
 [tool.ruff.format]
-# Like Black, use double quotes for strings.
 quote-style = "double"
-
-# Like Black, indent with spaces, rather than tabs.
 indent-style = "space"
-
-# Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
+
+
+# ====================== Poetry Project Definition ======================
+# [project] 섹션이 [tool.poetry]로 대체/통합됩니다.
+[tool.poetry]
+name = "chatzzk"
+version = "0.1.0"
+description = "A service to analyze live streaming platform data."
+authors = ["Your Name <you@example.com>"] # 이 부분을 자신의 정보로 채워주세요.
+readme = "README.md"
+# 'where' 설정 대신, Poetry는 패키지 구조를 직접 명시합니다.
+packages = [{include = "chatzzk", from = "."}]
+
+
+# ====================== Poetry Dependencies ======================
+[tool.poetry.dependencies]
+python = ">=3.11" # Python 버전 제약을 명시합니다.
+pydantic = "^2.11.7"
+pydantic-settings = "^2.10.1"
+
+[tool.poetry.group.collector.dependencies]
+requests = "^2.32.5"
+
+
+[tool.poetry.group.llm_service.dependencies]
+
+
+[tool.poetry.group.dev.dependencies]
+
+
+# ====================== Build System Definition ======================
+# build-system이 Poetry를 사용하도록 변경됩니다.
+ruff = "^0.12.10"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

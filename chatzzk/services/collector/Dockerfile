@@ -1,16 +1,22 @@
-# services/collector/Dockerfile 예시
-FROM python:3.9
+FROM python:3.11-slim
 
-# 프로젝트 루트를 /app 으로 복사
 WORKDIR /app
-COPY . .
 
-# PYTHONPATH 환경변수 설정
-# 이를 통해 /app (프로젝트 루트)에서도 모듈을 찾을 수 있게 됨
+# 1. 의존성 파일 먼저 복사 (Docker 레이어 캐시 최적화)
+COPY ./packages/requirements.txt /app/packages/requirements.txt
+COPY ./services/collector/requirements.txt /app/services/collector/requirements.txt
+
+# 2. 공유 패키지 및 서비스별 의존성 설치
+RUN pip install --no-cache-dir -r /app/packages/requirements.txt \
+    && pip install --no-cache-dir -r /app/services/collector/requirements.txt
+
+# 3. 실제 소스 코드 복사
+# 'chatzzk' 디렉토리 전체를 복사하여 절대 경로 임포트가 가능하게 함
+COPY ./chatzzk /app/chatzzk
+
+# 4. PYTHONPATH 설정 (필수!)
+# 컨테이너 내에서 `from chatzzk.packages import ...`가 동작하도록 함
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
-# collector 서비스의 의존성 설치
-RUN pip install -r services/collector/requirements.txt
-
-# collector 실행 명령어
-CMD ["celery", "-A", "services.collector.tasks.celery_app", "worker", "-l", "info"]
+# 5. 서비스 실행
+CMD ["python", "-m", "chatzzk.services.collector.main"]

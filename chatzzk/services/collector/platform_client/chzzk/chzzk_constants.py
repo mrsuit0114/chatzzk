@@ -1,0 +1,16 @@
+from chatzzk.packages.schemas.data_models import ContextType
+
+CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE: dict[int, ContextType] = {
+    1: ContextType.CHAT,
+    10: ContextType.DONATION,
+}
+
+CHZZK_WEBSOCKET_OP_CODES: dict[str, int] = {
+    "ping": 0,
+    "pong": 10000,
+    "connect": 100,
+    "send_chat": 3101,
+    "request_recent_chat": 5101,
+    "chat_message": 93101,
+    "donation_message": 93102,
+}
