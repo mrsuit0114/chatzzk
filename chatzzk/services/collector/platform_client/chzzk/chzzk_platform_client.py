@@ -12,6 +12,7 @@ import time
 
 import requests
 from chatzzk.packages.schemas.data_models import VodContextEntry
+from chatzzk.packages.utils.file_io import load_json_from_file
 from chatzzk.services.collector.settings import chzzk_api_settings
 from chzzk_constants import CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE
 from loguru import logger
@@ -31,10 +32,14 @@ class ChzzkPlatformClient:
         self.session = requests.Session()
         self.session.headers.update({"User-Agent": chzzk_api_settings.USER_AGENT})
 
+        self._cookies = None
+        self.cookies_file_path = chzzk_api_settings.CHZZK_COOKIES_FILE_PATH
+
         self.vod_url_template = chzzk_api_settings.CHZZK_VOD_URL_TEMPLATE
         self.vod_info_url_template = chzzk_api_settings.CHZZK_VOD_INFO_URL_TEMPLATE
-        self.vod_chat_url_template = chzzk_api_settings.CHZZK_VOD_CHAT_URL_TEMPLATE
+        self.channel_vods_url_template = chzzk_api_settings.CHZZK_CHANNEL_VODS_URL_TEMPLATE
 
+        self.vod_chat_url_template = chzzk_api_settings.CHZZK_VOD_CHAT_URL_TEMPLATE
         # --- 프록시 설정 부분 ---
         self.proxies = None
         http_proxy = os.getenv("HTTP_PROXY")
@@ -50,49 +55,64 @@ class ChzzkPlatformClient:
         else:
             logger.info("Proxy is not configured.")
 
-    def get_video_nums(self, streamer_id: str) -> list[str]:
-        """스트리머 ID를 받아서 video_num 목록을 반환"""
-        # TODO 크롤링해서 가져오는 함수 구현
-        return ["video1", "video2"]
+    def _get_cookies(self) -> dict | None:
+        if not self._cookies and self.cookies_file_path:
+            self._cookies = load_json_from_file(self.cookies_file_path)
 
-    def get_download_url(self, video_num: str) -> str:
-        """video_num을 받아 mp4 다운로드 url을 반환 (프록시 사용)"""
-        return "http://example.com/video.mp4"
+        return self._cookies
 
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_random(min=1, max=2),
-        before_sleep=_log_before_retry,  # 재시도 전 로깅 콜백 추가
-    )
-    def _request_chats(self, url: str, player_message_time: int) -> dict:
+    @retry(stop=stop_after_attempt(3), wait=wait_random(min=1, max=2), before_sleep=_log_before_retry)
+    def _api_request(self, url: str, params: dict = None, requires_auth: bool = False) -> dict:
         """
-        재시도 메커니즘을 포함하여 채팅 데이터를 요청합니다.
-        HTTP 오류, 빈 응답, JSON 파싱 오류 시 예외를 발생시켜 재시도합니다.
+        모든 API 요청을 처리하는 중앙 핸들러. 재시도, 인증, 응답 검증을 책임집니다.
+        성공 시 항상 검증된 'content' 딕셔너리를 반환합니다.
         """
-        params = {"playerMessageTime": player_message_time}
+        kwargs = {"params": params, "timeout": 10}
 
-        # requests.RequestException은 ConnectionError, Timeout 등을 모두 포함
-        # json.JSONDecodeError도 함께 처리하여 깨진 JSON 응답에도 재시도
+        # 인증이 필요하면, 쿠키를 kwargs에 추가
+        if requires_auth:
+            cookies = self._get_cookies()
+            if cookies:
+                kwargs["cookies"] = cookies
+            # 쿠키가 없어도 일단 요청은 시도해볼 수 있음 (공개 VOD 등)
+
         try:
-            response = self.session.get(url, params=params, timeout=10)  # 타임아웃 추가
-            response.raise_for_status()  # 4xx, 5xx 에러 발생 시 HTTPError (RequestException의 서브클래스)
+            response = self.session.get(url, **kwargs)
+            response.raise_for_status()
             data = response.json()
 
-            if not data or not data.get("content"):
-                # 응답은 왔지만 내용이 비어있는 경우도 재시도 대상에 포함
-                raise ValueError("Empty or invalid content in response data")
+            content = data.get("content")
+            if content:  # content가 존재하고 비어있지 않은 경우
+                return content
 
-            return data
-        except (requests.exceptions.RequestException, json.JSONDecodeError, ValueError) as e:
-            # tenacity가 이 예외들을 잡아서 재시도하게 하려면 다시 raise 해야 함
+            # content가 없는 것은 API 레벨의 오류로 간주하고 재시도 유발
+            raise ValueError(f"API response from {url} is missing 'content' key.")
+
+        except (requests.RequestException, json.JSONDecodeError) as e:
+            # 이 예외들은 tenacity가 잡아서 재시도를 수행하게 됨
             raise e
 
-    def _parse_video_chats(self, data) -> tuple[list[VodContextEntry], int]:
-        content = data.get("content")
-        if not content:
-            logger.error(f"❌ No content found in data: {data}")
-            raise ValueError(f"No content found in data: {data}")
+    def get_video_info(self, channel_id: str) -> list[str]:
+        try:
+            api_url = self.channel_vods_url_template.format(channel_id=channel_id)
+            content = self._api_request(url=api_url, requires_auth=True)
 
+            # videoId 리스트 추출
+            video_ids = [video["videoNo"] for video in content.get("data", [])]
+            # 필요한 정보를 여기서 다 추출할 것 - VideoInfo
+            # videoNo, videoId, videoTitle, publishData, duration, readCount, publishDateAt, categoryType, videoCategory(게임 이름 영문), videoCategoryValue(게임 이름 한글)
+            # exposure, adult,
+
+            return video_ids
+        except (ConnectionError, ValueError, requests.RequestException) as e:
+            logger.error(f"❌ 최종적으로 비디오 정보 획득 실패: {e}")
+            return []
+
+    def get_download_url(self, video_num: str) -> str:
+        """video_num을 받아 mp4 다운로드 url을 반환 (프록시가 있으면 프록시 사용)"""
+        return "http://example.com/video.mp4"
+
+    def _parse_video_chats(self, content: dict) -> tuple[list[VodContextEntry], int]:
         next_player_message_time = content.get("nextPlayerMessageTime")
         video_chats = content.get("videoChats")
 
@@ -138,18 +158,16 @@ class ChzzkPlatformClient:
 
         while next_player_message_time is not None:
             try:
-                # 재시도 로직이 포함된 _request_chats를 호출
-                data = self._request_chats(chat_url, next_player_message_time)
+                params = {"playerMessageTime": next_player_message_time}
+                content = self._api_request(url=chat_url, params=params)
 
                 # 데이터가 성공적으로 받아와진 경우에만 파싱 진행
-                video_chats, next_player_message_time = self._parse_video_chats(data)
+                video_chats, next_player_message_time = self._parse_video_chats(content)
 
                 if video_chats:
                     all_contexts.extend(video_chats)
 
                 logger.info(f"next_player_message_time: {next_player_message_time}")
-
-                # 다음 요청까지 대기
                 time.sleep(BASE_SLEEP_TIME * random.uniform(0.5, 1.5))
 
             except requests.exceptions.RequestException as e:
@@ -162,15 +180,19 @@ class ChzzkPlatformClient:
                 logger.error(f"❌ Failed to parse response for video {video_num}: {e}")
                 raise RuntimeError(f"Response parsing failed for {video_num}") from e
 
-        logger.info(f"🎉 Successfully crawled {len(all_contexts)} chats for video {video_num}.")
+        logger.success(f"🎉 Successfully crawled {len(all_contexts)} chats for video {video_num}.")
 
         return all_contexts
 
 
 if __name__ == "__main__":
     VIDEO_NUM = 8929780
+    CHANNEL_ID = "f39c3d74e33a81ab3080356b91bb8de5"
     chzzk_platform_client = ChzzkPlatformClient()
 
-    chat_data = chzzk_platform_client.crawl_chat(VIDEO_NUM)
+    chat_contexts = chzzk_platform_client.crawl_chat(VIDEO_NUM)
+    video_ids = chzzk_platform_client.get_video_info(CHANNEL_ID)
+
+    cookies = chzzk_platform_client._get_cookies()
 
     logger.info("crawling fin")

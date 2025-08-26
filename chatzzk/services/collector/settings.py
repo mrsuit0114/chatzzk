@@ -11,6 +11,8 @@ class ChzzkApiSettings(BaseSettings):
     USER_AGENT: str = Field(
         default="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
     )
+    CHZZK_CHANNEL_VODS_URL_TEMPLATE: str = Field(...)
+    CHZZK_COOKIES_FILE_PATH: str | None = Field(default=None)
 
     class Config:
         env_file = "chatzzk/services/collector/.env"
