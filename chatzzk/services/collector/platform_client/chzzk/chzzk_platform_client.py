@@ -1,9 +1,9 @@
-# 스트리머 ID를 받아서 video_num 목록을 반환
-# video_num을 받아 mp4 다운로드 url을 반환 - 프록시 필요
-# video_num을 받아 채팅 내역을 크롤링
+# 스트리머 ID를 받아서 video_no 목록을 반환
+# video_no을 받아 mp4 다운로드 url을 반환 - 프록시 필요
+# video_no을 받아 채팅 내역을 크롤링
 
 # services/collector/platform_client/chzzk_platform_client.py
-# video_num은 수치가 아니라 식별자로서 동작하기 때문에 str 힌팅 사용
+# video_no은 수치가 아니라 식별자로서 동작하기 때문에 str 힌팅 사용
 
 import json
 import os
@@ -108,8 +108,8 @@ class ChzzkPlatformClient:
             logger.error(f"❌ 최종적으로 비디오 정보 획득 실패: {e}")
             return []
 
-    def get_download_url(self, video_num: str) -> str:
-        """video_num을 받아 mp4 다운로드 url을 반환 (프록시가 있으면 프록시 사용)"""
+    def get_download_url(self, video_no: str) -> str:
+        """video_no을 받아 mp4 다운로드 url을 반환 (프록시가 있으면 프록시 사용)"""
         return "http://example.com/video.mp4"
 
     def _parse_video_chats(self, content: dict) -> tuple[list[VodContextEntry], int]:
@@ -151,10 +151,10 @@ class ChzzkPlatformClient:
 
         return result, next_player_message_time
 
-    def crawl_chat(self, video_num: str) -> list[VodContextEntry]:
+    def crawl_chat(self, video_no: str) -> list[VodContextEntry]:
         all_contexts = []
         next_player_message_time = 0
-        chat_url = self.vod_chat_url_template.format(video_num=video_num)
+        chat_url = self.vod_chat_url_template.format(video_no=video_no)
 
         while next_player_message_time is not None:
             try:
@@ -172,25 +172,25 @@ class ChzzkPlatformClient:
 
             except requests.exceptions.RequestException as e:
                 # tenacity의 모든 재시도가 실패한 경우 (네트워크/API 문제)
-                logger.error(f"❌ API request failed after all retries for video {video_num}: {e}")
-                raise RuntimeError(f"API request failed for {video_num}") from e
+                logger.error(f"❌ API request failed after all retries for video {video_no}: {e}")
+                raise RuntimeError(f"API request failed for {video_no}") from e
 
             except ValueError as e:
                 # _parse_video_chats에서 응답 형식이 깨진 경우 (파싱 문제)
-                logger.error(f"❌ Failed to parse response for video {video_num}: {e}")
-                raise RuntimeError(f"Response parsing failed for {video_num}") from e
+                logger.error(f"❌ Failed to parse response for video {video_no}: {e}")
+                raise RuntimeError(f"Response parsing failed for {video_no}") from e
 
-        logger.success(f"🎉 Successfully crawled {len(all_contexts)} chats for video {video_num}.")
+        logger.success(f"🎉 Successfully crawled {len(all_contexts)} chats for video {video_no}.")
 
         return all_contexts
 
 
 if __name__ == "__main__":
-    VIDEO_NUM = 8929780
+    VIDEO_NO = 8929780
     CHANNEL_ID = "f39c3d74e33a81ab3080356b91bb8de5"
     chzzk_platform_client = ChzzkPlatformClient()
 
-    chat_contexts = chzzk_platform_client.crawl_chat(VIDEO_NUM)
+    chat_contexts = chzzk_platform_client.crawl_chat(VIDEO_NO)
     video_ids = chzzk_platform_client.get_video_info(CHANNEL_ID)
 
     cookies = chzzk_platform_client._get_cookies()
