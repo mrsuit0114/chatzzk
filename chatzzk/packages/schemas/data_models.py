@@ -29,11 +29,11 @@ class ChzzkVod(BaseModel):
     # Python 코드에서는 snake_case (video_no) 사용
     video_no: str = Field(..., alias="videoNo")  # ⭐ JSON의 'videoNo' 키를 이 필드에 매핑
     video_title: str = Field(..., alias="videoTitle")
-    publish_date: str = Field(..., alias="publishDate")
     duration: int
     video_category_value: str = Field(..., alias="videoCategoryValue")
-    live_open_date: str = Field(..., alias="liveOpenDate")
     channel_id: str = Field(..., alias="channel")
+    live_open_date: str = Field(..., alias="liveOpenDate")
+    publish_date: str = Field(..., alias="publishDate")
 
     @field_validator("video_no", mode="before")
     @classmethod

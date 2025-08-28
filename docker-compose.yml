@@ -1,12 +1,50 @@
 services:
-  collector:
+  # collector:
+  #   build:
+  #     context: .
+  #     dockerfile: ./chatzzk/services/collector/Dockerfile
+  #   container_name: chatzzk_collector
+
+  #   # .env 파일의 정확한 경로를 명시
+  #   env_file:
+  #     - ./chatzzk/services/collector/.env
+  #   # volumes:
+  #   #   - ./chatzzk:/app/chatzzk
+
+  db-init:
     build:
       context: .
-      dockerfile: ./chatzzk/services/collector/Dockerfile
-    container_name: chatzzk_collector
-
-    # .env 파일의 정확한 경로를 명시
+      dockerfile: ./scripts/Dockerfile
+    container_name: chatzzk_db_init
+    depends_on:
+      db:
+        condition: service_healthy
     env_file:
-      - ./chatzzk/services/collector/.env
-    # volumes:
-    #   - ./chatzzk:/app/chatzzk
+      - .env
+    command: [ "python", "-m", "scripts.init_db" ]
+
+  db:
+    image: postgres
+    restart: always
+    # set shared memory limit when using docker compose
+    shm_size: 128mb
+    # or set shared memory limit when deploy via swarm stack
+    #volumes:
+    #  - type: tmpfs
+    #    target: /dev/shm
+    #    tmpfs:
+    #      size: 134217728 # 128*2^20 bytes = 128Mb
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./.env
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080

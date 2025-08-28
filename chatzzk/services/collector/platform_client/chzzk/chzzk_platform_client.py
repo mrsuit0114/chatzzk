@@ -5,7 +5,6 @@
 # services/collector/platform_client/chzzk_platform_client.py
 # video_no은 수치가 아니라 식별자로서 동작하기 때문에 str 힌팅 사용
 
-import itertools
 import json
 import os
 import random
@@ -16,8 +15,8 @@ from collections.abc import Generator
 import requests
 from chatzzk.packages.schemas.data_models import ChzzkVod, VodContextEntry
 from chatzzk.packages.utils.file_io import load_json_from_file
+from chatzzk.services.collector.platform_client.chzzk.chzzk_constants import CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE
 from chatzzk.services.collector.settings import chzzk_api_settings
-from chzzk_constants import CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE
 from loguru import logger
 from pydantic import ValidationError
 from tenacity import retry, stop_after_attempt, wait_random
@@ -281,23 +280,3 @@ class ChzzkPlatformClient:
         logger.success(f"🎉 Successfully crawled {len(all_contexts)} chats for video {video_no}.")
 
         return all_contexts
-
-
-if __name__ == "__main__":
-    VIDEO_NO = 8929780
-    CHANNEL_ID = "8b3e8e3a13201cff0836c69cfab62f45"
-    chzzk_platform_client = ChzzkPlatformClient()
-
-    # chat_contexts = chzzk_platform_client.crawl_chat(VIDEO_NO)
-    vod_stream = chzzk_platform_client.stream_all_video_numbers(CHANNEL_ID)
-    for no in list(itertools.islice(vod_stream, 10)):
-        ret = chzzk_platform_client.fetch_vod_details(no)
-        if ret:
-            vod_info, video_id, in_key = ret
-
-            vod_urls = chzzk_platform_client.fetch_all_stream_representations(video_id, in_key)
-            logger.info(vod_urls)
-        else:
-            logger.info("ret none")
-
-    logger.info("crawling fin")
