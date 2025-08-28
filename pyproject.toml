@@ -1,3 +1,42 @@
+# ====================== Poetry Project Definition ======================
+# [project] 섹션이 [tool.poetry]로 대체/통합됩니다.
+[tool.poetry]
+name = "chatzzk"
+version = "0.1.0"
+description = "A service to analyze live streaming platform data."
+authors = ["Your Name <you@example.com>"] # 이 부분을 자신의 정보로 채워주세요.
+readme = "README.md"
+# 'where' 설정 대신, Poetry는 패키지 구조를 직접 명시합니다.
+packages = [{include = "chatzzk", from = "."}]
+
+
+# ====================== Poetry Dependencies ======================
+[tool.poetry.dependencies]
+python = ">=3.11,<4.0" # Python 버전 제약을 명시합니다.
+pydantic = "^2.11.7"
+pydantic-settings = "^2.10.1"
+loguru = "^0.7.3"
+orjson = "^3.11.2"
+pathlib = "^1.0.1"
+requests = "^2.32.5"
+
+[tool.poetry.group.collector.dependencies]
+requests = "^2.32.5"
+tenacity = "^9.1.2"
+
+
+[tool.poetry.group.llm_service.dependencies]
+
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.12.10"
+pre-commit = "^4.3.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
 [tool.ruff]
 # src 설정을 통해 Ruff가 'chatzzk'를 프로젝트의 소스 루트로 인식하게 함
 src = ["chatzzk"]
@@ -25,44 +64,3 @@ ignore = [
 quote-style = "double"
 indent-style = "space"
 line-ending = "auto"
-
-
-# ====================== Poetry Project Definition ======================
-# [project] 섹션이 [tool.poetry]로 대체/통합됩니다.
-[tool.poetry]
-name = "chatzzk"
-version = "0.1.0"
-description = "A service to analyze live streaming platform data."
-authors = ["Your Name <you@example.com>"] # 이 부분을 자신의 정보로 채워주세요.
-readme = "README.md"
-# 'where' 설정 대신, Poetry는 패키지 구조를 직접 명시합니다.
-packages = [{include = "chatzzk", from = "."}]
-
-
-# ====================== Poetry Dependencies ======================
-[tool.poetry.dependencies]
-python = ">=3.11,<4.0" # Python 버전 제약을 명시합니다.
-pydantic = "^2.11.7"
-pydantic-settings = "^2.10.1"
-loguru = "^0.7.3"
-orjson = "^3.11.2"
-pathlib = "^1.0.1"
-requests = "^2.32.5"
-
-[tool.poetry.group.collector.dependencies]
-requests = "^2.32.5"
-
-
-[tool.poetry.group.llm_service.dependencies]
-
-
-[tool.poetry.group.dev.dependencies]
-
-
-# ====================== Build System Definition ======================
-# build-system이 Poetry를 사용하도록 변경됩니다.
-ruff = "^0.12.10"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"

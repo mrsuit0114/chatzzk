@@ -1,54 +1,12 @@
 services:
-  vod-context:
-    container_name: vod-context
-    image: vod-context
+  collector:
     build:
       context: .
-      dockerfile: vod_context/Dockerfile
-    volumes:
-      - ./vod_context/whisperx_models:/app/whisperx_models
-      - ./vod_context/data:/app/data
-    stdin_open: true # -i 옵션과 동일
-    tty: true # -t 옵션과 동일
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [ gpu ]
-    env_file:
-      - ./vod_context/.env
+      dockerfile: ./chatzzk/services/collector/Dockerfile
+    container_name: chatzzk_collector
 
-  litellm-proxy:
-    container_name: litellm-proxy
-    image: litellm-proxy
-    build: ./litellm_proxy
-    ports:
-      - "4000:4000"
+    # .env 파일의 정확한 경로를 명시
     env_file:
-      - ./litellm_proxy/.env
-
-  minio:
-    container_name: minio
-    image: minio
-    volumes:
-      - ./minio/data:/data
-    build: ./minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    env_file:
-      - ./minio/.env
-
-  llm-service:
-    container_name: llm-service
-    image: llm-service
-    volumes:
-      - ./llm_service/data:/app/data
-    build:
-      context: .
-      dockerfile: llm_service/Dockerfile
-
-    env_file:
-      - ./llm_service/.env
+      - ./chatzzk/services/collector/.env
+    # volumes:
+    #   - ./chatzzk:/app/chatzzk
