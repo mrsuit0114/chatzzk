@@ -10,5 +10,6 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # 2. DB 모델과 데이터 접근 로직이 있는 packages만 복사
 #    services 디렉토리는 복사하지 않음
-COPY ./chatzzk/packages /app/chatzzk/packages
 COPY ./scripts /app/scripts
+COPY ./chatzzk/packages/schemas /app/chatzzk/packages/schemas
+COPY ./chatzzk/packages/data_access /app/chatzzk/packages/data_access
