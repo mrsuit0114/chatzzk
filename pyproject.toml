@@ -42,12 +42,19 @@ build-backend = "poetry.core.masonry.api"
 
 
 [tool.ruff]
-# src 설정을 통해 Ruff가 'chatzzk'를 프로젝트의 소스 루트로 인식하게 함
-src = ["chatzzk"]
-
 target-version = "py311"
 line-length = 120
-exclude = ["legacy","vod_context","monitor_worker","llm_service", "common", "analysis"]
+
+exclude = [
+    ".venv",
+    ".git",
+    "__pycache__",
+    "legacy",
+    "vod_context",
+    "monitor_worker",
+    "analysis",
+    "common",
+]
 
 [tool.ruff.lint]
 select = [
@@ -63,6 +70,11 @@ ignore = [
     "C901", # Function is too complex
     "E501", # Line too long (handled by formatter)
 ]
+
+[tool.ruff.lint.isort]
+# 'chatzzk'로 시작하는 모든 import를 first-party(내부) 모듈로 간주하도록 명시
+known-first-party = ["chatzzk"]
+
 
 [tool.ruff.format]
 quote-style = "double"

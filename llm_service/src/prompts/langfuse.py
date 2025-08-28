@@ -1,5 +1,4 @@
 from langfuse import get_client, observe
-
 from prompts.base import PromptBuilder
 
 

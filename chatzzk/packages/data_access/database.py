@@ -1,11 +1,16 @@
 import os
 from contextlib import contextmanager
 
-# 1. ORM 모델 임포트
-from chatzzk.packages.schemas.db_models import Base, ChzzkVodORM, ChzzkVodProcessingStatusORM
 from loguru import logger
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
+
+# 1. ORM 모델 임포트
+from chatzzk.packages.schemas.db_models import (
+    Base,
+    ChzzkVodORM,
+    ChzzkVodProcessingStatusORM,
+)
 
 # --- 1. DB 연결 및 세션 설정 ---
 

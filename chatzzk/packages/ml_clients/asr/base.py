@@ -3,6 +3,7 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
+
 from chatzzk.packages.schemas.asr import ASRResponse  # 기존 스키마 재활용
 
 

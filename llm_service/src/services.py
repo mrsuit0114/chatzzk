@@ -1,8 +1,8 @@
-from common.schemas.summary import SummarySegment
-from common.utils.data_loader import DataLoader
-
 from llm_tasks import LLMTask
 from utils.data_processor import DataProcessor
+
+from common.schemas.summary import SummarySegment
+from common.utils.data_loader import DataLoader
 
 
 class LLMService:

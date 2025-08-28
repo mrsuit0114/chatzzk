@@ -1,10 +1,10 @@
-from common.schemas.enums import TaskType
-
 from llm_clients.base import LLMClient
 from llm_clients.factory import LLMClientFactory
 from prompts.base import PromptBuilder
 from prompts.factory import PromptBuilderFactory
 from schemas import task_models
+
+from common.schemas.enums import TaskType
 
 
 class LLMTask:

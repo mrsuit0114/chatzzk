@@ -1,10 +1,10 @@
 import os
 
-from chatzzk.packages.data_access.database import create_all_tables, engine
-
 # .env 로드를 위한 import
 from dotenv import load_dotenv
 from loguru import logger
+
+from chatzzk.packages.data_access.database import create_all_tables, engine
 
 
 def initialize_database():

@@ -13,13 +13,16 @@ import xml.etree.ElementTree as ET
 from collections.abc import Generator
 
 import requests
-from chatzzk.packages.schemas.data_models import ChzzkVod, VodContextEntry
-from chatzzk.packages.utils.file_io import load_json_from_file
-from chatzzk.services.collector.platform_client.chzzk.chzzk_constants import CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE
-from chatzzk.services.collector.settings import chzzk_api_settings
 from loguru import logger
 from pydantic import ValidationError
 from tenacity import retry, stop_after_attempt, wait_random
+
+from chatzzk.packages.schemas.data_models import ChzzkVod, VodContextEntry
+from chatzzk.packages.utils.file_io import load_json_from_file
+from chatzzk.services.collector.platform_client.chzzk.chzzk_constants import (
+    CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE,
+)
+from chatzzk.services.collector.settings import chzzk_api_settings
 
 BASE_SLEEP_TIME = 1
 

@@ -1,15 +1,18 @@
 import itertools
 from datetime import date, datetime
 
+from loguru import logger
+from sqlalchemy.inspection import inspect
+
 # --- 의존성 임포트 ---
 # Celery 관련 (미래를 위해 주석 처리)
 # from ..celery_app import celery_app
 # 우리가 만든 모듈들
 from chatzzk.packages.data_access import database
 from chatzzk.packages.schemas.db_models import ChzzkVodORM
-from chatzzk.services.collector.platform_client.chzzk.chzzk_platform_client import ChzzkPlatformClient
-from loguru import logger
-from sqlalchemy.inspection import inspect
+from chatzzk.services.collector.platform_client.chzzk.chzzk_platform_client import (
+    ChzzkPlatformClient,
+)
 
 chzzk_client = ChzzkPlatformClient()
 
@@ -102,3 +105,8 @@ def fetch_new_vods_for_channel(channel_id: str, limit: int | None = None, stop_b
         )
         # 실패 시 에러를 다시 발생시켜 Celery 등이 실패를 인지하게 함
         raise
+
+
+if __name__ == "__main__":
+    CHANNEL_ID = "b044e3a3b9259246bc92e863e7d3f3b8"
+    fetch_new_vods_for_channel(CHANNEL_ID, 10)
