@@ -17,7 +17,7 @@ from loguru import logger
 from pydantic import ValidationError
 from tenacity import retry, stop_after_attempt, wait_random
 
-from chatzzk.packages.schemas.data_models import ChzzkVod, VodContextEntry
+from chatzzk.packages.schemas.data_models import ChzzkVod, StreamContextEntry
 from chatzzk.packages.utils.file_io import load_json_from_file
 from chatzzk.services.collector.platform_client.chzzk.chzzk_constants import (
     CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE,
@@ -212,7 +212,7 @@ class ChzzkPlatformClient:
             # XML 파싱 실패는 심각한 오류이므로 None 반환 (또는 예외 발생)
             return None
 
-    def _parse_video_chats(self, content: dict) -> tuple[list[VodContextEntry], int]:
+    def _parse_video_chats(self, content: dict) -> tuple[list[StreamContextEntry], int]:
         next_player_message_time = content.get("nextPlayerMessageTime")
         video_chats = content.get("videoChats")
 
@@ -220,7 +220,7 @@ class ChzzkPlatformClient:
             logger.info("No new chats in this response.")
             return [], next_player_message_time
 
-        result: list[VodContextEntry] = []
+        result: list[StreamContextEntry] = []
 
         for chat in video_chats:
             msg_type_code = chat.get("messageTypeCode")
@@ -241,7 +241,7 @@ class ChzzkPlatformClient:
                     logger.warning(f"Failed to parse extras: {extras} ({e})")
 
             result.append(
-                VodContextEntry(
+                StreamContextEntry(
                     timestamp_ms=timestamp_ms,
                     type=context_type,
                     content=chat_content,
@@ -251,7 +251,7 @@ class ChzzkPlatformClient:
 
         return result, next_player_message_time
 
-    def crawl_chat(self, video_no: str) -> list[VodContextEntry]:
+    def crawl_chat(self, video_no: str) -> list[StreamContextEntry]:
         all_contexts = []
         next_player_message_time = 0
         chat_url = self.vod_chat_url_template.format(video_no=video_no)
