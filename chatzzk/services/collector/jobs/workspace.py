@@ -1,5 +1,4 @@
 import shutil
-from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -28,31 +27,26 @@ class VodWorkspacePaths:
         self.chat = self.base / CHAT_FILENAME
 
 
-@contextmanager
-def temporary_vod_workspace(video_no: str):
-    """
-    특정 VOD 처리를 위한 임시 작업 공간을 제공하고,
-    작업 완료 후 자동으로 정리하는 컨텍스트 매니저.
-    """
-    base_temp_dir = Path(collector_settings.TEMP_DIR_BASE) / "chatzzk_processor"
-    workspace_dir = base_temp_dir / video_no
+class VodWorkspace:
+    """특정 VOD 처리를 위한 임시 작업 공간을 관리하는 클래스."""
 
-    # --- 진입 (__enter__) ---
-    try:
-        if workspace_dir.exists():
-            shutil.rmtree(workspace_dir)
-        workspace_dir.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Created temporary workspace: {workspace_dir}")
+    def __init__(self, video_no: str):
+        base_temp_dir = Path(collector_settings.TEMP_DIR_BASE) / "chatzzk_processor"
+        self.workspace_dir = base_temp_dir / video_no
+        self.paths = VodWorkspacePaths(base=self.workspace_dir)
 
-        # 워크스페이스 내 파일 경로들을 담은 객체를 yield
-        yield VodWorkspacePaths(base=workspace_dir)
+    def setup(self):
+        """작업 공간을 준비합니다. 기존 내용이 있으면 삭제하고 새로 만듭니다."""
+        if self.workspace_dir.exists():
+            shutil.rmtree(self.workspace_dir)
+        self.workspace_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Set up temporary workspace: {self.workspace_dir}")
 
-    finally:
-        # --- 종료 (__exit__) ---
-        # 성공/실패 여부와 관계없이 항상 실행됨
-        if workspace_dir.exists():
+    def cleanup(self):
+        """작업 공간의 모든 내용을 정리(삭제)합니다."""
+        if self.workspace_dir.exists():
             try:
-                shutil.rmtree(workspace_dir)
-                logger.info(f"Cleaned up temporary workspace: {workspace_dir}")
+                shutil.rmtree(self.workspace_dir)
+                logger.info(f"Cleaned up temporary workspace: {self.workspace_dir}")
             except OSError as e:
-                logger.error(f"Failed to clean up workspace {workspace_dir}: {e}")
+                logger.error(f"Failed to clean up workspace {self.workspace_dir}: {e}")
