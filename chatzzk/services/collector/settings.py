@@ -19,5 +19,10 @@ class ChzzkApiSettings(BaseSettings):
         env_file_encoding = "utf-8"
 
 
+class CollectorSettings(BaseSettings):
+    TARGET_INDEX_FOR_VIDEO_RESOLUTION: int = Field(0)
+
+
 # 설정 객체를 싱글톤처럼 생성하여 다른 모듈에서 import하여 사용할 수 있도록 함
 chzzk_api_settings = ChzzkApiSettings()
+collector_settings = CollectorSettings()

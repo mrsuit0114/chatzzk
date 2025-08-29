@@ -3,6 +3,7 @@ from chatzzk.packages.schemas.data_models import ContextType
 CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE: dict[int, ContextType] = {
     1: ContextType.CHAT,
     10: ContextType.DONATION,
+    # 11은 구독 메시지
 }
 
 CHZZK_WEBSOCKET_OP_CODES: dict[str, int] = {

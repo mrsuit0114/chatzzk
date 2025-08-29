@@ -1,6 +1,8 @@
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import DeclarativeBase, registry, relationship
 
+from chatzzk.packages.constants.service_codes import WorkflowStatus
+
 # 1. Registry 설정
 mapper_registry = registry()
 
@@ -39,15 +41,17 @@ class ChzzkVodProcessingStatusORM(Base):
     # --- 워크플로우 제어 상태 ---
     # Enum을 사용하기 위해선 별도 설정이 필요하므로, 여기서는 문자열로 저장.
     # 값: PENDING, PROCESSING, SUCCESS, FAILED
-    workflow_status = Column(String, default="PENDING", nullable=False, index=True)
+    workflow_status = Column(String, default=WorkflowStatus.PENDING, nullable=False, index=True)
 
     # --- 각 단계별 완료 여부 (Boolean 플래그) ---
     # Boolean 필드는 기본값을 False로 설정하여 명시적으로 True로 변경하도록 유도.
-    is_chat_saved = Column(Boolean, default=False, nullable=False)
-    is_mp4_saved = Column(Boolean, default=False, nullable=False)
-    is_asr_done = Column(Boolean, default=False, nullable=False)
+    is_chat_crawled = Column(Boolean, default=False, nullable=False)
+    is_mp4_downloaded = Column(Boolean, default=False, nullable=False)
+    is_wav_extracted = Column(Boolean, default=False, nullable=False)
+
+    is_asr_completed = Column(Boolean, default=False, nullable=False)
     is_context_saved = Column(Boolean, default=False, nullable=False)
-    is_summary_done = Column(Boolean, default=False, nullable=False)
+    is_summary_generated = Column(Boolean, default=False, nullable=False)
 
     # --- 데이터 저장 위치 ---
     # 파일이 아직 생성되지 않았을 수 있으므로 nullable=True
