@@ -1,3 +1,5 @@
+import tempfile
+
 from pydantic import Field
 from pydantic_settings import BaseSettings
 
@@ -21,6 +23,8 @@ class ChzzkApiSettings(BaseSettings):
 
 class CollectorSettings(BaseSettings):
     TARGET_INDEX_FOR_VIDEO_RESOLUTION: int = Field(0)
+
+    TEMP_DIR_BASE: str = Field(default_factory=tempfile.gettempdir, description="임시 파일을 저장할 기본 디렉토리")
 
 
 # 설정 객체를 싱글톤처럼 생성하여 다른 모듈에서 import하여 사용할 수 있도록 함

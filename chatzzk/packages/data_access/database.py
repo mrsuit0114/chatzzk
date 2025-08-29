@@ -106,29 +106,29 @@ def get_status_by_video_no(db: Session, video_no: str) -> ChzzkVodProcessingStat
 #     return vods_to_process
 
 
-# def update_vod_status_flags(db: Session, video_no: str, **kwargs) -> bool:
-#     """
-#     특정 VOD의 처리 상태 플래그(is_chat_saved 등)를 업데이트합니다.
+def update_status_and_commit(db: Session, video_no: str, **kwargs) -> bool:
+    """
+    특정 VOD의 처리 상태 플래그(is_chat_saved 등)를 업데이트합니다.
 
-#     사용 예시:
-#     update_vod_status_flags(db, "12345", is_chat_saved=True, context_file_path="/path/to/file.jsonl")
-#     """
-#     status = get_status_by_video_no(db, video_no)
-#     if not status:
-#         logger.error(f"Status not found for video_no {video_no} during update.")
-#         return False
+    사용 예시:
+    update_vod_status_flags(db, "12345", is_chat_saved=True, context_file_path="/path/to/file.jsonl")
+    """
+    status = get_status_by_video_no(db, video_no)
+    if not status:
+        logger.error(f"Status not found for video_no {video_no} during update.")
+        return False
 
-#     try:
-#         for key, value in kwargs.items():
-#             if hasattr(status, key):
-#                 setattr(status, key, value)
-#             else:
-#                 logger.warning(f"Attribute '{key}' not found in ChzzkVodProcessingStatusORM.")
+    try:
+        for key, value in kwargs.items():
+            if hasattr(status, key):
+                setattr(status, key, value)
+            else:
+                logger.warning(f"Attribute '{key}' not found in ChzzkVodProcessingStatusORM.")
 
-#         db.commit()
-#         logger.info(f"Updated status for video_no {video_no} with: {kwargs}")
-#         return True
-#     except Exception as e:
-#         db.rollback()
-#         logger.error(f"Failed to update status for video_no {video_no}: {e}")
-#         return False
+        db.commit()
+        logger.info(f"Updated status for video_no {video_no} with: {kwargs}")
+        return True
+    except Exception as e:
+        db.rollback()
+        logger.error(f"Failed to update status for video_no {video_no}: {e}")
+        return False
