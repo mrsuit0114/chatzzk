@@ -41,7 +41,7 @@ class ChzzkVodProcessingStatusORM(Base):
     # --- 워크플로우 제어 상태 ---
     # Enum을 사용하기 위해선 별도 설정이 필요하므로, 여기서는 문자열로 저장.
     # 값: PENDING, PROCESSING, SUCCESS, FAILED
-    workflow_status = Column(String, default=WorkflowStatus.PENDING, nullable=False, index=True)
+    workflow_status = Column(String, default=WorkflowStatus.PENDING_PREPROCESSING, nullable=False, index=True)
 
     # --- 각 단계별 완료 여부 (Boolean 플래그) ---
     # Boolean 필드는 기본값을 False로 설정하여 명시적으로 True로 변경하도록 유도.

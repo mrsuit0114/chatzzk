@@ -1,4 +1,5 @@
 import itertools
+import os
 from datetime import date, datetime
 
 from loguru import logger
@@ -108,5 +109,5 @@ def fetch_new_vods_for_channel(channel_id: str, limit: int | None = None, stop_b
 
 
 if __name__ == "__main__":
-    CHANNEL_ID = "b044e3a3b9259246bc92e863e7d3f3b8"
-    fetch_new_vods_for_channel(CHANNEL_ID, 10)
+    CHANNEL_ID = os.environ.get("CHANNEL_ID")
+    fetch_new_vods_for_channel(CHANNEL_ID, 5)
