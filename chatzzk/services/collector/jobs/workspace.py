@@ -8,7 +8,8 @@ from chatzzk.services.collector.settings import collector_settings
 
 VIDEO_FILENAME = "video.mp4"
 AUDIO_FILENAME = "audio.wav"
-CHAT_FILENAME = "chat.jsonl"
+CHAT_CONTEXT_FILENAME = "chat_context.jsonl"
+ASR_CONTEXT_FILENAME = "asr_context.jsonl"
 
 
 @dataclass
@@ -24,7 +25,8 @@ class VodWorkspacePaths:
         # 인스턴스 생성 후 파일 경로를 자동으로 구성
         self.mp4 = self.base / VIDEO_FILENAME
         self.wav = self.base / AUDIO_FILENAME
-        self.chat = self.base / CHAT_FILENAME
+        self.chat_context = self.base / CHAT_CONTEXT_FILENAME
+        self.asr_context = self.base / ASR_CONTEXT_FILENAME
 
 
 class VodWorkspace:

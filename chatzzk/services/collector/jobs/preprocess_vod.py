@@ -32,7 +32,7 @@ def _crawl_chat(video_no: str, workspace: VodWorkspace):
             return
 
     chat_contexts = chzzk_client.crawl_chat(video_no)
-    with open(workspace.paths.chat, "w", encoding="utf-8") as f:
+    with open(workspace.paths.chat_context, "w", encoding="utf-8") as f:
         for entry in chat_contexts:
             f.write(entry.model_dump_json() + "\n")
 
