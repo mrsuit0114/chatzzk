@@ -4,18 +4,10 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from chatzzk.packages.schemas.asr import ASRResponse  # 기존 스키마 재활용
 
-
+# packages/ml_clients/asr/base.py
 class ASRClientInterface(ABC):
-    """
-    ASR 추론 클라이언트에 대한 추상 인터페이스.
-    모든 ASR 클라이언트는 이 클래스를 상속받아 구현해야 합니다.
-    """
-
     @abstractmethod
-    def transcribe(self, audio_array: np.ndarray, language: str) -> ASRResponse:
-        """
-        오디오 배열을 받아 텍스트로 변환합니다.
-        """
+    def transcribe(self, audio_chunk_np: np.ndarray) -> str:
+        """NumPy 배열 형태의 오디오 청크를 텍스트로 변환합니다."""
         pass
