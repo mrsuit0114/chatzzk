@@ -1,5 +1,3 @@
-# vad를 위한 추상 인터페이스
-
 from abc import ABC, abstractmethod
 
 import numpy as np

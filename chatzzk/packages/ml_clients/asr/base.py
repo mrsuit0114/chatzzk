@@ -1,5 +1,3 @@
-# packages/ml_clients/asr.py (새로운 패키지)
-
 from abc import ABC, abstractmethod
 
 import numpy as np

@@ -37,11 +37,12 @@ ruff = "^0.12.10"
 pre-commit = "^4.3.0"
 
 
-[tool.poetry.group.vad_asr_inference_server.dependencies]
+[tool.poetry.group.asr_inference_server.dependencies]
 silero-vad = "^6.0.0"
 whisperx = "^3.4.2"
 torch = "^2.8.0"
 numpy = "^2.3.2"
+fastapi = "^0.116.1"
 
 [build-system]
 requires = ["poetry-core"]

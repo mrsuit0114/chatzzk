@@ -6,20 +6,23 @@ import whisperx
 from loguru import logger
 
 from chatzzk.packages.ml_clients.asr.base import ASRClientInterface
-from chatzzk.services.vad_asr_inference_server.settings import WhisperXSettings
+from chatzzk.packages.schemas.ml_configs import WhisperXConfig
 
 
 class WhisperxClient(ASRClientInterface):
-    def __init__(self, config: WhisperXSettings, model_path: str | Path):
+    def __init__(self, config: WhisperXConfig, model_path: str | Path | None):
         logger.info("Initializing WhisperX model...")
+        self.device = config.device if torch.cuda.is_available() else "cpu"
+        self.model_size = config.model_size
+        self.compute_type = config.compute_type
+        self.batch_size = config.batch_size
+        self.language = config.language
+        logger.info(f"Initializing WhisperX model '{self.model_size}' on device '{self.device}'...")
+
+        download_root_path = Path(model_path) if model_path else None
         try:
-            self.device = config.DEVICE if torch.cuda.is_available() else "cpu"
-            self.model_size = config.MODEL_SIZE
-            self.compute_type = config.COMPUTE_TYPE
-            self.batch_size = config.BATCH_SIZE
-            self.language = config.LANGUAGE
             self.model = whisperx.load_model(
-                self.model_size, device=self.device, compute_type=self.compute_type, download_root=Path(model_path)
+                self.model_size, device=self.device, compute_type=self.compute_type, download_root=download_root_path
             )
 
             logger.info("✅ WhisperX model loaded successfully")
@@ -31,13 +34,9 @@ class WhisperxClient(ASRClientInterface):
         try:
             result = self.model.transcribe(audio_chunk_np, batch_size=self.batch_size, language=self.language)
 
-            text_segments = []
+            clean_segments = [segment.get("text", "").strip() for segment in result.get("segments", [])]
 
-            for segment in result["segments"]:
-                segment_text = segment.get("text", "")
-                text_segments.append(segment_text)
-
-            return "".join(text_segments).strip()
+            return " ".join(seg for seg in clean_segments if seg)
         except Exception as e:
             logger.error(f"WhisperX transcription failed: {e}")
             return ""

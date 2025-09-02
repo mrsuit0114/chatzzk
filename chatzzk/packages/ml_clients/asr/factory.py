@@ -1,22 +1,25 @@
 from pathlib import Path
 
+from loguru import logger
+
 from chatzzk.packages.ml_clients.asr.base import ASRClientInterface
 from chatzzk.packages.ml_clients.asr.whisperx_client import WhisperxClient
-from chatzzk.services.vad_asr_inference_server.settings import InferenceServerSettings
+from chatzzk.packages.schemas.ml_configs import ASRConfig, WhisperXConfig
 
 
-def create_asr_client(settings: InferenceServerSettings) -> ASRClientInterface:
-    impl_name = settings.ASR_IMPLEMENTATION.upper()
+def create_asr_client(model_config: ASRConfig, models_base_dir: str | None = None) -> ASRClientInterface:
+    logger.info(f"Creating ASR client for implementation: {model_config.asr_implementation}")
 
-    if impl_name == "WHISPERX":
-        whisperx_config = settings.WHISPERX
-
-        if settings.MODELS_BASE_DIR:
-            model_path = str(Path(settings.MODELS_BASE_DIR) / whisperx_config.MODEL_PATH)
+    # Pydantic이 이미 올바른 타입으로 파싱해줬으므로,
+    # 우리는 그 타입을 확인하기만 하면 됨
+    if isinstance(model_config, WhisperXConfig):
+        final_model_path = model_config.model_path
+        if models_base_dir:
+            final_model_path = str(Path(models_base_dir) / model_config.model_path)
         else:
-            model_path = None
+            final_model_path = None
 
-        return WhisperxClient(config=settings.WHISPERX, model_path=model_path)
+        return WhisperxClient(config=model_config, model_path=final_model_path)
 
     else:
-        raise ValueError(f"Unknown ASR implementation: {impl_name}")
+        raise TypeError(f"Unsupported ASR config type: {type(model_config)}")

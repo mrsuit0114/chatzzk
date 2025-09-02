@@ -1,12 +1,14 @@
+from loguru import logger
+
 from chatzzk.packages.ml_clients.vad.base import VADClientInterface
-from chatzzk.packages.ml_clients.vad.silero_vad_client import SilieroVADClient
-from chatzzk.services.vad_asr_inference_server.settings import InferenceServerSettings
+from chatzzk.packages.ml_clients.vad.silero_vad_client import SileroVADClient
+from chatzzk.packages.schemas.ml_configs import SileroVADConfig, VADConfig
 
 
-def create_vad_client(settings: InferenceServerSettings) -> VADClientInterface:
-    impl_name = settings.VAD_IMPLEMENTATION.upper()
+def create_vad_client(model_config: VADConfig, models_base_dir: str | None = None) -> VADClientInterface:
+    logger.info(f"Creating VAD client for implementation: {model_config.vad_implementation}")
 
-    if impl_name == "SILERO":
-        return SilieroVADClient(config=settings.SILERO_VAD)
+    if isinstance(model_config, SileroVADConfig):
+        return SileroVADClient(config=model_config)
     else:
-        raise ValueError(f"Unknown VAD implementation: {impl_name}")
+        raise TypeError(f"Unsupported ASR config type: {type(model_config)}")
