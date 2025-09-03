@@ -10,6 +10,7 @@
 
 ## 리팩토링 진행 중
 예상 프로젝트 구조
+```
  .
 ├──  analysis  
 ├──  chatzzk
@@ -35,3 +36,4 @@
     ├──  Dockerfile
     ├──  init_db.py
     └── 󰌠 requirements.txt
+```
