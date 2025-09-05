@@ -58,7 +58,7 @@ def _download_video(video_no: str, workspace: VodWorkspace):
     if not stream_reps:
         raise ValueError("No stream URLs found.")
 
-    resolution_index = collector_settings.TARGET_INDEX_FOR_VIDEO_RESOLUTION
+    resolution_index = collector_settings.target_index_for_video_resolution
     if resolution_index >= len(stream_reps):
         resolution_index = -1
     download_url = stream_reps[resolution_index][1]

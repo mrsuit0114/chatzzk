@@ -33,7 +33,7 @@ class VodWorkspace:
     """특정 VOD 처리를 위한 임시 작업 공간을 관리하는 클래스."""
 
     def __init__(self, video_no: str):
-        base_temp_dir = Path(collector_settings.TEMP_DIR_BASE) / "chatzzk_processor"
+        base_temp_dir = Path(collector_settings.temp_dir_base) / "chatzzk_processor"
         self.workspace_dir = base_temp_dir / video_no
         self.paths = VodWorkspacePaths(base=self.workspace_dir)
 

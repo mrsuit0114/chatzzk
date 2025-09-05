@@ -39,20 +39,20 @@ class ChzzkPlatformClient:
     def __init__(self):
         self.session = requests.Session()
         self.session.trust_env = False  # 의도한 API호출에서만(vod_url) 프록시 사용
-        self.session.headers.update({"User-Agent": chzzk_api_settings.USER_AGENT})
+        self.session.headers.update({"User-Agent": chzzk_api_settings.user_agent})
 
         self._cookies = None
-        self.cookies_file_path = chzzk_api_settings.CHZZK_COOKIES_FILE_PATH
+        self.cookies_file_path = chzzk_api_settings.chzzk_cookies_file_path
 
-        self.vod_url_template = chzzk_api_settings.CHZZK_VOD_URL_TEMPLATE
-        self.vod_info_url_template = chzzk_api_settings.CHZZK_VOD_INFO_URL_TEMPLATE
-        self.channel_vods_url_template = chzzk_api_settings.CHZZK_CHANNEL_VODS_URL_TEMPLATE
+        self.vod_url_template = chzzk_api_settings.chzzk_vod_url_template
+        self.vod_info_url_template = chzzk_api_settings.chzzk_vod_info_url_template
+        self.channel_vods_url_template = chzzk_api_settings.chzzk_channel_vods_url_template
 
-        self.vod_chat_url_template = chzzk_api_settings.CHZZK_VOD_CHAT_URL_TEMPLATE
+        self.vod_chat_url_template = chzzk_api_settings.chzzk_vod_chat_url_template
         # --- 프록시 설정 부분 ---
         self.proxies = None
-        http_proxy = os.getenv("HTTP_PROXY")
-        https_proxy = os.getenv("HTTPS_PROXY")
+        http_proxy = os.getenv("MY_HTTP_PROXY")
+        https_proxy = os.getenv("MY_HTTPS_PROXY")
 
         # 환경 변수가 설정되어 있을 경우에만 프록시를 사용
         if http_proxy or https_proxy:
