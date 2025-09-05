@@ -12,3 +12,5 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 #    services 디렉토리는 복사하지 않음
 COPY ./scripts /app/scripts
 COPY ./chatzzk/packages /app/chatzzk/packages
+
+CMD ["python", "-m", "scripts.init_db" ]

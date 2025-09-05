@@ -1,9 +1,26 @@
+import numpy as np
 from loguru import logger
 
-from chatzzk.packages.constants.service_codes import WorkflowStatus
+from chatzzk.packages.constants.service_codes import ASR_DUMMY_PAY_AMOUNT
 from chatzzk.packages.data_access import database
-from chatzzk.packages.media_processing.audio import extract_wav_from_video
+from chatzzk.packages.media_processing.audio import extract_wav_from_video, load_audio
+from chatzzk.packages.ml_clients.asr.factory import create_asr_client
+from chatzzk.packages.ml_clients.vad.factory import create_vad_client
+from chatzzk.packages.schemas.data_models import ContextType, StreamContextEntry
 from chatzzk.services.collector.jobs.workspace import VodWorkspace
+from chatzzk.services.collector.settings import collector_settings
+
+try:
+    vad_config = collector_settings.vad_model_config
+    vad_client = create_vad_client(model_config=vad_config)
+
+    asr_config = collector_settings.asr_model_config
+    asr_client = create_asr_client(model_config=asr_config, models_base_dir="models")
+
+except (AttributeError, ValueError) as e:
+    logger.critical(f"Failed to initialize ML clients from settings: {e}")
+    # 설정이 잘못되면 이 모듈은 동작할 수 없으므로, 즉시 에러 발생
+    raise e
 
 
 def run_processing_pipeline(video_no: str, workspace: VodWorkspace):
@@ -13,8 +30,8 @@ def run_processing_pipeline(video_no: str, workspace: VodWorkspace):
     # 1. WAV 추출
     _extract_wav(video_no, workspace)
 
-    # 2. ASR 및 Context 생성/저장 (향후 구현)
-    # _run_asr_and_merge(video_no, workspace)
+    # 2. ASR 및 Context 생성/저장
+    _create_and_save_asr_context(video_no, workspace)
 
     logger.info(f"[{video_no}] Processing pipeline finished.")
 
@@ -34,6 +51,63 @@ def _extract_wav(video_no: str, workspace: VodWorkspace):
         logger.info(f"[{video_no}] WAV extracted.")
 
     except Exception as e:
+        logger.opt(exception=True).error(f"❌ extract_wav failed for VOD {video_no}: {e}")
+        raise e
+
+
+def _perform_vad(audio_np: np.ndarray) -> list[tuple[int, int]]:
+    logger.info("Detecting speech segments with VAD...")
+    timestamps = vad_client.detect_speech(audio_np)
+    logger.info(f"VAD detected {len(timestamps)} speech segments.")
+    return timestamps
+
+
+def _perform_asr_on_segments(
+    audio_np: np.ndarray, timestamps: list[tuple[int, int]]
+) -> list[tuple[tuple[int, int], str]]:
+    results = []
+    logger.info(f"Performing ASR on {len(timestamps)} audio segments...")
+    for start_sample, end_sample in timestamps:
+        segment_audio = audio_np[start_sample:end_sample]
+        transcription_text = asr_client.transcribe(segment_audio)
+        if transcription_text:
+            results.append(((start_sample, end_sample), transcription_text))
+    return results
+
+
+def _create_asr_context(asr_results: list[tuple[tuple[int, int], str]], sample_rate: int) -> list[StreamContextEntry]:
+    asr_contexts = []
+    for (start_sample, end_sample), text in asr_results:
+        average_sample = (start_sample + end_sample) / 2
+        timestamp_ms = int((average_sample / sample_rate) * 1000)
+
+        asr_contexts.append(
+            StreamContextEntry(
+                timestamp_ms=timestamp_ms, type=ContextType.ASR, content=text, pay_amount=ASR_DUMMY_PAY_AMOUNT
+            )
+        )
+    return asr_contexts
+
+
+def _create_and_save_asr_context(video_no: str, workspace: VodWorkspace):
+    try:
         with database.get_db_session() as db:
-            database.update_status_and_commit(db, video_no, workflow_status=WorkflowStatus.FAILED)
-        logger.opt(exception=True).error(f"❌ Pipeline failed for VOD {video_no}: {e}")
+            if database.get_status_by_video_no(db, video_no).is_asr_completed:
+                logger.info(f"[{video_no}] ASR already completed. Skipping.")
+                return
+
+        audio_np, sr = load_audio(workspace.paths.wav)
+
+        timestamps = _perform_vad(audio_np)
+        asr_results = _perform_asr_on_segments(audio_np, timestamps)
+        asr_context = _create_asr_context(asr_results, sr)
+
+        with open(workspace.paths.asr_context, "w", encoding="utf-8") as f:
+            for entry in asr_context:
+                f.write(entry.model_dump_json() + "\n")
+
+        with database.get_db_session() as db:
+            database.update_status_and_commit(db, video_no, is_asr_completed=True)
+    except Exception as e:
+        logger.opt(exception=True).error(f"❌ run_vad_and_asr failed for VOD {video_no}: {e}")
+        raise e

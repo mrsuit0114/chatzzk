@@ -1,58 +1,79 @@
-# # services/asr_inference_server/main.py
+import time
+from contextlib import asynccontextmanager
+from typing import Annotated
 
-# from typing import Annotated  # Python 3.9+ 에서 권장
+import numpy as np
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from loguru import logger
 
-# import numpy as np
-# from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-# from chatzzk.packages.schemas.asr import ASRResponse, ErrorResponse
+from chatzzk.packages.ml_clients.asr.base import ASRClientInterface
+from chatzzk.packages.ml_clients.asr.factory import create_asr_client
+from chatzzk.packages.schemas.asr import ASRResponse  # 응답 스키마
+from chatzzk.services.asr_inference_server.settings import settings
 
-# app = FastAPI()
+asr_client: ASRClientInterface = None
 
-# # ... (startup 이벤트, asr_processor 등)
 
-# @app.post(
-#     "/transcribe",
-#     response_model=ASRResponse,
-#     responses={400: {"model": ErrorResponse}, 500: {"model": ErrorResponse}}
-# )
-# async def transcribe_audio(
-#     # 'tensor_bytes'라는 이름의 파일 파트(part)를 받음
-#     tensor_bytes: Annotated[UploadFile, File(description="Numpy array를 직렬화한 바이너리 데이터")],
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global asr_client
+    logger.info("🚀 ASR Inference Server is starting up...")
+    try:
+        # 팩토리를 사용하여 설정에 맞는 ASR 클라이언트 생성
+        asr_client = create_asr_client(settings.asr_model_config, settings.models_base_dir)
+        logger.success("✅ ASR model initialized successfully.")
+    except Exception as e:
+        logger.opt(exception=True).critical(f"❌ Failed to initialize ASR model: {e}")
+        raise e
 
-#     # 'language'라는 이름의 폼 필드(part)를 받음
-#     language: Annotated[str, Form(description="추론에 사용할 언어 코드 (e.g., 'ko', 'en')")],
+    # 이 부분에서 애플리케이션이 실행됩니다.
+    yield
 
-#     # [중요] NumPy 배열 복원을 위한 메타데이터 추가
-#     shape: Annotated[str, Form(description="원본 배열의 shape (쉼표로 구분. e.g., '1,16000')")],
-#     dtype: Annotated[str, Form(description="원본 배열의 dtype (e.g., 'float32')")]
-# ):
-#     """
-#     직렬화된 Numpy array와 메타데이터를 받아 ASR 추론을 수행합니다.
-#     """
-#     try:
-#         # 1. 메타데이터 파싱
-#         try:
-#             parsed_shape = tuple(map(int, shape.split(',')))
-#             parsed_dtype = np.dtype(dtype)
-#         except ValueError:
-#             raise HTTPException(status_code=400, detail="Invalid shape or dtype format.")
+    logger.info("👋 ASR Inference Server is shutting down...")
 
-#         # 2. 바이너리 데이터 읽기
-#         byte_data = await tensor_bytes.read()
 
-#         # 3. NumPy 배열로 복원
-#         restored_array = np.frombuffer(byte_data, dtype=parsed_dtype).reshape(parsed_shape)
+app = FastAPI(title="ASR Inference Server", lifespan=lifespan)
 
-#         # 4. 추론 수행
-#         # asr_processor.process 함수가 numpy 배열과 language를 받도록 수정 필요
-#         result: ASRResponse = asr_processor.process(
-#             audio_array=restored_array,
-#             language=language
-#         )
 
-#         return result
+# --- VOD 및 실시간 처리를 위한 공용 엔드포인트 ---
+@app.post("/transcribe", response_model=ASRResponse)
+async def transcribe_chunk(
+    audio_bytes: Annotated[UploadFile, File(description="오디오 청크 바이너리 데이터 (float32 format normalized)")],
+    dtype: Annotated[str, Form(description="NumPy 데이터 타입")] = "float32",
+):
+    """
+    단일 오디오 청크(NumPy 배열)를 받아 ASR 추론을 수행하고,
+    인식된 텍스트를 반환합니다.
+    """
+    if not asr_client:
+        raise HTTPException(status_code=503, detail="Server is not ready, ASR model not initialized.")
 
-#     except Exception:
-#         # 에러 처리
-#         # ...
-#         pass
+    try:
+        # 1. 수신된 바이트를 NumPy 배열로 변환
+        byte_data = await audio_bytes.read()
+        audio_chunk_np = np.frombuffer(byte_data, dtype=np.dtype(dtype))
+
+        # # (선택적) 입력 오디오의 길이를 검증 (예: 최대 30초)
+        # max_duration_seconds = 30
+        # if len(audio_chunk_np) > asr_client.sample_rate * max_duration_seconds:
+        #     raise HTTPException(status_code=413, detail=f"Audio chunk exceeds max duration of {max_duration_seconds}s.")
+
+        # 2. ASR 클라이언트를 사용하여 추론
+        inference_start = time.time()
+        transcription_text = asr_client.transcribe(audio_chunk_np)
+        inference_time = time.time() - inference_start
+        logger.info(
+            f"Transcription successful. Text length: {len(transcription_text)}, inference time: {inference_time}"
+        )
+        return ASRResponse(text=transcription_text)
+
+    except Exception as e:
+        logger.opt(exception=True).error(f"Error during transcription: {e}")
+        raise e
+
+
+@app.get("/health")
+def health_check():
+    """서버 상태 및 모델 로드 여부 확인."""
+    is_ready = asr_client is not None
+    return {"status": "ok" if is_ready else "loading", "models_loaded": is_ready}

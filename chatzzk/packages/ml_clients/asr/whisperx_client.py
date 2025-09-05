@@ -39,4 +39,4 @@ class WhisperxClient(ASRClientInterface):
             return " ".join(seg for seg in clean_segments if seg)
         except Exception as e:
             logger.error(f"WhisperX transcription failed: {e}")
-            return ""
+            raise

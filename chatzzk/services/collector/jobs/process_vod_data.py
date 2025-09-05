@@ -11,15 +11,10 @@ from chatzzk.services.collector.jobs.preprocess_vod import (
 )
 from chatzzk.services.collector.jobs.process_context import run_processing_pipeline
 from chatzzk.services.collector.jobs.workspace import VodWorkspace
-from chatzzk.services.collector.platform_client.chzzk.chzzk_platform_client import (
-    ChzzkPlatformClient,
-)
-
-chzzk_client = ChzzkPlatformClient()
 
 
 # @celery_app.task(name="jobs.process_single_vod")
-def process_single_vod(video_no: str):
+def process_single_vod(video_no: str, cleanup: bool = False):
     """
     DB에 'PENDING' 상태로 저장된 단일 VOD의 실제 데이터를 처리합니다.
     (MP4, 채팅 다운로드 -> WAV 추출 -> ASR -> Context 저장)
@@ -45,6 +40,9 @@ def process_single_vod(video_no: str):
         with database.get_db_session() as db:
             database.update_status_and_commit(db, video_no, workflow_status=WorkflowStatus.PENDING_PROCESSING)
 
+        with database.get_db_session() as db:
+            database.update_status_and_commit(db, video_no, workflow_status=WorkflowStatus.PROCESSING_IN_PROGRESS)
+
         # --- 3. 파이프라인 2단계: 핵심 처리 실행 ---
         run_processing_pipeline(video_no, workspace)
         with database.get_db_session() as db:
@@ -53,11 +51,9 @@ def process_single_vod(video_no: str):
         # --- 4. 파이프라인 3단계: 후처리 실행 (향후 구현) ---
         # run_postprocessing_pipeline(video_no)
 
-        # --- vod-context 수집 최종 성공 처리 ---
-        with database.get_db_session() as db:
-            database.update_status_and_commit(db, video_no, workflow_status=WorkflowStatus.PENDING_POSTPROCESSING)
         logger.success(f"🎉 [{video_no}] All processing steps completed successfully.")
-        workspace.cleanup()
+        if cleanup:
+            workspace.cleanup()
 
     except Exception as e:
         logger.opt(exception=True).error(f"❌ Pipeline failed for VOD {video_no}: {e}")
