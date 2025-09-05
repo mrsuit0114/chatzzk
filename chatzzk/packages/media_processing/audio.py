@@ -41,7 +41,7 @@ def extract_wav_from_video(
             ffmpeg.input(str(video_path))
             .output(
                 str(output_wav_path),
-                acodec="pcm_s16le",  # WAV 포맷 (16-bit signed little-endian PCM)
+                acodec="pcm_s32le",  # WAV 포맷 (32-bit signed little-endian PCM)
                 ac=audio_channels,  # 오디오 채널 (1=모노, 2=스테레오)
                 ar=str(sampling_rate),  # 오디오 샘플링 레이트
             )
