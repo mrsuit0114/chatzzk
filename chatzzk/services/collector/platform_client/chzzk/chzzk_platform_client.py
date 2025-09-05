@@ -24,7 +24,7 @@ from chatzzk.services.collector.platform_client.chzzk.chzzk_constants import (
 )
 from chatzzk.services.collector.settings import chzzk_api_settings
 
-BASE_SLEEP_TIME = 1
+BASE_SLEEP_TIME = 0.5
 
 
 def _log_before_retry(retry_state):
