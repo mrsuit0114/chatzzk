@@ -23,6 +23,12 @@ class WhisperXConfig(BaseModel):
     model_path: str = "whisperx_models"
 
 
-ASRConfig = Annotated[WhisperXConfig, Field(discriminator="asr_implementation")]
+class ASRHttpConfig(BaseModel):
+    asr_implementation: Literal["http"] = "http"
+    asr_inference_server_url: str
+    sample_rate: int = 16000
+
+
+ASRConfig = Annotated[WhisperXConfig | ASRHttpConfig, Field(discriminator="asr_implementation")]
 
 # UNEXPECTED_ASR_RESULTS: list[str] = ["뉴스", "고맙습니다", "감사합니다", "였습니다"]
