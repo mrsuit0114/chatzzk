@@ -11,6 +11,25 @@ services:
   #   # volumes:
   #   #   - ./chatzzk:/app/chatzzk
 
+  asr_inference_server:
+    build:
+      context: .
+      dockerfile: ./chatzzk/services/asr_inference_server/Dockerfile
+    container_name: chatzzk_asr_inference_server
+    env_file:
+      - .env
+    ports:
+      - 8000:8000
+    volumes:
+      - ./models:/app/models:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+
   db-init:
     build:
       context: .
@@ -21,19 +40,12 @@ services:
         condition: service_healthy
     env_file:
       - .env
-    command: [ "python", "-m", "scripts.init_db" ]
 
   db:
     image: postgres
     restart: always
     # set shared memory limit when using docker compose
     shm_size: 128mb
-    # or set shared memory limit when deploy via swarm stack
-    #volumes:
-    #  - type: tmpfs
-    #    target: /dev/shm
-    #    tmpfs:
-    #      size: 134217728 # 128*2^20 bytes = 128Mb
     ports:
       - "5432:5432"
     env_file:
@@ -48,3 +60,16 @@ services:
     restart: always
     ports:
       - 8080:8080
+  # minio:
+  #   build:
+  #     context: .
+  #     dockerfile: ./minio/Dockerfile
+  #   container_name: minio
+  #   image: minio
+  #   volumes:
+  #     - ./minio/data:/data
+  #   ports:
+  #     - "9000:9000"
+  #     - "9001:9001"
+  #   env_file:
+  #     - ./minio/.env
