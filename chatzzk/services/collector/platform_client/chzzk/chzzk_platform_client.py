@@ -22,7 +22,7 @@ from chatzzk.packages.utils.file_io import load_json_from_file
 from chatzzk.services.collector.platform_client.chzzk.chzzk_constants import (
     CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE,
 )
-from chatzzk.services.collector.settings import chzzk_api_settings
+from chatzzk.services.collector.settings import collector_settings
 
 BASE_SLEEP_TIME = 0.5
 
@@ -39,16 +39,16 @@ class ChzzkPlatformClient:
     def __init__(self):
         self.session = requests.Session()
         self.session.trust_env = False  # 의도한 API호출에서만(vod_url) 프록시 사용
-        self.session.headers.update({"User-Agent": chzzk_api_settings.user_agent})
+        self.session.headers.update({"User-Agent": collector_settings.chzzk_api.user_agent})
 
         self._cookies = None
-        self.cookies_file_path = chzzk_api_settings.chzzk_cookies_file_path
+        self.cookies_file_path = collector_settings.chzzk_api.cookies_file_path
 
-        self.vod_url_template = chzzk_api_settings.chzzk_vod_url_template
-        self.vod_info_url_template = chzzk_api_settings.chzzk_vod_info_url_template
-        self.channel_vods_url_template = chzzk_api_settings.chzzk_channel_vods_url_template
+        self.vod_url_template = collector_settings.chzzk_api.vod_url_template
+        self.vod_info_url_template = collector_settings.chzzk_api.vod_info_url_template
+        self.channel_vods_url_template = collector_settings.chzzk_api.channel_vods_url_template
 
-        self.vod_chat_url_template = chzzk_api_settings.chzzk_vod_chat_url_template
+        self.vod_chat_url_template = collector_settings.chzzk_api.vod_chat_url_template
         # --- 프록시 설정 부분 ---
         self.proxies = None
         http_proxy = os.getenv("MY_HTTP_PROXY")

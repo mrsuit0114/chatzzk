@@ -4,12 +4,8 @@ from pathlib import Path
 
 from loguru import logger
 
+from chatzzk.packages.constants.service_codes import TempFile
 from chatzzk.services.collector.settings import collector_settings
-
-VIDEO_FILENAME = "video.mp4"
-AUDIO_FILENAME = "audio.wav"
-CHAT_CONTEXT_FILENAME = "chat_context.jsonl"
-ASR_CONTEXT_FILENAME = "asr_context.jsonl"
 
 
 @dataclass
@@ -19,14 +15,15 @@ class VodWorkspacePaths:
     base: Path
     mp4: Path = field(init=False)
     wav: Path = field(init=False)
-    chat: Path = field(init=False)
+    chat_context: Path = field(init=False)
+    asr_context: Path = field(init=False)
 
     def __post_init__(self):
         # 인스턴스 생성 후 파일 경로를 자동으로 구성
-        self.mp4 = self.base / VIDEO_FILENAME
-        self.wav = self.base / AUDIO_FILENAME
-        self.chat_context = self.base / CHAT_CONTEXT_FILENAME
-        self.asr_context = self.base / ASR_CONTEXT_FILENAME
+        self.mp4 = self.base / TempFile.VIDEO
+        self.wav = self.base / TempFile.AUDIO
+        self.chat_context = self.base / TempFile.CHAT_CONTEXT
+        self.asr_context = self.base / TempFile.ASR_CONTEXT
 
 
 class VodWorkspace:

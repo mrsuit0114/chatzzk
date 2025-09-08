@@ -3,7 +3,9 @@ from loguru import logger
 
 from chatzzk.packages.constants.service_codes import ASR_DUMMY_PAY_AMOUNT
 from chatzzk.packages.data_access import database
+from chatzzk.packages.data_access.storage.factory import create_storage_manager
 from chatzzk.packages.media_processing.audio import extract_wav_from_video, load_audio
+from chatzzk.packages.media_processing.context import merge_context_files
 from chatzzk.packages.ml_clients.asr.factory import create_asr_client
 from chatzzk.packages.ml_clients.vad.factory import create_vad_client
 from chatzzk.packages.schemas.data_models import ContextType, StreamContextEntry
@@ -17,8 +19,11 @@ try:
     asr_config = collector_settings.asr_model_config
     asr_client = create_asr_client(model_config=asr_config, models_base_dir="models")
 
+    storage_config = collector_settings.storage_config
+    storage_manager = create_storage_manager(storage_config=storage_config)
+
 except (AttributeError, ValueError) as e:
-    logger.critical(f"Failed to initialize ML clients from settings: {e}")
+    logger.critical(f"Failed to initialize ML clients or storage manager from settings: {e}")
     # 설정이 잘못되면 이 모듈은 동작할 수 없으므로, 즉시 에러 발생
     raise e
 
@@ -32,6 +37,9 @@ def run_processing_pipeline(video_no: str, workspace: VodWorkspace):
 
     # 2. ASR 및 Context 생성/저장
     _create_and_save_asr_context(video_no, workspace)
+
+    # 3. 저장된 asr_context, chat_context로 merged_context 생성/저장
+    _create_and_save_merged_context(video_no, workspace)
 
     logger.info(f"[{video_no}] Processing pipeline finished.")
 
@@ -110,4 +118,29 @@ def _create_and_save_asr_context(video_no: str, workspace: VodWorkspace):
             database.update_status_and_commit(db, video_no, is_asr_completed=True)
     except Exception as e:
         logger.opt(exception=True).error(f"❌ run_vad_and_asr failed for VOD {video_no}: {e}")
+        raise e
+
+
+def _create_and_save_merged_context(video_no: str, workspace: VodWorkspace):
+    """
+    chat_context와 asr_context를 병합하여 merged_context 파일로 저장합니다.
+    """
+    try:
+        with database.get_db_session() as db:
+            if database.get_status_by_video_no(db, video_no).is_context_saved:
+                logger.info(f"[{video_no}] vod_context already saved. Skipping.")
+                return
+
+        chat_context_path = workspace.paths.chat_context
+        asr_context_path = workspace.paths.asr_context
+
+        merged_context = merge_context_files(chat_context_path, asr_context_path)
+        merged_context_object_name = storage_manager.save_context(video_no, merged_context)
+
+        logger.info(f"[{video_no}] Merged context saved to {merged_context_object_name}")
+        with database.get_db_session() as db:
+            database.update_status_and_commit(db, video_no, is_context_saved=True)
+
+    except Exception as e:
+        logger.opt(exception=True).error(f"❌ Failed to create merged context for VOD {video_no}: {e}")
         raise e

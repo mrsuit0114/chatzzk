@@ -20,4 +20,24 @@ class WorkflowStatus(str, Enum):
     FAILED = "FAILED"
 
 
+class TempFile:
+    VIDEO = "video.mp4"
+    AUDIO = "audio.wav"
+    CHAT_CONTEXT = "chat_context.jsonl"
+    ASR_CONTEXT = "asr_context.jsonl"
+
+
+class StorageObject:
+    """영구 스토리지의 오브젝트 이름/경로 템플릿을 정의합니다."""
+
+    # format() 메서드를 사용하여 경로를 생성: StorageObject.VOD_CONTEXT.format(video_no=123)
+    VIDEO_CONTEXT = "contexts/{video_no}.jsonl"
+    VIDEO_SUMMARY = "summaries/{video_no}.jsonl"
+    # VIDEO_SUMMARY_META = "meta-summaries/{video_no}.jsonl"
+
+
+class StorageBucket:
+    CHZZK = "chzzk"
+
+
 ASR_DUMMY_PAY_AMOUNT = 0
