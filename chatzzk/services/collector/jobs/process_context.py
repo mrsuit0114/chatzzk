@@ -1,14 +1,14 @@
 import numpy as np
 from loguru import logger
 
-from chatzzk.packages.constants.service_codes import ASR_DUMMY_PAY_AMOUNT
+from chatzzk.packages.constants.service_codes import ASR_DUMMY_PAY_AMOUNT, ContextType
 from chatzzk.packages.data_access import database
 from chatzzk.packages.data_access.storage.factory import create_storage_manager
 from chatzzk.packages.media_processing.audio import extract_wav_from_video, load_audio
 from chatzzk.packages.media_processing.context import merge_context_files
 from chatzzk.packages.ml_clients.asr.factory import create_asr_client
 from chatzzk.packages.ml_clients.vad.factory import create_vad_client
-from chatzzk.packages.schemas.data_models import ContextType, StreamContextEntry
+from chatzzk.packages.schemas.data_models import StreamContextEntry
 from chatzzk.services.collector.jobs.workspace import VodWorkspace
 from chatzzk.services.collector.settings import collector_settings
 

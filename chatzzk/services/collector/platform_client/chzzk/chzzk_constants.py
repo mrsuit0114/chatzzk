@@ -1,4 +1,4 @@
-from chatzzk.packages.schemas.data_models import ContextType
+from chatzzk.packages.constants.service_codes import ContextType
 
 CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE: dict[int, ContextType] = {
     1: ContextType.CHAT,

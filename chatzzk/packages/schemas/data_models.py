@@ -1,12 +1,6 @@
-from enum import IntEnum
-
 from pydantic import BaseModel, Field, field_validator
 
-
-class ContextType(IntEnum):
-    CHAT = 100
-    DONATION = 1000
-    ASR = 10000
+from chatzzk.packages.constants.service_codes import ContextType
 
 
 class StreamContextEntry(BaseModel):

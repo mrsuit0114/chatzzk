@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, IntEnum
 
 
 class WorkflowStatus(str, Enum):
@@ -38,6 +38,12 @@ class StorageObject:
 
 class StorageBucket:
     CHZZK = "chzzk"
+
+
+class ContextType(IntEnum):
+    CHAT = 100
+    DONATION = 1000
+    ASR = 10000
 
 
 ASR_DUMMY_PAY_AMOUNT = 0
