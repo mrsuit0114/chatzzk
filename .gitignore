@@ -176,4 +176,6 @@ cython_debug/
 # custom
 **/data
 /llm/litellm_config.yaml
-*/whisperx_models
+
+models/
+.vscode
