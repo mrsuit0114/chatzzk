@@ -10,7 +10,7 @@ from loguru import logger
 def extract_wav_from_video(
     video_path: str | Path,
     output_wav_path: str | Path,
-    sampling_rate: int = 16000,
+    sample_rate: int = 16000,
     audio_channels: int = 1,
 ) -> None:
     """
@@ -20,7 +20,7 @@ def extract_wav_from_video(
     Args:
         video_path (str | Path): 입력 비디오 파일 경로.
         output_wav_path (str | Path): 출력 WAV 파일 경로.
-        sampling_rate (int, optional): 출력 오디오의 샘플링 속도(Hz). ASR에 표준적인 16000이 기본값.
+        sample_rate (int, optional): 출력 오디오의 샘플링 속도(Hz). ASR에 표준적인 16000이 기본값.
         audio_channels (int, optional): 출력 오디오 채널 수. ASR에는 모노(1)가 표준.
 
     Raises:
@@ -34,7 +34,7 @@ def extract_wav_from_video(
         raise FileNotFoundError(f"Input video file not found at: {video_path}")
 
     logger.info(f"🎞️ -> 🔊 Extracting WAV from '{video_path.name}'...")
-    logger.debug(f"Output settings: Sample Rate={sampling_rate}Hz, Channels={audio_channels}")
+    logger.debug(f"Output settings: Sample Rate={sample_rate}Hz, Channels={audio_channels}")
 
     try:
         (
@@ -43,7 +43,7 @@ def extract_wav_from_video(
                 str(output_wav_path),
                 acodec="pcm_s32le",  # WAV 포맷 (32-bit signed little-endian PCM)
                 ac=audio_channels,  # 오디오 채널 (1=모노, 2=스테레오)
-                ar=str(sampling_rate),  # 오디오 샘플링 레이트
+                ar=str(sample_rate),  # 오디오 샘플링 레이트
             )
             .overwrite_output()  # 출력 파일이 이미 있으면 덮어쓰기
             .run(capture_stdout=True, capture_stderr=True)  # 실행 및 출력 캡처
