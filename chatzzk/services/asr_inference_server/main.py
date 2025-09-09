@@ -12,6 +12,8 @@ from chatzzk.packages.schemas.asr import ASRResponse  # 응답 스키마
 from chatzzk.services.asr_inference_server.settings import settings
 
 asr_client: ASRClientInterface = None
+MAX_SPEECH_DURATION_S = settings.max_speech_duration_s
+SAMPLE_RATE = settings.sample_rate
 
 
 @asynccontextmanager
@@ -53,10 +55,11 @@ async def transcribe_chunk(
         byte_data = await audio_bytes.read()
         audio_chunk_np = np.frombuffer(byte_data, dtype=np.dtype(dtype))
 
-        # # (선택적) 입력 오디오의 길이를 검증 (예: 최대 30초)
-        # max_duration_seconds = 30
-        # if len(audio_chunk_np) > asr_client.sample_rate * max_duration_seconds:
-        #     raise HTTPException(status_code=413, detail=f"Audio chunk exceeds max duration of {max_duration_seconds}s.")
+        # 입력 오디오의 길이를 검증 (예: 최대 30초)
+        if len(audio_chunk_np) > SAMPLE_RATE * MAX_SPEECH_DURATION_S:
+            raise HTTPException(
+                status_code=413, detail=f"Audio chunk exceeds max duration of {MAX_SPEECH_DURATION_S}s."
+            )
 
         # 2. ASR 클라이언트를 사용하여 추론
         inference_start = time.time()

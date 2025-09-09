@@ -2,12 +2,14 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
+from chatzzk.packages.constants.service_codes import MAX_SPEECH_DURAION_S
+
 
 class SileroVADConfig(BaseModel):
     # 'vad_implementation'을 고정된 문자열 리터럴 타입으로 정의
     vad_implementation: Literal["silero"] = "silero"
     min_silence_duration_ms: int = 500
-    max_speech_duration_s: int = 30
+    max_speech_duration_s: int = Field(MAX_SPEECH_DURAION_S)
 
 
 VADConfig = Annotated[SileroVADConfig, Field(discriminator="vad_implementation")]
@@ -26,7 +28,6 @@ class WhisperXConfig(BaseModel):
 class ASRHttpConfig(BaseModel):
     asr_implementation: Literal["http"] = "http"
     asr_inference_server_url: str
-    sample_rate: int = 16000
 
 
 ASRConfig = Annotated[WhisperXConfig | ASRHttpConfig, Field(discriminator="asr_implementation")]

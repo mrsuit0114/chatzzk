@@ -47,3 +47,6 @@ class ContextType(IntEnum):
 
 
 ASR_DUMMY_PAY_AMOUNT = 0
+
+MAX_SPEECH_DURAION_S = 30
+SAMPLE_RATE = 16000
