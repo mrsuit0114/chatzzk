@@ -9,13 +9,12 @@ services:
   #   env_file:
   #     - ./chatzzk/services/collector/.env
   #   # volumes:
-  #   #   - ./chatzzk:/app/chatzzk
+  #     - /var/tmp/chatzzk_processor:/var/tmp/chatzzk_processor
 
   asr_inference_server:
     build:
       context: .
       dockerfile: ./chatzzk/services/asr_inference_server/Dockerfile
-    container_name: chatzzk_asr_inference_server
     env_file:
       - .env
     ports:
@@ -34,7 +33,6 @@ services:
     build:
       context: .
       dockerfile: ./scripts/Dockerfile
-    container_name: chatzzk_db_init
     depends_on:
       db:
         condition: service_healthy
@@ -43,13 +41,15 @@ services:
 
   db:
     image: postgres
-    restart: always
+    # restart: always
     # set shared memory limit when using docker compose
     shm_size: 128mb
     ports:
       - "5432:5432"
     env_file:
       - ./.env
+    volumes:
+      - /var/tmp/pgdata:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 5s
@@ -57,17 +57,14 @@ services:
       retries: 5
   adminer:
     image: adminer
-    restart: always
+    # restart: always
     ports:
       - 8080:8080
   minio:
-    build:
-      context: .
-      dockerfile: ./minio/Dockerfile
-    container_name: minio
-    image: minio
+    image: minio/minio
+    command: server /data --console-address ":9001"
     volumes:
-      - ./minio/data:/data
+      - /var/tmp/minio/data:/data
     ports:
       - "9000:9000"
       - "9001:9001"

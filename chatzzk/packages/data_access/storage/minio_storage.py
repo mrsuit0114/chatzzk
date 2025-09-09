@@ -2,13 +2,13 @@ import io
 
 import orjson
 from loguru import logger
+from minio import Minio
 
 from chatzzk.packages.constants.service_codes import StorageObject
 from chatzzk.packages.data_access.storage.base import StorageInterface
 from chatzzk.packages.schemas.data_models import StreamContextEntry
 from chatzzk.packages.schemas.storage_configs import MinioConfig
 from chatzzk.packages.utils.file_io import load_jsonl_as_models
-from minio import Minio
 
 
 class MinioStorageManager(StorageInterface):
