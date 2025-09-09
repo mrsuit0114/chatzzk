@@ -18,7 +18,6 @@ from pydantic import ValidationError
 from tenacity import retry, stop_after_attempt, wait_random
 
 from chatzzk.packages.schemas.data_models import ChzzkVod, StreamContextEntry
-from chatzzk.packages.utils.file_io import load_json_from_file
 from chatzzk.services.collector.platform_client.chzzk.chzzk_constants import (
     CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE,
 )
@@ -41,8 +40,7 @@ class ChzzkPlatformClient:
         self.session.trust_env = False  # 의도한 API호출에서만(vod_url) 프록시 사용
         self.session.headers.update({"User-Agent": collector_settings.chzzk_api.user_agent})
 
-        self._cookies = None
-        self.cookies_file_path = collector_settings.chzzk_api.cookies_file_path
+        self._cookies = None  # 필요 시 collector_settings에서 주입받도록 함
 
         self.vod_url_template = collector_settings.chzzk_api.vod_url_template
         self.vod_info_url_template = collector_settings.chzzk_api.vod_info_url_template
@@ -65,9 +63,7 @@ class ChzzkPlatformClient:
             logger.info("Proxy is not configured.")
 
     def _get_cookies(self) -> dict | None:
-        if not self._cookies and self.cookies_file_path:
-            self._cookies = load_json_from_file(self.cookies_file_path)
-
+        # 쿠키는 외부에서 주입되어 self._cookies에 할당되어야 함
         return self._cookies
 
     @retry(stop=stop_after_attempt(3), wait=wait_random(min=1, max=2), before_sleep=_log_before_retry)

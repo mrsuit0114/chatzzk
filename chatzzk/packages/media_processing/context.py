@@ -1,25 +1,9 @@
 from pathlib import Path
-from typing import IO
 
-import orjson
 from loguru import logger
 
 from chatzzk.packages.schemas.data_models import StreamContextEntry
-
-
-def _read_jsonl_as_list(file_handle: IO) -> list[StreamContextEntry]:
-    """
-    열려있는 jsonl 파일 핸들을 바이트 모드에서 읽어 StreamContextEntry 객체 리스트로 반환.
-    """
-    entries = []
-    for line in file_handle:
-        if line.strip():
-            try:
-                data = orjson.loads(line)
-                entries.append(StreamContextEntry.model_validate(data))
-            except (orjson.JSONDecodeError, Exception) as e:
-                logger.warning(f"Skipping invalid line in jsonl file: {line.strip()}. Error: {e}")
-    return entries
+from chatzzk.packages.utils.file_io import load_jsonl_as_models
 
 
 def merge_context_files(chat_context_path: str | Path, asr_context_path: str | Path) -> list[StreamContextEntry]:
@@ -32,28 +16,28 @@ def merge_context_files(chat_context_path: str | Path, asr_context_path: str | P
     try:
         # 파일을 바이너리 읽기 모드("rb")로 열어 orjson의 효율성을 극대화
         with open(chat_context_path, "rb") as chat_f, open(asr_context_path, "rb") as asr_f:
-            chat_entries = _read_jsonl_as_list(chat_f)
-            asr_entries = _read_jsonl_as_list(asr_f)
+            chat_entries = load_jsonl_as_models(chat_f, StreamContextEntry)
+            asr_entries = load_jsonl_as_models(asr_f, StreamContextEntry)
 
-            merged = []
-            i, j = 0, 0
-            len_chat, len_asr = len(chat_entries), len(asr_entries)
+        merged = []
+        i, j = 0, 0
+        len_chat, len_asr = len(chat_entries), len(asr_entries)
 
-            while i < len_chat and j < len_asr:
-                if chat_entries[i].timestamp_ms <= asr_entries[j].timestamp_ms:
-                    merged.append(chat_entries[i])
-                    i += 1
-                else:
-                    merged.append(asr_entries[j])
-                    j += 1
+        while i < len_chat and j < len_asr:
+            if chat_entries[i].timestamp_ms <= asr_entries[j].timestamp_ms:
+                merged.append(chat_entries[i])
+                i += 1
+            else:
+                merged.append(asr_entries[j])
+                j += 1
 
-            # 남은 항목 추가
-            if i < len_chat:
-                merged.extend(chat_entries[i:])
-            if j < len_asr:
-                merged.extend(asr_entries[j:])
+        # 남은 항목 추가
+        if i < len_chat:
+            merged.extend(chat_entries[i:])
+        if j < len_asr:
+            merged.extend(asr_entries[j:])
 
-            return merged
+        return merged
 
     except FileNotFoundError as e:
         logger.error(f"Context file not found: {e}")

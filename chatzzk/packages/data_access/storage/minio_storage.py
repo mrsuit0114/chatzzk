@@ -7,6 +7,7 @@ from chatzzk.packages.constants.service_codes import StorageObject
 from chatzzk.packages.data_access.storage.base import StorageInterface
 from chatzzk.packages.schemas.data_models import StreamContextEntry
 from chatzzk.packages.schemas.storage_configs import MinioConfig
+from chatzzk.packages.utils.file_io import load_jsonl_as_models
 from minio import Minio
 
 
@@ -70,13 +71,7 @@ class MinioStorageManager(StorageInterface):
 
         try:
             with self.client.get_object(self.bucket_name, object_name) as response:
-                content_bytes = response.read()
-
-            context_list = []
-            for line in content_bytes.strip().split(b"\n"):
-                if line:
-                    data = orjson.loads(line)
-                    context_list.append(StreamContextEntry.model_validate(data))
+                context_list = load_jsonl_as_models(response, StreamContextEntry)
 
             logger.success(f"✅ Successfully loaded {len(context_list)} context entries for {video_no}.")
             return context_list
@@ -85,6 +80,3 @@ class MinioStorageManager(StorageInterface):
             # MinIO에서 object not found 에러는 S3Error를 발생시킴
             logger.error(f"❌ Failed to load context for {video_no} from MinIO: {e}")
             return None
-        finally:
-            response.close()
-            response.release_conn()
