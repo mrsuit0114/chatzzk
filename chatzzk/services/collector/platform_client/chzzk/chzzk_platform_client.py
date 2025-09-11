@@ -248,7 +248,7 @@ class ChzzkPlatformClient:
         return result, next_player_message_time
 
     def crawl_chat(self, video_no: str) -> list[StreamContextEntry]:
-        all_contexts = []
+        chat_context_entries = []
         next_player_message_time = 0
         chat_url = self.vod_chat_url_template.format(video_no=video_no)
 
@@ -261,7 +261,7 @@ class ChzzkPlatformClient:
                 video_chats, next_player_message_time = self._parse_video_chats(content)
 
                 if video_chats:
-                    all_contexts.extend(video_chats)
+                    chat_context_entries.extend(video_chats)
 
                 logger.info(f"next_player_message_time: {next_player_message_time}")
                 time.sleep(BASE_SLEEP_TIME * random.uniform(0.5, 1.5))
@@ -276,6 +276,6 @@ class ChzzkPlatformClient:
                 logger.error(f"❌ Failed to parse response for video {video_no}: {e}")
                 raise RuntimeError(f"Response parsing failed for {video_no}") from e
 
-        logger.success(f"🎉 Successfully crawled {len(all_contexts)} chats for video {video_no}.")
+        logger.success(f"🎉 Successfully crawled {len(chat_context_entries)} chats for video {video_no}.")
 
-        return all_contexts
+        return chat_context_entries

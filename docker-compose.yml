@@ -1,22 +1,44 @@
 services:
-  # collector:
-  #   build:
-  #     context: .
-  #     dockerfile: ./chatzzk/services/collector/Dockerfile
-  #   container_name: chatzzk_collector
 
-  #   # .env 파일의 정확한 경로를 명시
-  #   env_file:
-  #     - ./chatzzk/services/collector/.env
-  #   # volumes:
-  #     - /var/tmp/chatzzk_processor:/var/tmp/chatzzk_processor
+  db:
+    image: postgres
+    # restart: always
+    # set shared memory limit when using docker compose
+    shm_size: 128mb
+    ports:
+      - "5432:5432"
+    env_file:
+      - docker.env
+    volumes:
+      - /var/tmp/pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer
+    # restart: always
+    ports:
+      - 8080:8080
+
+  db-init:
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - docker.env
 
   asr_inference_server:
     build:
-      context: .
-      dockerfile: ./chatzzk/services/asr_inference_server/Dockerfile
+      context: ./chatzzk
+      dockerfile: services/asr_inference_server/Dockerfile
     env_file:
-      - .env
+      - docker.env
     ports:
       - 8000:8000
     volumes:
@@ -29,37 +51,11 @@ services:
               count: all
               capabilities: [ gpu ]
 
-  db-init:
-    build:
-      context: .
-      dockerfile: ./scripts/Dockerfile
-    depends_on:
-      db:
-        condition: service_healthy
-    env_file:
-      - .env
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
 
-  db:
-    image: postgres
-    # restart: always
-    # set shared memory limit when using docker compose
-    shm_size: 128mb
-    ports:
-      - "5432:5432"
-    env_file:
-      - ./.env
-    volumes:
-      - /var/tmp/pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-  adminer:
-    image: adminer
-    # restart: always
-    ports:
-      - 8080:8080
   minio:
     image: minio/minio
     command: server /data --console-address ":9001"
@@ -69,4 +65,23 @@ services:
       - "9000:9000"
       - "9001:9001"
     env_file:
-      - .env
+      - docker.env
+
+  collector_worker:
+    build:
+      context: ./chatzzk
+      dockerfile: services/collector/Dockerfile
+    ports:
+      - "5678:5678" # 디버거가 연결할 포트
+    command: >
+      python -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m celery -A chatzzk.services.collector.celery_app worker -l info -c 1 -P solo
+    env_file:
+      - docker.env
+
+    depends_on:
+      - asr_inference_server
+      - redis
+      - db
+      - db-init
+      - minio
+      - adminer
