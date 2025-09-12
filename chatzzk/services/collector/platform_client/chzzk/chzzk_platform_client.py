@@ -17,13 +17,17 @@ from loguru import logger
 from pydantic import ValidationError
 from tenacity import retry, stop_after_attempt, wait_random
 
-from chatzzk.packages.schemas.data_models import ChzzkVod, StreamContextEntry
+from chatzzk.packages.schemas.data_models import (
+    ChannelVodsResponse,
+    ChatApiResponse,
+    ChzzkChannelInfo,
+    ChzzkVodInfo,
+    StreamContextEntry,
+)
 from chatzzk.services.collector.platform_client.chzzk.chzzk_constants import (
     CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE,
 )
 from chatzzk.services.collector.settings import collector_settings
-
-BASE_SLEEP_TIME = 0.5
 
 
 def _log_before_retry(retry_state):
@@ -33,7 +37,8 @@ def _log_before_retry(retry_state):
 
 
 class ChzzkPlatformClient:
-    DASH_NS = {"mpd": "urn:mpeg:dash:schema:mpd:2011"}
+    DASH_NS = collector_settings.chzzk_api.dash_ns
+    BASE_SLEEP_TIME = collector_settings.chzzk_api.base_sleep_time_s
 
     def __init__(self):
         self.session = requests.Session()
@@ -42,6 +47,7 @@ class ChzzkPlatformClient:
 
         self._cookies = None  # 필요 시 collector_settings에서 주입받도록 함
 
+        self.channel_info_url_template = collector_settings.chzzk_api.channel_info_url_template
         self.vod_url_template = collector_settings.chzzk_api.vod_url_template
         self.vod_info_url_template = collector_settings.chzzk_api.vod_info_url_template
         self.channel_vods_url_template = collector_settings.chzzk_api.channel_vods_url_template
@@ -108,25 +114,25 @@ class ChzzkPlatformClient:
             try:
                 api_url = self.channel_vods_url_template.format(channel_id=channel_id, page_idx=page_idx)
                 content = self._api_request(url=api_url, requires_auth=True)
+                response_model = ChannelVodsResponse.model_validate(content)
+                videos_data = response_model.data
 
-                videos_data = content.get("data", [])
                 if not videos_data:
                     logger.info(f"No more VODs found for channel {channel_id} at page {page_idx}.")
                     break
 
                 logger.info(f"Streaming {len(videos_data)} VOD numbers from page {page_idx}.")
                 for video in videos_data:
-                    if video_no := video.get("videoNo"):  # Walrus operator (Python 3.8+)
-                        yield str(video_no)
+                    yield str(video.videoNo)
 
                 page_idx += 1
-                time.sleep(BASE_SLEEP_TIME)
+                time.sleep(self.BASE_SLEEP_TIME)
 
             except (ConnectionError, ValueError) as e:
                 logger.error(f"Failed to fetch VOD list for channel {channel_id} at page {page_idx}: {e}")
                 break
 
-    def fetch_vod_details(self, video_no: str) -> tuple[ChzzkVod, str, str] | None:
+    def fetch_vod_details(self, video_no: str) -> tuple[ChzzkVodInfo, str, str] | None:
         """
         특정 VOD의 상세 정보와 재생 키를 가져옵니다.
         어떤 종류의 실패든 항상 None을 반환하도록 통일합니다.
@@ -136,7 +142,7 @@ class ChzzkPlatformClient:
             content = self._api_request(url=api_url, requires_auth=True)
 
             # 1. Pydantic의 자동 파싱/검증 기능을 최대한 활용
-            vod_info = ChzzkVod.model_validate(content)
+            vod_info = ChzzkVodInfo.model_validate(content)
 
             # 2. 필수 키 존재 여부 확인
             video_id = content.get("videoId")
@@ -208,44 +214,44 @@ class ChzzkPlatformClient:
             # XML 파싱 실패는 심각한 오류이므로 None 반환 (또는 예외 발생)
             return None
 
-    def _parse_video_chats(self, content: dict) -> tuple[list[StreamContextEntry], int]:
-        next_player_message_time = content.get("nextPlayerMessageTime")
-        video_chats = content.get("videoChats")
+    def _parse_video_chats(self, content: dict):
+        try:
+            response_data = ChatApiResponse.model_validate(content)
+            if not response_data.video_chats:
+                logger.info("No new chats in this response.")
+                return [], response_data.next_player_message_time
 
-        if not video_chats:
-            logger.info("No new chats in this response.")
-            return [], next_player_message_time
+            result: list[StreamContextEntry] = []
+            for chat in response_data.video_chats:
+                msg_type_code = chat.message_type_code
+                context_type = CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE.get(msg_type_code)
 
-        result: list[StreamContextEntry] = []
+                if context_type is None:
+                    logger.warning(
+                        f"⚠️ Unhandled messageTypeCode '{msg_type_code}' found. Skipping this chat. Data: {chat.model_dump()}"
+                    )
+                    continue
 
-        for chat in video_chats:
-            msg_type_code = chat.get("messageTypeCode")
-            context_type = CHZZK_MESSAGE_TYPE_CODE_TO_CONTEXT_TYPE.get(msg_type_code)
-            if context_type is None:
-                logger.warning(f"⚠️ Unhandled messageTypeCode '{msg_type_code}' found. Skipping this chat. Data: {chat}")
-                continue
+                # Pydantic 모델에서 자동으로 파싱된 payAmount 사용
+                pay_amount = chat.extras.pay_amount if chat.extras else 0
 
-            timestamp_ms = chat.get("playerMessageTime")
-            chat_content = chat.get("content", "")
-            extras = chat.get("extras")
-            pay_amount = 0
-            if extras:
-                try:
-                    extras_dict = json.loads(extras)
-                    pay_amount = extras_dict.get("payAmount", 0)
-                except (json.JSONDecodeError, TypeError) as e:
-                    logger.warning(f"Failed to parse extras: {extras} ({e})")
-
-            result.append(
-                StreamContextEntry(
-                    timestamp_ms=timestamp_ms,
-                    type=context_type,
-                    content=chat_content,
-                    pay_amount=pay_amount,
+                result.append(
+                    StreamContextEntry(
+                        timestamp_ms=chat.player_message_time,
+                        type=context_type,
+                        content=chat.content,
+                        pay_amount=pay_amount,
+                    )
                 )
-            )
 
-        return result, next_player_message_time
+            return result, response_data.next_player_message_time
+
+        except ValidationError as e:
+            logger.error(f"❌ Failed to validate chat API response: {e}")
+            return [], None
+        except Exception as e:
+            logger.error(f"An unexpected error occurred during chat parsing: {e}")
+            return [], None
 
     def crawl_chat(self, video_no: str) -> list[StreamContextEntry]:
         chat_context_entries = []
@@ -264,7 +270,7 @@ class ChzzkPlatformClient:
                     chat_context_entries.extend(video_chats)
 
                 logger.info(f"next_player_message_time: {next_player_message_time}")
-                time.sleep(BASE_SLEEP_TIME * random.uniform(0.5, 1.5))
+                time.sleep(self.BASE_SLEEP_TIME * random.uniform(0.5, 1.5))
 
             except requests.exceptions.RequestException as e:
                 # tenacity의 모든 재시도가 실패한 경우 (네트워크/API 문제)
@@ -279,3 +285,23 @@ class ChzzkPlatformClient:
         logger.success(f"🎉 Successfully crawled {len(chat_context_entries)} chats for video {video_no}.")
 
         return chat_context_entries
+
+    @retry(stop=stop_after_attempt(3), wait=wait_random(min=1, max=2), before_sleep=_log_before_retry)
+    def fetch_channel_details(self, channel_id: str) -> ChzzkChannelInfo:
+        api_url = self.channel_info_url_template.format(channel_id=channel_id)
+        try:
+            content = self._api_request(url=api_url, requires_auth=True)
+            channel_info = ChzzkChannelInfo.model_validate(content)
+            return channel_info
+        except ValidationError as e:
+            logger.error(f"❌ Failed to validate channel API response: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"An unexpected error occurred during channel info fetching: {e}")
+            return None
+
+    @retry(stop=stop_after_attempt(3), wait=wait_random(min=1, max=2), before_sleep=_log_before_retry)
+    def fetch_verified_channels(self):
+        # 우선 파트너 스트리머의 경우만 하도록
+        # 현재는 주어진 channel_id에 대해서만 적용할 것이므로 보류
+        pass

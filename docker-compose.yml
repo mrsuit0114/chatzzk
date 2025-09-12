@@ -66,22 +66,21 @@ services:
       - "9001:9001"
     env_file:
       - docker.env
+  # collector_worker:
+  #   build:
+  #     context: ./chatzzk
+  #     dockerfile: services/collector/Dockerfile
+  #   ports:
+  #     - "5678:5678" # 디버거가 연결할 포트
+  #   command: >
+  #     python -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m celery -A chatzzk.services.collector.celery_app worker -l info -c 1 -P solo
+  #   env_file:
+  #     - docker.env
 
-  collector_worker:
-    build:
-      context: ./chatzzk
-      dockerfile: services/collector/Dockerfile
-    ports:
-      - "5678:5678" # 디버거가 연결할 포트
-    command: >
-      python -m debugpy --listen 0.0.0.0:5678 --wait-for-client -m celery -A chatzzk.services.collector.celery_app worker -l info -c 1 -P solo
-    env_file:
-      - docker.env
-
-    depends_on:
-      - asr_inference_server
-      - redis
-      - db
-      - db-init
-      - minio
-      - adminer
+  #   depends_on:
+  #     - asr_inference_server
+  #     - redis
+  #     - db
+  #     - db-init
+  #     - minio
+  #     - adminer

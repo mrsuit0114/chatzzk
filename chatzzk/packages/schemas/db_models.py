@@ -73,10 +73,9 @@ class ChzzkVodORM(Base):
     live_open_date = Column(DateTime(timezone=True))
 
     # N:1 관계 설정 (VOD는 하나의 채널에 속함)
-    channel_id = Column(BigInteger, ForeignKey("chzzk_channels.id", ondelete="CASCADE"), nullable=False)
+    channel_pk = Column(BigInteger, ForeignKey("chzzk_channels.id", ondelete="CASCADE"), nullable=False)
     channel = relationship("ChzzkChannelORM", back_populates="vods")
 
-    # --- 워크플로우 상태 관리 (핵심 변경점) ---
     process_status = Column(
         Enum(VodProcessStatus, name="vod_process_status_enum", native_enum=False),
         nullable=False,
@@ -101,15 +100,15 @@ class ChzzkAnalysisResultORM(Base):
     id = Column(BigInteger, primary_key=True)
 
     # 1:1 관계 설정
-    vod_id = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), unique=True, nullable=False)
+    vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), unique=True, nullable=False)
     vod = relationship("ChzzkVodORM", back_populates="analysis_result")
 
     is_public = Column(Boolean, nullable=True)  # NULL이면 채널 설정 따름
 
     # 결과 파일 경로들
     context_file_key = Column(String(1024), nullable=False)
-    summary_file_key = Column(String(1024), nullable=False)
-    final_summary_file_key = Column(String(1024), nullable=True)
+    summary_file_key = Column(String(1024), nullable=True)
+    meta_summary_file_key = Column(String(1024), nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

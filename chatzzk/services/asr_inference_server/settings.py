@@ -6,7 +6,7 @@ from chatzzk.packages.schemas.ml_configs import ASRConfig, WhisperXConfig
 
 
 class InferenceServerSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file="local.env", extra="ignore")
     models_base_dir: str | None = Field("/app/models")
     asr_model_config: ASRConfig = Field(default_factory=WhisperXConfig)
     max_speech_duration_s: int = Field(MAX_SPEECH_DURAION_S)

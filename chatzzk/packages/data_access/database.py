@@ -6,7 +6,7 @@ from loguru import logger
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import Session, sessionmaker
 
-from chatzzk.packages.constants.service_codes import VodProcessStatus
+from chatzzk.packages.constants.service_codes import PipelineStep, VodProcessStatus
 
 # 1. ORM 모델 임포트
 from chatzzk.packages.schemas.db_models import (
@@ -17,7 +17,6 @@ from chatzzk.packages.schemas.db_models import (
 )
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-print(DATABASE_URL)
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable must be set.")
 
@@ -43,8 +42,6 @@ def create_all_tables():
 
 
 # --- 2. 플랫폼 (platforms) 및 채널 (chzzk_channels) 관리 함수 ---
-
-
 def get_or_create_channel(db: Session, channel_id: str, channel_name: str) -> ChzzkChannelORM:
     """channel_id로 채널을 조회하고, 없으면 새로 생성합니다."""
     db_channel = db.query(ChzzkChannelORM).filter(ChzzkChannelORM.channel_id == channel_id).first()
@@ -69,8 +66,6 @@ def get_active_channels(db: Session) -> list[ChzzkChannelORM]:
 
 
 # --- 3. VOD 정보 및 파이프라인 상태 관리 (핵심 리팩토링) ---
-
-
 def create_vod(db: Session, channel: ChzzkChannelORM, vod_data: dict) -> ChzzkVodORM | None:
     """
     새로운 VOD 정보를 DB에 생성합니다. 초기 상태는 자동으로 'PENDING'으로 설정됩니다.
@@ -79,7 +74,7 @@ def create_vod(db: Session, channel: ChzzkChannelORM, vod_data: dict) -> ChzzkVo
     try:
         # Pydantic 모델이나 dict에서 안전하게 필드 추출
         db_vod = ChzzkVodORM(
-            channel_id=channel.id,  # FK는 부모 객체의 id를 사용
+            channel_pk=channel.id,  # FK는 부모 객체의 id를 사용
             **vod_data,
         )
         db.add(db_vod)
@@ -90,7 +85,7 @@ def create_vod(db: Session, channel: ChzzkChannelORM, vod_data: dict) -> ChzzkVo
     except Exception as e:
         db.rollback()
         logger.error(f"❌ Failed to create VOD for video_no {video_no}: {e}")
-        return None
+        raise
 
 
 def get_vod_by_video_no(db: Session, video_no: str) -> ChzzkVodORM | None:
@@ -119,16 +114,16 @@ def update_vod_pipeline_step(
     update_vod_pipeline_step(db, vod_obj, "stage2_processing", "failed", {"error": "ASR timeout"})
     """
     try:
-        # 현재 status_details를 가져오거나, 없으면 새로 생성
-        current_details = vod.status_details if vod.status_details else {}
+        # status_details가 None이면 새 딕셔너리로 초기화
+        vod.status_details = vod.status_details or {}
 
         # 업데이트할 단계 정보 생성
-        step_update = {"status": status}
+        step_update = {PipelineStep.STATUS_KEY: status}
         if metadata:
             step_update.update(metadata)
 
         # 새로운 정보로 덮어쓰기
-        current_details[step_name] = step_update
+        vod.status_details[step_name] = step_update
 
         # SQLAlchemy가 JSONB 필드의 내부 변경을 감지하도록 명시적으로 플래그 설정
         from sqlalchemy.orm.attributes import flag_modified
@@ -141,7 +136,7 @@ def update_vod_pipeline_step(
     except Exception as e:
         db.rollback()
         logger.error(f"Failed to update pipeline step for video_no {vod.video_no}: {e}")
-        return False
+        raise
 
 
 def update_vod_process_status(db: Session, vod: ChzzkVodORM, status: VodProcessStatus) -> bool:
@@ -158,16 +153,14 @@ def update_vod_process_status(db: Session, vod: ChzzkVodORM, status: VodProcessS
     except Exception as e:
         db.rollback()
         logger.error(f"Failed to update overall status for video_no {vod.video_no}: {e}")
-        return False
+        raise
 
 
 # --- 4. 분석 결과 (chzzk_analysis_results) 관리 함수 ---
-
-
-def create_analysis_result(db: Session, vod: ChzzkVodORM, result_data: dict) -> ChzzkAnalysisResultORM | None:
-    """분석 완료 후 최종 결과물 정보를 DB에 생성합니다."""
+def create_analysis_result(db: Session, vod: ChzzkVodORM, result_data: dict) -> ChzzkAnalysisResultORM:
+    """최종 결과물 정보를 DB에 생성합니다."""
     try:
-        db_result = ChzzkAnalysisResultORM(vod_id=vod.id, **result_data)
+        db_result = ChzzkAnalysisResultORM(vod_pk=vod.id, **result_data)
         db.add(db_result)
         db.commit()
         db.refresh(db_result)
@@ -176,4 +169,4 @@ def create_analysis_result(db: Session, vod: ChzzkVodORM, result_data: dict) -> 
     except Exception as e:
         db.rollback()
         logger.error(f"❌ Failed to create analysis result for video_no {vod.video_no}: {e}")
-        return None
+        raise

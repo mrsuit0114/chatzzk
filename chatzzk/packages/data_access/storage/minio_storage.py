@@ -65,7 +65,7 @@ class MinioStorageManager(StorageInterface):
             logger.error(f"❌ Failed to save context for {video_no} to MinIO: {e}")
             raise
 
-    def load_context(self, video_no: str) -> list[StreamContextEntry] | None:
+    def load_context(self, video_no: str) -> list[StreamContextEntry]:
         object_name = self._get_context_object_name(video_no)
         logger.info(f"Loading context data from MinIO: {object_name}")
 
@@ -79,4 +79,4 @@ class MinioStorageManager(StorageInterface):
         except Exception as e:
             # MinIO에서 object not found 에러는 S3Error를 발생시킴
             logger.error(f"❌ Failed to load context for {video_no} from MinIO: {e}")
-            return None
+            raise

@@ -1,6 +1,7 @@
 from enum import Enum, IntEnum
 
 
+# ----------db--------------
 class VodProcessStatus(str, Enum):
     """
     VOD 처리 파이프라인의 전체적인 상태를 나타냅니다.
@@ -13,6 +14,36 @@ class VodProcessStatus(str, Enum):
     FAILED = "FAILED"  # 하나 이상의 필수 파이프라인 단계가 실패한 상태
 
 
+class PipelineStep(str, Enum):
+    """
+    파이프라인의 세부 단계를 정의합니다.
+    """
+
+    STATUS_KEY = "status"
+
+    CRAWL_CHAT = "crawl_chat"
+    DOWNLOAD_VIDEO = "download_video"
+    EXTRACT_WAV = "extract_wav"
+    PERFORM_ASR = "perform_asr"
+    MERGE_AND_UPLOAD = "merge_and_upload"
+
+
+class StepStatus(str, Enum):
+    """
+    세부 단계의 상태를 정의합니다.
+    """
+
+    # RUNNING = "RUNNING"      # 단계가 실행 중인 상태 -> 사용처가 없고 오버헤드를 줄이기위해 따로 갱신하지 않을 것
+    COMPLETED = "COMPLETED"  # 단계가 성공적으로 완료된 상태
+
+
+class AnalysisResultKey(str, Enum):
+    CONTEXT_FILE_KEY = "context_file_key"
+    SUMMARY_FILE_KEY = "summary_file_key"
+    META_SUMMARY_FILE_KEY = "meta_summary_file_key"
+
+
+# ------------workspace------------------
 class TempFile:
     VIDEO = "video.mp4"
     AUDIO = "audio.wav"
@@ -20,6 +51,7 @@ class TempFile:
     ASR_CONTEXT = "asr_context.jsonl"
 
 
+# -----------storage-----------------
 class StorageObject:
     """영구 스토리지의 오브젝트 이름/경로 템플릿을 정의합니다."""
 
@@ -29,10 +61,11 @@ class StorageObject:
     # VIDEO_SUMMARY_META = "meta-summaries/{video_no}.jsonl"
 
 
-class StorageBucket:
+class StorageBucket(str, Enum):
     CHZZK = "chzzk"
 
 
+# ---------------service----------------
 class ContextType(IntEnum):
     CHAT = 100
     DONATION = 1000
@@ -41,5 +74,7 @@ class ContextType(IntEnum):
 
 ASR_DUMMY_PAY_AMOUNT = 0
 
+
+# ----------- speech common config ----------------
 MAX_SPEECH_DURAION_S = 30
 SAMPLE_RATE = 16000
