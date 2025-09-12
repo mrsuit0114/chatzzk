@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: asr-inference-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: asr-server
+  template:
+    metadata:
+      labels:
+        app: asr-server
+    spec:
+      containers:
+      - name: asr-server
+        image: chatzzk-asr-inference-server:latest # 별도로 빌드한 ASR 서버 이미지
+        ports:
+        - containerPort: 8000
+        envFrom:
+          - secretRef:
+              name: all-in-one-secrets
+        imagePullPolicy: Never
+        resources:
+          limits:
+            nvidia.com/gpu: 1

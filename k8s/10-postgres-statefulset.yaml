@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+spec:
+  serviceName: "postgres-service" # 이 StatefulSet을 위한 Headless Service 이름
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres
+        ports:
+        - containerPort: 5432
+        envFrom:
+          - secretRef:
+              name: all-in-one-secrets
+        volumeMounts:
+        - name: postgres-data # 아래 volumeClaimTemplates의 이름과 일치
+          mountPath: /var/lib/postgresql/data # 컨테이너 내부의 데이터 저장 경로
+  volumeClaimTemplates: # Pod가 생성될 때마다 PVC를 이 템플릿으로 자동 생성
+  - metadata:
+      name: postgres-data # Pod 내부에서 이 이름으로 PVC를 참조
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi # 1단계에서 만든 PVC와 스펙이 유사함

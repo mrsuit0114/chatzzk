@@ -1,0 +1,36 @@
+# kubernetes/31-minio-service.yaml
+
+# 1. Headless Service for StatefulSet (Pod들이 서로를 찾기 위함)
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-headless-service # StatefulSet의 serviceName과 일치해야 함
+spec:
+  clusterIP: None # Headless Service
+  selector:
+    app: minio
+  ports:
+    - name: api
+      port: 9000
+      targetPort: 9000
+    - name: console
+      port: 9001
+      targetPort: 9001
+---
+# 2. ClusterIP Service for general access (외부 클라이언트가 접속하기 위함)
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-service # Collector 등 다른 앱이 사용할 단일 진입점
+spec:
+  selector:
+    app: minio
+  ports:
+    - name: api
+      protocol: TCP
+      port: 9000
+      targetPort: 9000
+    - name: console
+      protocol: TCP
+      port: 9001
+      targetPort: 9001
