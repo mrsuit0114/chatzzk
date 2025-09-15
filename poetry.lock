@@ -4329,7 +4329,7 @@ version = "0.13.1"
 description = "An audio library based on libsndfile, CFFI and NumPy"
 optional = false
 python-versions = "*"
-groups = ["asr_inference_server"]
+groups = ["asr_inference_server", "collector"]
 files = [
     {file = "soundfile-0.13.1-py2.py3-none-any.whl", hash = "sha256:a23c717560da2cf4c7b5ae1142514e0fd82d6bbd9dfc93a50423447142f2c445"},
     {file = "soundfile-0.13.1-py2.py3-none-macosx_10_9_x86_64.whl", hash = "sha256:82dc664d19831933fe59adad199bf3945ad06d84bc111a5b4c0d3089a5b9ec33"},
@@ -5188,4 +5188,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11,<3.13"
-content-hash = "a5bf3e5e5376c5f44e057f4d2ae69044a3f69b7142dac84c2ee9c6975fa0655d"
+content-hash = "30740116ff211a08d45d241d383cde25b6c92c1b55b7208c4c9032fcf7a98d77"

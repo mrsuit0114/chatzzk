@@ -1,5 +1,4 @@
 import shutil
-from collections import namedtuple
 from pathlib import Path
 
 import numpy as np  # process_context.py에서 사용
@@ -20,32 +19,13 @@ from chatzzk.packages.media_processing.audio import extract_wav_from_video, load
 from chatzzk.packages.media_processing.context import merge_context_files
 from chatzzk.packages.ml_clients.asr.factory import create_asr_client
 from chatzzk.packages.ml_clients.vad.factory import create_vad_client
-
-# --- Celery 앱 및 DB 접근 모듈 ---
 from chatzzk.packages.schemas.data_models import StreamContextEntry
-
-# --- 필요한 ORM 모델 ---
 from chatzzk.packages.schemas.db_models import ChzzkVodORM
-
-# --- 기존 코드에서 가져온 의존성 ---
 from chatzzk.packages.utils.downloader import download_file_from_url
+from chatzzk.services.collector.celery_app import celery_collector_app
 from chatzzk.services.collector.platform_client.chzzk.chzzk_platform_client import ChzzkPlatformClient
 from chatzzk.services.collector.settings import collector_settings
 
-# Define a simple mock object for the self argument
-MockRequest = namedtuple("MockRequest", ["id"])
-MockSelf = namedtuple("MockSelf", ["request", "retry"])
-
-
-# `self.retry`를 모킹하기 위한 함수. 예외를 다시 발생시켜 디버깅을 돕는다.
-def mock_retry(exc):
-    print(f"[MOCK] Called self.retry for exception: {type(exc).__name__}")
-    raise exc
-
-
-# Mock `self` 객체 생성
-mock_self_obj = MockSelf(request=MockRequest(id="local_test-task-12345"), retry=mock_retry)
-# --- 모듈 레벨 초기화 ---
 # 이 Task를 실행하는 워커는 이 클라이언트들을 메모리에 로드하게 됨.
 try:
     chzzk_client = ChzzkPlatformClient()
@@ -88,22 +68,22 @@ def cleanup_workspace(video_no: str):
             logger.error(f"Failed to clean up workspace {workspace_dir}: {e}")
 
 
-def _update_pipeline_step_with_session(vod_id: int, step_name: str, status: str, metadata: dict | None = None):
+def _update_pipeline_step_with_session(vod_pk: int, step_name: str, status: str, metadata: dict | None = None):
     """
     VOD 파이프라인의 특정 단계를 업데이트합니다.
     이 함수는 자체적으로 DB 세션을 생성하고 닫으므로, 장기 실행 작업에 적합합니다.
     """
     try:
         with database.get_db_session() as db:
-            vod = db.get(ChzzkVodORM, vod_id)
+            vod = db.get(ChzzkVodORM, vod_pk)
             if not vod:
-                logger.warning(f"VOD with id {vod_id} not found for status update. Skipping.")
+                logger.warning(f"VOD with id {vod_pk} not found for status update. Skipping.")
                 return
 
             # database.py의 함수를 호출
             database.update_vod_pipeline_step(db, vod, step_name, status, metadata)
     except Exception as e:
-        logger.error(f"Failed to update pipeline step '{step_name}' for vod_id {vod_id}: {e}")
+        logger.error(f"Failed to update pipeline step '{step_name}' for vod_pk {vod_pk}: {e}")
         raise
 
 
@@ -138,23 +118,23 @@ def _perform_asr_and_create_context(
 
 
 # --- 메인 Celery Task ---
-# @celery_collector_app.task(name="collector.process_vod_to_context", bind=True, max_retries=2, default_retry_delay=600)
-def process_vod_to_context(self, vod_id: int):
+@celery_collector_app.task(name="collector.process_vod_to_context", bind=True, max_retries=2, default_retry_delay=600)
+def process_vod_to_context(self, vod_pk: int):
     """[Celery Task] VOD 하나를 받아 video_context.jsonl을 생성하고 스토리지에 업로드합니다."""
 
     # 헬퍼 함수들을 호출하고 상태를 관리하는 오케스트레이션 로직
     try:
         with database.get_db_session() as db:
-            vod_to_process = db.get(ChzzkVodORM, vod_id)
+            vod_to_process = db.get(ChzzkVodORM, vod_pk)
             if not vod_to_process:
-                logger.error(f"VOD with id {vod_id} not found. Aborting.")
-                return f"VOD {vod_id} not found."
+                logger.error(f"VOD with id {vod_pk} not found. Aborting.")
+                return f"VOD {vod_pk} not found."
             database.update_vod_process_status(db, vod_to_process, VodProcessStatus.PROCESSING)
             video_no = vod_to_process.video_no
             status_details = vod_to_process.status_details or {}
 
         logger.info(
-            f"🚀 [Task ID: {self.request.id}] Starting VOD processing for vod_id: {vod_id} (video_no: {video_no})"
+            f"🚀 [Task ID: {self.request.id}] Starting VOD processing for vod_pk: {vod_pk} (video_no: {video_no})"
         )
         paths = prepare_workspace(video_no)
 
@@ -164,7 +144,7 @@ def process_vod_to_context(self, vod_id: int):
             with open(paths.chat_context, "w", encoding="utf-8") as f:
                 for entry in chat_contexts:
                     f.write(entry.model_dump_json() + "\n")
-            _update_pipeline_step_with_session(vod_id, PipelineStep.CRAWL_CHAT, StepStatus.COMPLETED)
+            _update_pipeline_step_with_session(vod_pk, PipelineStep.CRAWL_CHAT, StepStatus.COMPLETED)
 
         if status_details.get(PipelineStep.DOWNLOAD_VIDEO, {}).get(PipelineStep.STATUS_KEY) != StepStatus.COMPLETED:
             details = chzzk_client.fetch_vod_details(video_no)
@@ -172,12 +152,12 @@ def process_vod_to_context(self, vod_id: int):
             stream_reps = chzzk_client.fetch_all_stream_representations(video_id, in_key)
             download_url = stream_reps[TARGET_INDEX_FOR_VIDEO_RESOLUTION][1]  # 최저 화질
             download_file_from_url(url=download_url, destination_path=paths.mp4, session=chzzk_client.session)
-            _update_pipeline_step_with_session(vod_id, PipelineStep.DOWNLOAD_VIDEO, StepStatus.COMPLETED)
+            _update_pipeline_step_with_session(vod_pk, PipelineStep.DOWNLOAD_VIDEO, StepStatus.COMPLETED)
 
         # --- 2단계: 미디어 처리 (로컬/CPU 작업) ---
         if status_details.get(PipelineStep.EXTRACT_WAV, {}).get(PipelineStep.STATUS_KEY) != StepStatus.COMPLETED:
             extract_wav_from_video(paths.mp4, paths.wav)
-            _update_pipeline_step_with_session(vod_id, PipelineStep.EXTRACT_WAV, StepStatus.COMPLETED)
+            _update_pipeline_step_with_session(vod_pk, PipelineStep.EXTRACT_WAV, StepStatus.COMPLETED)
 
         if status_details.get(PipelineStep.PERFORM_ASR, {}).get(PipelineStep.STATUS_KEY) != StepStatus.COMPLETED:
             audio_np, sr = load_audio(paths.wav)
@@ -187,7 +167,7 @@ def process_vod_to_context(self, vod_id: int):
                 for entry in asr_context:
                     f.write(entry.model_dump_json() + "\n")
             _update_pipeline_step_with_session(
-                vod_id, PipelineStep.PERFORM_ASR, StepStatus.COMPLETED
+                vod_pk, PipelineStep.PERFORM_ASR, StepStatus.COMPLETED
             )  # , {"model": asr_client.model_name})
 
         # --- 3단계: 컨텍스트 병합 및 업로드 ---
@@ -197,7 +177,7 @@ def process_vod_to_context(self, vod_id: int):
 
             if context_file_key:
                 with database.get_db_session() as db:
-                    vod_to_complete = db.get(ChzzkVodORM, vod_id)
+                    vod_to_complete = db.get(ChzzkVodORM, vod_pk)
                     # 최종 결과 저장
                     result_data = {AnalysisResultKey.CONTEXT_FILE_KEY: context_file_key}
                     database.create_analysis_result(
@@ -208,16 +188,11 @@ def process_vod_to_context(self, vod_id: int):
                     )
                 cleanup_workspace(video_no)
 
-        return f"Successfully processed VOD {vod_id}"
+        return f"Successfully processed VOD {vod_pk}"
 
     except Exception as e:
-        logger.opt(exception=True).error(f"❌ Error in VOD processing for {vod_id}: {e}")
+        logger.opt(exception=True).error(f"❌ Error in VOD processing for {vod_pk}: {e}")
         with database.get_db_session() as db:
-            vod_to_fail = db.get(ChzzkVodORM, vod_id)
+            vod_to_fail = db.get(ChzzkVodORM, vod_pk)
             database.update_vod_process_status(db, vod_to_fail, VodProcessStatus.FAILED)
         raise self.retry(exc=e) from e
-
-
-if __name__ == "__main__":
-    test_vod_id = 5
-    process_vod_to_context(mock_self_obj, test_vod_id)

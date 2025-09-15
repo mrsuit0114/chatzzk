@@ -1,17 +1,24 @@
 FROM python:3.11-slim
 
+# 시스템 환경 변수 설정
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-ENV PYTHONPATH "${PYTHONPATH}:/app"
+# 파이썬 의존성 설치
+COPY chatzzk/services/collector/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# 1. 버전이 고정된 requirements.txt만 복사
-COPY ./chatzzk/services/collector/requirements.txt /app/requirements.txt
+COPY chatzzk /app/chatzzk
 
-# 2. pip으로 설치
-RUN pip install --no-cache-dir -r /app/requirements.txt
+# 진입점 스크립트 복사 및 실행 권한 부여
+COPY chatzzk/services/collector/docker/*.sh /docker/
+RUN chmod +x /docker/*.sh
 
-# 3. 소스 코드 복사
-COPY ./chatzzk /app/chatzzk
-COPY ./scripts /app/scripts
-
-CMD ["tail", "-f", "/dev/null"]
+# 기본 진입점은 Celery 워커용 스크립트로 설정
+ENTRYPOINT ["/docker/worker_entrypoint.sh"]

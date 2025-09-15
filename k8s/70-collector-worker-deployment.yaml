@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collector-worker
+spec:
+  replicas: 2 # 2개의 워커를 병렬로 실행
+  selector:
+    matchLabels:
+      app: collector-worker
+  template:
+    metadata:
+      labels:
+        app: collector-worker
+    spec:
+      containers:
+      - name: collector-worker
+        image: chatzzk-collector-worker:latest
+        env:
+        - name: PYTHONPATH
+          value: /app # 프로젝트 루트 디렉토리를 PYTHONPATH에 추가
+        envFrom:
+          # DB, Redis, ASR 서버 등 모든 서비스에 연결할 수 있도록 전체 설정을 주입
+          - secretRef:
+              name: all-in-one-secrets
+        imagePullPolicy: Never
+
+        # (선택) 임시 파일을 위한 볼륨 마운트
+        volumeMounts:
+        - name: workspace
+          mountPath: /var/tmp/chatzzk_collector
+      volumes:
+      - name: workspace
+        emptyDir: {} # Pod가 살아있는 동안만 유지되는 임시 디스크 공간
+
+# apiVersion: v1
+# kind: Pod
+# metadata:
+#   name: collector-debug-pod
+# spec:
+#   containers:
+#   - name: collector-worker
+#     image: chatzzk-collector-worker:latest
+#     imagePullPolicy: Never
+#     command: ["sleep", "3600"]
+#     envFrom:
+#     - secretRef:
+#         name: all-in-one-secrets
+#     env:
+#     - name: PYTHONPATH
+#       value: /app
