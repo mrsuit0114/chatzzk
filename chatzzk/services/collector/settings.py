@@ -26,6 +26,7 @@ class CollectorSettings(BaseSettings):
 
     celery_broker_url: str
     celery_result_backend: str
+    database_url: str = Field(..., alias="DATABASE_URL")
 
     workspace_base_dir: str = Field(
         default="/var/tmp/chatzzk_collector", description="임시 파일을 저장할 기본 디렉토리"
