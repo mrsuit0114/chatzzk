@@ -1,7 +1,7 @@
 import shutil
 from pathlib import Path
 
-import numpy as np  # process_context.py에서 사용
+import numpy as np
 from loguru import logger
 
 from chatzzk.packages.constants.service_codes import (
@@ -14,6 +14,8 @@ from chatzzk.packages.constants.service_codes import (
     VodProcessStatus,
 )
 from chatzzk.packages.data_access import database
+from chatzzk.packages.data_access.repositories.analysis import AnalysisResultRepository
+from chatzzk.packages.data_access.repositories.vod import VodRepository
 from chatzzk.packages.data_access.storage.factory import create_storage_manager
 from chatzzk.packages.media_processing.audio import extract_wav_from_video, load_audio
 from chatzzk.packages.media_processing.context import merge_context_files
@@ -68,25 +70,6 @@ def cleanup_workspace(video_no: str):
             logger.error(f"Failed to clean up workspace {workspace_dir}: {e}")
 
 
-def _update_pipeline_step_with_session(vod_pk: int, step_name: str, status: str, metadata: dict | None = None):
-    """
-    VOD 파이프라인의 특정 단계를 업데이트합니다.
-    이 함수는 자체적으로 DB 세션을 생성하고 닫으므로, 장기 실행 작업에 적합합니다.
-    """
-    try:
-        with database.get_db_session() as db:
-            vod = db.get(ChzzkVodORM, vod_pk)
-            if not vod:
-                logger.warning(f"VOD with id {vod_pk} not found for status update. Skipping.")
-                return
-
-            # database.py의 함수를 호출
-            database.update_vod_pipeline_step(db, vod, step_name, status, metadata)
-    except Exception as e:
-        logger.error(f"Failed to update pipeline step '{step_name}' for vod_pk {vod_pk}: {e}")
-        raise
-
-
 def _perform_asr_and_create_context(
     audio_np: np.ndarray, timestamps: list[tuple[int, int]], sample_rate: int = 16000
 ) -> list[StreamContextEntry]:
@@ -122,20 +105,23 @@ def _perform_asr_and_create_context(
 def process_vod_to_context(self, vod_pk: int):
     """[Celery Task] VOD 하나를 받아 video_context.jsonl을 생성하고 스토리지에 업로드합니다."""
 
-    # 헬퍼 함수들을 호출하고 상태를 관리하는 오케스트레이션 로직
+    video_no = f"vod_pk:{vod_pk}"  # 에러 로깅을 위해 vod_pk로 초기화
     try:
+        # Step 0: Initial DB Read and Status Update
         with database.get_db_session() as db:
-            vod_to_process = db.get(ChzzkVodORM, vod_pk)
-            if not vod_to_process:
+            vod_repo = VodRepository(db)
+            vod = db.get(ChzzkVodORM, vod_pk)
+            if not vod:
                 logger.error(f"VOD with id {vod_pk} not found. Aborting.")
                 return f"VOD {vod_pk} not found."
-            database.update_vod_process_status(db, vod_to_process, VodProcessStatus.PROCESSING)
-            video_no = vod_to_process.video_no
-            status_details = vod_to_process.status_details or {}
 
-        logger.info(
-            f"🚀 [Task ID: {self.request.id}] Starting VOD processing for vod_pk: {vod_pk} (video_no: {video_no})"
-        )
+            video_no = vod.video_no  # 실제 video_no로 업데이트
+            status_details = vod.status_details or {}
+            logger.info(
+                f"🚀 [Task ID: {self.request.id}] Starting VOD processing for vod_pk: {vod_pk} (video_no: {video_no})"
+            )
+            vod_repo.update_process_status(vod, VodProcessStatus.PROCESSING)
+
         paths = prepare_workspace(video_no)
 
         # --- 1단계: 데이터 수집 (HTTP 요청) ---
@@ -144,7 +130,10 @@ def process_vod_to_context(self, vod_pk: int):
             with open(paths.chat_context, "w", encoding="utf-8") as f:
                 for entry in chat_contexts:
                     f.write(entry.model_dump_json() + "\n")
-            _update_pipeline_step_with_session(vod_pk, PipelineStep.CRAWL_CHAT, StepStatus.COMPLETED)
+            with database.get_db_session() as db:
+                vod_repo = VodRepository(db)
+                vod = db.get(ChzzkVodORM, vod_pk)
+                vod_repo.update_pipeline_step(vod, PipelineStep.CRAWL_CHAT, StepStatus.COMPLETED)
 
         if status_details.get(PipelineStep.DOWNLOAD_VIDEO, {}).get(PipelineStep.STATUS_KEY) != StepStatus.COMPLETED:
             details = chzzk_client.fetch_vod_details(video_no)
@@ -152,12 +141,18 @@ def process_vod_to_context(self, vod_pk: int):
             stream_reps = chzzk_client.fetch_all_stream_representations(video_id, in_key)
             download_url = stream_reps[TARGET_INDEX_FOR_VIDEO_RESOLUTION][1]  # 최저 화질
             download_file_from_url(url=download_url, destination_path=paths.mp4, session=chzzk_client.session)
-            _update_pipeline_step_with_session(vod_pk, PipelineStep.DOWNLOAD_VIDEO, StepStatus.COMPLETED)
+            with database.get_db_session() as db:
+                vod_repo = VodRepository(db)
+                vod = db.get(ChzzkVodORM, vod_pk)
+                vod_repo.update_pipeline_step(vod, PipelineStep.DOWNLOAD_VIDEO, StepStatus.COMPLETED)
 
         # --- 2단계: 미디어 처리 (로컬/CPU 작업) ---
         if status_details.get(PipelineStep.EXTRACT_WAV, {}).get(PipelineStep.STATUS_KEY) != StepStatus.COMPLETED:
             extract_wav_from_video(paths.mp4, paths.wav)
-            _update_pipeline_step_with_session(vod_pk, PipelineStep.EXTRACT_WAV, StepStatus.COMPLETED)
+            with database.get_db_session() as db:
+                vod_repo = VodRepository(db)
+                vod = db.get(ChzzkVodORM, vod_pk)
+                vod_repo.update_pipeline_step(vod, PipelineStep.EXTRACT_WAV, StepStatus.COMPLETED)
 
         if status_details.get(PipelineStep.PERFORM_ASR, {}).get(PipelineStep.STATUS_KEY) != StepStatus.COMPLETED:
             audio_np, sr = load_audio(paths.wav)
@@ -166,9 +161,10 @@ def process_vod_to_context(self, vod_pk: int):
             with open(paths.asr_context, "w", encoding="utf-8") as f:
                 for entry in asr_context:
                     f.write(entry.model_dump_json() + "\n")
-            _update_pipeline_step_with_session(
-                vod_pk, PipelineStep.PERFORM_ASR, StepStatus.COMPLETED
-            )  # , {"model": asr_client.model_name})
+            with database.get_db_session() as db:
+                vod_repo = VodRepository(db)
+                vod = db.get(ChzzkVodORM, vod_pk)
+                vod_repo.update_pipeline_step(vod, PipelineStep.PERFORM_ASR, StepStatus.COMPLETED)
 
         # --- 3단계: 컨텍스트 병합 및 업로드 ---
         if status_details.get(PipelineStep.MERGE_AND_UPLOAD, {}).get(PipelineStep.STATUS_KEY) != StepStatus.COMPLETED:
@@ -177,22 +173,23 @@ def process_vod_to_context(self, vod_pk: int):
 
             if context_file_key:
                 with database.get_db_session() as db:
-                    vod_to_complete = db.get(ChzzkVodORM, vod_pk)
-                    # 최종 결과 저장
-                    result_data = {AnalysisResultKey.CONTEXT_FILE_KEY: context_file_key}
-                    database.create_analysis_result(
-                        db, vod_to_complete, result_data
-                    )  # 중복된 vod.id로 저장하면 에러가 나는데 위에서는 완료됐다해서 들어오질않으니 cleanup도 안되네
-                    database.update_vod_pipeline_step(
-                        db, vod_to_complete, PipelineStep.MERGE_AND_UPLOAD, StepStatus.COMPLETED
-                    )
-                cleanup_workspace(video_no)
+                    vod_repo = VodRepository(db)
+                    analysis_repo = AnalysisResultRepository(db)
+                    vod = db.get(ChzzkVodORM, vod_pk)
 
+                    result_data = {AnalysisResultKey.CONTEXT_FILE_KEY: context_file_key}
+                    analysis_repo.create(vod, result_data)
+                    vod_repo.update_pipeline_step(vod, PipelineStep.MERGE_AND_UPLOAD, StepStatus.COMPLETED)
+
+        cleanup_workspace(video_no)
         return f"Successfully processed VOD {vod_pk}"
 
     except Exception as e:
-        logger.opt(exception=True).error(f"❌ Error in VOD processing for {vod_pk}: {e}")
+        logger.opt(exception=True).error(f"❌ Error in VOD processing for {video_no}: {e}")
+        # 실패 시에는 별도 세션을 열어 안전하게 상태를 FAILED로 업데이트
         with database.get_db_session() as db:
+            vod_repo = VodRepository(db)
             vod_to_fail = db.get(ChzzkVodORM, vod_pk)
-            database.update_vod_process_status(db, vod_to_fail, VodProcessStatus.FAILED)
+            if vod_to_fail:
+                vod_repo.update_process_status(vod_to_fail, VodProcessStatus.FAILED)
         raise self.retry(exc=e) from e
