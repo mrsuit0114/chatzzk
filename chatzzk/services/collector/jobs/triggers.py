@@ -1,16 +1,19 @@
 from loguru import logger
 
-from chatzzk.packages.data_access import database
 from chatzzk.packages.data_access.repositories.channel import ChannelRepository
 from chatzzk.packages.data_access.repositories.vod import VodRepository
+from chatzzk.services.collector.container import Container
 from chatzzk.services.collector.jobs.tasks.discovery import discover_new_vods_for_channel
 from chatzzk.services.collector.jobs.tasks.processing import process_vod_to_context
+
+# Initialize container for the trigger script's own use
+container = Container()
+db_session_provider = container.db_session_provider()  # This returns the context manager
 
 
 def trigger_vod_discovery():
     """[Scheduler Job] 활성화된 채널에 대한 VOD 탐색 Task를 생성합니다."""
-    logger.info("📡 Triggering VOD discovery tasks...")
-    with database.get_db_session() as db:
+    with db_session_provider() as db:
         active_channels = ChannelRepository(db).get_active_list()
 
     if not active_channels:
@@ -26,7 +29,7 @@ def trigger_vod_discovery():
 def trigger_vod_processing():
     """[Scheduler Job] 처리가 필요한 VOD에 대한 처리 Task를 생성합니다."""
     logger.info("📡 Triggering VOD processing tasks...")
-    with database.get_db_session() as db:
+    with db_session_provider() as db:
         vods_to_process = VodRepository(db).get_list_to_process(limit=20)  # 한번에 너무 많이 가져오지 않도록 제한
 
     for vod in vods_to_process:

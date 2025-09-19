@@ -1,6 +1,7 @@
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from chatzzk.packages.schemas.db_configs import DatabaseConfig, PostgresConfig
 from chatzzk.packages.schemas.ml_configs import ASRConfig, ASRHttpConfig, SileroVADConfig, VADConfig
 from chatzzk.packages.schemas.storage_configs import MinioConfig, StorageConfig
 
@@ -21,16 +22,17 @@ class ChzzkApiSettings(BaseSettings):
 
 
 class CollectorSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_file="local.env", extra="ignore", env_nested_delimiter="__")
+    model_config = SettingsConfigDict(env_file="local.test.env", extra="ignore", env_nested_delimiter="__")
     target_index_for_video_resolution: int = Field(0)
 
     celery_broker_url: str
     celery_result_backend: str
-    database_url: str = Field(..., alias="DATABASE_URL")
 
     workspace_base_dir: str = Field(
         default="/var/tmp/chatzzk_collector", description="임시 파일을 저장할 기본 디렉토리"
     )
+
+    db_config: DatabaseConfig = Field(default_factory=PostgresConfig)
 
     chzzk_api: ChzzkApiSettings = Field(default_factory=ChzzkApiSettings)
 
