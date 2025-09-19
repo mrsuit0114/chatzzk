@@ -37,6 +37,10 @@ class VodRepository:
         """video_no를 사용하여 VOD 정보를 조회합니다."""
         return self.db.query(ChzzkVodORM).filter(ChzzkVodORM.video_no == video_no).first()
 
+    def get_by_pk(self, pk: int) -> ChzzkVodORM | None:
+        """기본 키(PK)를 사용하여 VOD 정보를 조회합니다."""
+        return self.db.get(ChzzkVodORM, pk)
+
     def get_list_to_process(self, limit: int = 10) -> list[ChzzkVodORM]:
         """처리가 필요하거나 실패한 VOD 목록을 가져옵니다."""
         return (

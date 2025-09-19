@@ -1,7 +1,7 @@
 from typing import Any
 
 import orjson
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from chatzzk.packages.constants.service_codes import ContextType
 
@@ -42,9 +42,7 @@ class ChzzkVodInfo(BaseModel):
             return channel_id
         raise ValueError("Could not find 'channelId' in 'channel' object")
 
-    class Config:
-        # Pydantic이 alias를 사용하여 파싱하도록 설정
-        populate_by_name = True
+    model_config = ConfigDict(populate_by_name=True)
 
 
 class VideoEntry(BaseModel):
