@@ -47,20 +47,16 @@ class Container(containers.DeclarativeContainer):
 
     storage_manager = providers.Singleton(
         create_storage_manager,
-        storage_config=config.storage_config,
+        storage_config=providers.Object(config.storage_config),
     )
 
     vad_client = providers.Singleton(
         create_vad_client,
-        model_config=config.vad_model_config,
+        model_config=providers.Object(config.vad_model_config),
     )
 
     # processing.py의 기존 로직을 반영하여 models_base_dir을 하드코딩
-    asr_client = providers.Singleton(
-        create_asr_client,
-        model_config=config.asr_model_config,
-        models_base_dir="models",
-    )
+    asr_client = providers.Singleton(create_asr_client, model_config=providers.Object(config.asr_model_config))
 
     vod_discovery_service = providers.Factory(
         VodDiscoveryService,
