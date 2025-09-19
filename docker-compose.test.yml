@@ -10,7 +10,12 @@ services:
       - "5433:5432" # 호스트의 5433 포트를 컨테이너의 5432 포트와 연결
     volumes:
       - test-db-data:/var/lib/postgresql/data
-
+    healthcheck:
+      # DB가 준비될 때까지 기다리도록 healthcheck 추가
+      test: [ "CMD-SHELL", "pg_isready -U testuser -d testdb" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   test-minio:
     image: minio/minio
     container_name: chatzzk-test-minio
@@ -21,7 +26,12 @@ services:
       - "9001:9000" # MinIO API 포트
       - "9091:9090" # MinIO Console 포트
     command: server /data --console-address ":9090"
-
+    healthcheck:
+      # Minio가 준비될 때까지 기다리도록 healthcheck 추가
+      test: [ "CMD", "mc", "ready", "local" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   test-adminer:
     image: adminer
     # restart: always
