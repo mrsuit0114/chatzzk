@@ -4,7 +4,9 @@ import os
 from dotenv import load_dotenv
 from loguru import logger
 
-from chatzzk.packages.data_access.database import create_all_tables, engine
+from chatzzk.packages.data_access.db.base import create_all_tables
+from chatzzk.packages.data_access.db.factory import create_db_engine
+from chatzzk.packages.schemas.db_configs import PostgresConfig
 
 
 def initialize_database():
@@ -14,27 +16,33 @@ def initialize_database():
     Docker 환경에서는 주입된 환경 변수를 사용합니다.
     """
     # 1. .env 파일 로드
-    #    스크립트 실행 위치(프로젝트 루트)를 기준으로 .env 파일 경로를 찾습니다.
     project_root = os.getcwd()
     dotenv_path = os.path.join(project_root, ".env")
     if os.path.exists(dotenv_path):
         load_dotenv(dotenv_path=dotenv_path)
         logger.info("Loaded environment variables from .env file.")
 
+    # 2. 환경 변수에서 DB URL 가져오기
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
+        logger.error("❌ DATABASE_URL environment variable not set.")
+        exit(1)
+
     logger.info("Initializing database...")
     try:
-        # 2. 연결 테스트
-        with engine.connect() as _connection:  # 사용하지 않는 변수는 '_' 사용
+        # 3. 설정 객체 및 DB 엔진 생성
+        db_config = PostgresConfig(database_url=db_url)
+        engine = create_db_engine(db_config)
+
+        # 4. 연결 테스트
+        with engine.connect() as _connection:
             logger.success("✅ Database connection successful.")
 
-        # 3. 테이블 생성
-        create_all_tables()
-        # create_all_tables 내부의 로그가 있으므로 중복 로그 제거 가능
-        # logger.success("✅ All tables created successfully.")
+        # 5. 테이블 생성
+        create_all_tables(engine)
 
     except Exception as e:
         logger.opt(exception=True).error(f"❌ DB initialization failed: {e}")
-        # 실패 시 0이 아닌 종료 코드를 반환하여 docker-compose가 실패를 인지하게 함
         exit(1)
 
 
