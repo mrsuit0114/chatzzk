@@ -1,11 +1,13 @@
 from unittest.mock import MagicMock
 
 import pytest
+from alembic import command
+from alembic.config import Config
 from celery import Celery
 from dependency_injector import providers
 
 from chatzzk.packages.data_access.db.factory import create_db_engine
-from chatzzk.packages.schemas.db_models import Base, ChzzkChannelORM, PlatformORM
+from chatzzk.packages.schemas.db_models import ChzzkChannelORM, PlatformORM
 from chatzzk.services.collector.container import Container
 from chatzzk.services.collector.platform_client.chzzk.chzzk_platform_client import (
     ChzzkPlatformClient,
@@ -56,18 +58,20 @@ def test_container(celery_app):
 
 @pytest.fixture(scope="function")
 def db_session(test_container):
-    """컨테이너로부터 DB 엔진과 세션을 받아와 테이블을 관리합니다."""
-    engine = test_container.db_engine()
-
-    # 단일 Base를 사용하여 모든 테이블을 생성합니다.
-    Base.metadata.create_all(bind=engine)
+    """
+    Alembic을 사용하여 테스트 DB 스키마를 최신으로 마이그레이션하고,
+    테스트 종료 후 초기 상태로 되돌립니다.
+    """
+    # Alembic 설정 파일을 로드합니다.
+    alembic_cfg = Config("alembic.ini")
+    command.downgrade(alembic_cfg, "base")
+    # --- Setup ---
+    # 현재 테스트를 위해 스키마를 최신 상태로 빌드합니다.
+    command.upgrade(alembic_cfg, "head")
 
     session_provider = test_container.db_session_provider()
     with session_provider() as session:
         yield session
-
-    # 단일 Base를 사용하여 모든 테이블을 삭제합니다.
-    Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture(scope="function")

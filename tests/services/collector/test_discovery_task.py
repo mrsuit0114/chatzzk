@@ -12,7 +12,6 @@ def test_discovery_task_success(celery_app, test_container, chzzk_channel_factor
     # --- 1. Arrange (준비) ---
     channel = chzzk_channel_factory(channel_id="test_channel_123")
 
-    breakpoint()
     # Mock 객체 및 반환값 설정
     mock_service_instance = MagicMock()
     mock_service_instance.discover_and_save_new_vods.return_value = (5, 2)
@@ -26,7 +25,7 @@ def test_discovery_task_success(celery_app, test_container, chzzk_channel_factor
         mock_service_instance.discover_and_save_new_vods.assert_called_once_with(channel_id=channel.channel_id)
 
 
-def test_discovery_task_failure_and_retry(celery_app, test_container, db_session):
+def test_discovery_task_failure_and_retry(celery_app, test_container):
     """
     서비스에서 예외 발생 시, Task가 재시도를 요청하는지 테스트합니다.
     """
