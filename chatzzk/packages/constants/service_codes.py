@@ -1,3 +1,4 @@
+import datetime
 from enum import Enum, IntEnum
 
 
@@ -97,6 +98,8 @@ class ContextType(IntEnum):
     DONATION = 1000
     ASR = 10000
 
+
+START_DATE = datetime.date(2025, 1, 1)
 
 ASR_DUMMY_PAY_AMOUNT = 0
 

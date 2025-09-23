@@ -13,6 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
+from chatzzk.packages.constants.service_codes import START_DATE
 from chatzzk.packages.schemas.db_models import StringAsInt
 
 # revision identifiers, used by Alembic.
@@ -135,7 +136,7 @@ def upgrade() -> None:
 
     # ### Part 3: Create partitions ###
     monthly_tables = ["chzzk_asr_entries", "chzzk_summaries", "chzzk_meta_summaries"]
-    start_date = datetime.date(2024, 1, 1)
+    start_date = START_DATE
     for table in monthly_tables:
         op.execute(f"CREATE TABLE {table}_default PARTITION OF {table} DEFAULT;")
         for i in range(24):
@@ -152,9 +153,8 @@ def upgrade() -> None:
 
     chat_table = "chzzk_chat_entries"
     op.execute(f"CREATE TABLE {chat_table}_default PARTITION OF {chat_table} DEFAULT;")
-    current_date = datetime.date(2024, 1, 1)
     for i in range(104):
-        start_of_week = current_date + datetime.timedelta(weeks=i)
+        start_of_week = start_date + datetime.timedelta(weeks=i)
         end_of_week = start_of_week + datetime.timedelta(weeks=1)
         partition_name = f"{chat_table}_{start_of_week.strftime('%Y_w%U')}"
         op.execute(
