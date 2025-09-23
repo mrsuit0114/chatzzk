@@ -4,8 +4,10 @@ from sqlalchemy import (
     Column,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Integer,
+    PrimaryKeyConstraint,
     SmallInteger,
     String,
     Text,
@@ -18,6 +20,7 @@ from sqlalchemy.orm import DeclarativeBase, relationship
 from chatzzk.packages.constants.service_codes import (
     ChzzkMessageTypeCode,
     OsType,
+    Sentiment,
     SubscriptionTier,
     UserRoleCode,
     VodProcessStatus,
@@ -108,12 +111,14 @@ class ChzzkVodORM(Base):
 
     chat_entries = relationship("ChzzkChatEntryORM", back_populates="vod", cascade="all, delete-orphan")
     asr_entries = relationship("ChzzkAsrEntryORM", back_populates="vod", cascade="all, delete-orphan")
+    summaries = relationship("ChzzkSummaryORM", back_populates="vod", cascade="all, delete-orphan")
+    meta_summaries = relationship("ChzzkMetaSummaryORM", back_populates="vod", cascade="all, delete-orphan")
 
 
 class ChzzkChatEntryORM(Base):
     __tablename__ = "chzzk_chat_entries"
 
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, autoincrement=True)
     timestamp_ms = Column(BigInteger, nullable=False, index=True)
     content = Column(Text)
     os_type = Column(Enum(OsType, name="os_type_enum", native_enum=False), nullable=True)
@@ -127,15 +132,18 @@ class ChzzkChatEntryORM(Base):
 
     vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), nullable=False)
     vod = relationship("ChzzkVodORM", back_populates="chat_entries")
+    vod_live_open_date = Column(DateTime(timezone=True), nullable=False, index=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (PrimaryKeyConstraint("id", "vod_live_open_date"),)
 
 
 class ChzzkAsrEntryORM(Base):
     __tablename__ = "chzzk_asr_entries"
 
-    id = Column(BigInteger, primary_key=True)
+    id = Column(BigInteger, autoincrement=True)
     start_ms = Column(BigInteger, nullable=False)
     end_ms = Column(BigInteger, nullable=False)
     timestamp_ms = Column(BigInteger, index=True)
@@ -143,6 +151,43 @@ class ChzzkAsrEntryORM(Base):
 
     vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), nullable=False)
     vod = relationship("ChzzkVodORM", back_populates="asr_entries")
+    vod_live_open_date = Column(DateTime(timezone=True), nullable=False, index=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (PrimaryKeyConstraint("id", "vod_live_open_date"),)
+
+
+class ChzzkSummaryORM(Base):
+    __tablename__ = "chzzk_summaries"
+
+    id = Column(BigInteger, autoincrement=True)
+    vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id"), nullable=False, index=True)
+    start_s = Column(Integer, nullable=False)
+    end_s = Column(Integer, nullable=False)
+    content = Column(Text)
+    sentiment = Column(Enum(Sentiment, name="sentiment_enum", native_enum=False), nullable=True)
+    score = Column(Float)
+
+    vod_live_open_date = Column(DateTime(timezone=True), nullable=False, index=True)
+
+    vod = relationship("ChzzkVodORM", back_populates="summaries")
+
+    __table_args__ = (PrimaryKeyConstraint("id", "vod_live_open_date"),)
+
+
+class ChzzkMetaSummaryORM(Base):
+    __tablename__ = "chzzk_meta_summaries"
+
+    id = Column(BigInteger, autoincrement=True)
+    vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id"), nullable=False, index=True)
+    start_s = Column(Integer, nullable=False)  # 요약들의 시작 시간
+    end_s = Column(Integer, nullable=False)  # 요약들의 끝 시간
+    content = Column(Text)
+
+    vod_live_open_date = Column(DateTime(timezone=True), nullable=False, index=True)
+
+    vod = relationship("ChzzkVodORM", back_populates="meta_summaries")
+
+    __table_args__ = (PrimaryKeyConstraint("id", "vod_live_open_date"),)
