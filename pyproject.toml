@@ -24,6 +24,7 @@ psycopg2-binary = "^2.9.10"
 numpy = "^2.3.2"
 torch = "^2.8.0"
 dependency-injector = "^4.48.1"
+alembic = "^1.16.5"
 
 [tool.poetry.group.collector.dependencies]
 requests = "^2.32.5"
