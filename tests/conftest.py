@@ -5,9 +5,11 @@ from celery import Celery
 from dependency_injector import providers
 
 from chatzzk.packages.data_access.db.factory import create_db_engine
-from chatzzk.packages.schemas.db_models import Base
+from chatzzk.packages.schemas.db_models import Base, ChzzkChannelORM, PlatformORM
 from chatzzk.services.collector.container import Container
-from chatzzk.services.collector.platform_client.chzzk.chzzk_platform_client import ChzzkPlatformClient
+from chatzzk.services.collector.platform_client.chzzk.chzzk_platform_client import (
+    ChzzkPlatformClient,
+)
 from chatzzk.services.collector.settings import CollectorSettings
 
 
@@ -56,10 +58,44 @@ def test_container(celery_app):
 def db_session(test_container):
     """컨테이너로부터 DB 엔진과 세션을 받아와 테이블을 관리합니다."""
     engine = test_container.db_engine()
+
+    # 단일 Base를 사용하여 모든 테이블을 생성합니다.
     Base.metadata.create_all(bind=engine)
 
     session_provider = test_container.db_session_provider()
     with session_provider() as session:
         yield session
 
+    # 단일 Base를 사용하여 모든 테이블을 삭제합니다.
     Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture(scope="function")
+def chzzk_channel_factory(db_session):
+    """
+    테스트용 '치지직' 플랫폼과 채널을 생성하는 팩토리 함수를 제공합니다.
+    """
+    # 1. 이 픽스처가 사용될 때 '치지직' 플랫폼을 미리 생성합니다.
+    platform = PlatformORM(platform_code="chzzk", platform_name="치지직", donation_unit="치즈")
+    db_session.add(platform)
+    db_session.commit()
+
+    def _create_channel(**kwargs):
+        """
+        채널을 생성하는 내부 함수. 기본값을 설정하고 kwargs로 오버라이드 가능.
+        """
+        channel_data = {
+            "platform_id": platform.id,
+            "channel_id": "test_channel_123",  # 기본값
+            "channel_name": "테스트채널",  # 기본값
+        }
+        channel_data.update(kwargs)  # 테스트에서 넘겨준 값으로 덮어쓰기
+
+        channel = ChzzkChannelORM(**channel_data)
+        db_session.add(channel)
+        db_session.commit()
+        db_session.refresh(channel)
+        return channel
+
+    # 2. 채널을 생성하는 함수 자체를 반환합니다.
+    return _create_channel

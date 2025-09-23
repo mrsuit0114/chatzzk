@@ -14,6 +14,31 @@ class VodProcessStatus(str, Enum):
     FAILED = "FAILED"  # 하나 이상의 필수 파이프라인 단계가 실패한 상태
 
 
+class ChzzkMessageTypeCode(IntEnum):
+    CHAT = 1
+    DONATION = 10
+    SYSTEM = 30
+
+
+class SubscriptionTier(IntEnum):
+    NO_SUBSCRIPTION = 0
+    GENERAL = 1
+    PREMIUM = 2
+
+
+class OsType(str, Enum):
+    IOS = "IOS"
+    PC = "PC"
+    AOS = "AOS"
+
+
+class UserRoleCode(str, Enum):
+    COMMON_USER = "common_user"
+    STREAMING_CHAT_MANAGER = "streaming_chat_manager"
+    STREAMING_CHANNEL_OWNER = "streaming_channel_owner"
+    STREAMING_CHANNEL_MANAGER = "streaming_channel_manager"
+
+
 class PipelineStep(str, Enum):
     """
     파이프라인의 세부 단계를 정의합니다.
@@ -35,12 +60,6 @@ class StepStatus(str, Enum):
 
     # RUNNING = "RUNNING"      # 단계가 실행 중인 상태 -> 사용처가 없고 오버헤드를 줄이기위해 따로 갱신하지 않을 것
     COMPLETED = "COMPLETED"  # 단계가 성공적으로 완료된 상태
-
-
-class AnalysisResultKey(str, Enum):
-    CONTEXT_FILE_KEY = "context_file_key"
-    SUMMARY_FILE_KEY = "summary_file_key"
-    META_SUMMARY_FILE_KEY = "meta_summary_file_key"
 
 
 # ------------workspace------------------

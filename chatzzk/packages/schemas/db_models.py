@@ -8,23 +8,46 @@ from sqlalchemy import (
     Integer,
     SmallInteger,
     String,
+    Text,
+    TypeDecorator,
     func,
 )
-from sqlalchemy.dialects.postgresql import JSONB  # PostgreSQL의 JSONB 타입을 위해 import
-from sqlalchemy.orm import DeclarativeBase, registry, relationship
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import DeclarativeBase, relationship
 
-from chatzzk.packages.constants.service_codes import VodProcessStatus
+from chatzzk.packages.constants.service_codes import (
+    ChzzkMessageTypeCode,
+    OsType,
+    SubscriptionTier,
+    UserRoleCode,
+    VodProcessStatus,
+)
 
-# 1. Registry 및 Base 설정 (기존과 동일)
-mapper_registry = registry()
+
+class StringAsInt(TypeDecorator):
+    """
+    DB에는 BigInteger로 저장하지만, 파이썬 애플리케이션에서는
+    문자열(String)로 다룰 수 있게 해주는 커스텀 타입.
+    """
+
+    impl = BigInteger
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        # 파이썬의 값을 DB에 저장할 때: str -> int
+        if value is not None:
+            return int(value)
+
+    def process_result_value(self, value, dialect):
+        # DB의 값을 파이썬으로 읽어올 때: int -> str
+        if value is not None:
+            return str(value)
 
 
 class Base(DeclarativeBase):
-    registry = mapper_registry
-    metadata = mapper_registry.metadata
+    pass
 
 
-# 2. 신규 테이블: PlatformORM (마스터 데이터)
 class PlatformORM(Base):
     __tablename__ = "platforms"
 
@@ -33,46 +56,42 @@ class PlatformORM(Base):
     platform_name = Column(String(100), nullable=False)
     donation_unit = Column(String(50))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    chzzk_channels = relationship("ChzzkChannelORM", back_populates="platform")
 
 
-# 3. 신규 테이블: ChzzkChannelORM
 class ChzzkChannelORM(Base):
     __tablename__ = "chzzk_channels"
 
     id = Column(BigInteger, primary_key=True)
+    platform_id = Column(SmallInteger, ForeignKey("platforms.id"), nullable=False, index=True)
     channel_id = Column(String(255), unique=True, nullable=False, index=True)
     channel_name = Column(String(255), nullable=False)
     is_verified = Column(Boolean, default=False)
-    is_active = Column(Boolean, default=False, index=True)  # 수집 대상 필터링을 위해 인덱스 추가
+    allow_data_collection = Column(Boolean, default=False, index=True)
     is_exposure_default = Column(Boolean, default=True)
     allow_detailed_stats = Column(Boolean, default=False)
-
-    # 요약용 메타데이터 (JSONB)
     channel_metadata = Column(JSONB, nullable=True)
-
-    # 효율적인 VOD 탐색용 타임스탬프
     last_vod_crawled_at = Column(DateTime(timezone=True), nullable=True)
-
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    # 1:N 관계 설정 (채널은 여러 VOD를 가짐)
+    platform = relationship("PlatformORM", back_populates="chzzk_channels")
     vods = relationship("ChzzkVodORM", back_populates="channel", cascade="all, delete-orphan")
 
 
-# 4. 리팩토링된 테이블: ChzzkVodORM (기존 2개 테이블 통합)
 class ChzzkVodORM(Base):
     __tablename__ = "chzzk_vods"
 
     id = Column(BigInteger, primary_key=True)
-    video_no = Column(String(255), unique=True, nullable=False, index=True)
+    video_no = Column(StringAsInt, unique=True, nullable=False, index=True)
     video_title = Column(String(500))
     duration = Column(Integer)
     video_category_value = Column(String(100))
     publish_date = Column(DateTime(timezone=True))
     live_open_date = Column(DateTime(timezone=True))
 
-    # N:1 관계 설정 (VOD는 하나의 채널에 속함)
     channel_pk = Column(BigInteger, ForeignKey("chzzk_channels.id", ondelete="CASCADE"), nullable=False)
     channel = relationship("ChzzkChannelORM", back_populates="vods")
 
@@ -82,35 +101,48 @@ class ChzzkVodORM(Base):
         default=VodProcessStatus.PENDING,
         index=True,
     )
-    status_details = Column(JSONB, nullable=True)  # 파이프라인 단계별 세부 상태
+    status_details = Column(JSONB, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    processed_at = Column(DateTime(timezone=True), nullable=True)  # 최종 완료/실패 시간
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    # 1:1 관계 설정 (VOD는 하나의 분석 결과를 가짐)
-    analysis_result = relationship(
-        "ChzzkAnalysisResultORM", back_populates="vod", uselist=False, cascade="all, delete-orphan"
-    )
+    chat_entries = relationship("ChzzkChatEntryORM", back_populates="vod", cascade="all, delete-orphan")
+    asr_entries = relationship("ChzzkAsrEntryORM", back_populates="vod", cascade="all, delete-orphan")
 
 
-# 5. 신규 테이블: ChzzkAnalysisResultORM
-class ChzzkAnalysisResultORM(Base):
-    __tablename__ = "chzzk_analysis_results"
+class ChzzkChatEntryORM(Base):
+    __tablename__ = "chzzk_chat_entries"
 
     id = Column(BigInteger, primary_key=True)
+    timestamp_ms = Column(BigInteger, nullable=False, index=True)
+    content = Column(Text)
+    os_type = Column(Enum(OsType, name="os_type_enum", native_enum=False), nullable=True)
+    pay_amount = Column(Integer, nullable=True)
+    nickname = Column(String(255))
+    user_role_code = Column(Enum(UserRoleCode, name="user_role_code_enum", native_enum=False))
+    subscription_tier = Column(Enum(SubscriptionTier, name="subscription_tier_enum", native_enum=False), nullable=True)
+    subscription_accumulative_month = Column(Integer, nullable=True)
+    message_type_code = Column(Enum(ChzzkMessageTypeCode, name="chzzk_message_type_code_enum", native_enum=False))
+    user_id_hash = Column(String(255))
 
-    # 1:1 관계 설정
-    vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), unique=True, nullable=False)
-    vod = relationship("ChzzkVodORM", back_populates="analysis_result")
-
-    is_public = Column(Boolean, nullable=True)  # NULL이면 채널 설정 따름
-
-    # 결과 파일 경로들
-    context_file_key = Column(String(1024), nullable=False)
-    summary_file_key = Column(String(1024), nullable=True)
-    meta_summary_file_key = Column(String(1024), nullable=True)
+    vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), nullable=False)
+    vod = relationship("ChzzkVodORM", back_populates="chat_entries")
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
 
-mapper_registry.configure()
+class ChzzkAsrEntryORM(Base):
+    __tablename__ = "chzzk_asr_entries"
+
+    id = Column(BigInteger, primary_key=True)
+    start_ms = Column(BigInteger, nullable=False)
+    end_ms = Column(BigInteger, nullable=False)
+    timestamp_ms = Column(BigInteger, index=True)
+    content = Column(Text)
+
+    vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), nullable=False)
+    vod = relationship("ChzzkVodORM", back_populates="asr_entries")
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
