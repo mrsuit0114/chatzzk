@@ -47,18 +47,19 @@ class Sentiment(str, Enum):
     pass
 
 
+# JSONB 필드에서 파이프라인 단계의 상태를 저장하는 키
+PIPELINE_STATUS_KEY = "status"
+
+
 class PipelineStep(str, Enum):
     """
     파이프라인의 세부 단계를 정의합니다.
     """
 
-    STATUS_KEY = "status"
-
     CRAWL_CHAT = "crawl_chat"
     DOWNLOAD_VIDEO = "download_video"
     EXTRACT_WAV = "extract_wav"
     PERFORM_ASR = "perform_asr"
-    MERGE_AND_UPLOAD = "merge_and_upload"
 
 
 class StepStatus(str, Enum):
@@ -66,8 +67,8 @@ class StepStatus(str, Enum):
     세부 단계의 상태를 정의합니다.
     """
 
-    # RUNNING = "RUNNING"      # 단계가 실행 중인 상태 -> 사용처가 없고 오버헤드를 줄이기위해 따로 갱신하지 않을 것
     COMPLETED = "COMPLETED"  # 단계가 성공적으로 완료된 상태
+    FAILED = "FAILED"  # 단계가 실패한 상태
 
 
 # ------------workspace------------------

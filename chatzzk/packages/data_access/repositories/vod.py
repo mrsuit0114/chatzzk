@@ -5,7 +5,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.attributes import flag_modified
 
-from chatzzk.packages.constants.service_codes import PipelineStep, VodProcessStatus
+from chatzzk.packages.constants.service_codes import PIPELINE_STATUS_KEY, PipelineStep, StepStatus, VodProcessStatus
 from chatzzk.packages.schemas.db_models import ChzzkChannelORM, ChzzkVodORM
 
 
@@ -51,14 +51,14 @@ class VodRepository:
         )
 
     def update_pipeline_step(
-        self, vod: ChzzkVodORM, step_name: str, status: str, metadata: dict[str, Any] | None = None
+        self, vod: ChzzkVodORM, step_name: PipelineStep, status: StepStatus, metadata: dict[str, Any] | None = None
     ) -> bool:
         """
         VOD의 status_details(JSONB) 필드 내 특정 파이프라인 단계의 상태를 업데이트합니다.
         """
         try:
             vod.status_details = vod.status_details or {}
-            step_update = {PipelineStep.STATUS_KEY: status}
+            step_update = {PIPELINE_STATUS_KEY: status}
             if metadata:
                 step_update.update(metadata)
             vod.status_details[step_name] = step_update
@@ -78,7 +78,7 @@ class VodRepository:
             if status in [VodProcessStatus.COMPLETED, VodProcessStatus.FAILED]:
                 vod.processed_at = func.now()
             self.db.commit()
-            logger.info(f"Updated overall status to '{status.value}' for video_no: {vod.video_no}")
+            logger.info(f"Updated overall status to '{status}' for video_no: {vod.video_no}")
             return True
         except Exception as e:
             self.db.rollback()
