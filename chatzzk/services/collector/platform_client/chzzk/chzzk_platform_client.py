@@ -128,38 +128,33 @@ class ChzzkPlatformClient:
                 page_idx += 1
                 time.sleep(self.BASE_SLEEP_TIME)
 
-            except (ConnectionError, ValueError) as e:
+            except Exception as e:
                 logger.error(f"Failed to fetch VOD list for channel {channel_id} at page {page_idx}: {e}")
                 break
 
     def fetch_vod_details(self, video_no: str) -> tuple[ChzzkVodInfo, str, str] | None:
         """
         특정 VOD의 상세 정보와 재생 키를 가져옵니다.
-        어떤 종류의 실패든 항상 None을 반환하도록 통일합니다.
+        내부에서 발생하는 모든 예외를 처리하고, 실패 시 항상 None을 반환합니다.
         """
-        api_url = self.vod_info_url_template.format(video_no=video_no)
         try:
+            api_url = self.vod_info_url_template.format(video_no=video_no)
             content = self._api_request(url=api_url, requires_auth=True)
 
-            # 1. Pydantic의 자동 파싱/검증 기능을 최대한 활용
+            # Pydantic 모델로 파싱 및 검증
             vod_info = ChzzkVodInfo.model_validate(content)
 
-            # 2. 필수 키 존재 여부 확인
+            # 재생에 필요한 필수 키(videoId, inKey) 존재 여부 확인
             video_id = content.get("videoId")
             in_key = content.get("inKey")
 
             if not (video_id and in_key):
-                logger.error(f"Missing videoId or inKey for video_no {video_no}")
-                return None
+                raise ValueError("Response content is missing 'videoId' or 'inKey'")
 
             return vod_info, video_id, in_key
 
-        except ValidationError as e:
-            # Pydantic 모델 검증 실패 시 (필수 필드 누락, 타입 불일치 등)
-            logger.error(f"Failed to parse/validate VOD info for {video_no}: {e}")
-            return None
-        except (ConnectionError, ValueError) as e:
-            # 네트워크 오류 또는 _api_request 실패 시
+        except Exception as e:
+            # 네트워크, 파싱, 키 누락 등 모든 종류의 에러를 여기서 처리
             logger.error(f"Failed to fetch VOD details for {video_no}: {e}")
             return None
 
@@ -170,14 +165,13 @@ class ChzzkPlatformClient:
         제공받는 url의 안전성을 위해 프록시를 사용합니다.
         리스트는 해상도 오름차순으로 정렬됩니다.
         """
-        if not (video_id and in_key):
-            logger.warning("video_id and in_key are required to fetch stream URL.")
-            return None
-
-        playback_url = self.vod_url_template.format(video_id=video_id, in_key=in_key)
-
         try:
-            # self.session 사용 및 proxies, timeout 적용
+            if not (video_id and in_key):
+                logger.warning("video_id and in_key are required to fetch stream URL.")
+                return None
+
+            playback_url = self.vod_url_template.format(video_id=video_id, in_key=in_key)
+
             response = self.session.get(
                 playback_url,
                 headers={"Accept": "application/dash+xml"},
@@ -198,20 +192,15 @@ class ChzzkPlatformClient:
 
             if not representations:
                 logger.warning(f"No valid stream representations found for video_id {video_id}")
-                return []  # 유효한 스트림이 없는 것은 오류가 아니므로, 빈 리스트 반환
+                return []
 
-            # 해상도 오름차순으로 정렬하여 반환
             representations.sort(key=lambda x: x[0])
 
             logger.info(f"🔗 Found {len(representations)} stream representations for video_id {video_id}.")
             return representations
 
-        except requests.RequestException as e:
-            logger.error(f"Failed to fetch DASH manifest for video_id {video_id}: {e}")
-            raise e  # tenacity가 재시도하도록 다시 raise
-        except ET.ParseError as e:
-            logger.error(f"Failed to parse XML manifest for video_id {video_id}: {e}")
-            # XML 파싱 실패는 심각한 오류이므로 None 반환 (또는 예외 발생)
+        except Exception as e:
+            logger.error(f"Failed to fetch or parse DASH manifest for video_id {video_id}: {e}")
             return None
 
     def _parse_video_chats(self, content: dict):
@@ -254,16 +243,19 @@ class ChzzkPlatformClient:
             return [], None
 
     def crawl_chat(self, video_no: str) -> list[StreamContextEntry]:
-        chat_context_entries = []
-        next_player_message_time = 0
-        chat_url = self.vod_chat_url_template.format(video_no=video_no)
+        """
+        VOD의 전체 채팅 로그를 수집합니다.
+        페이지네이션 중 한 번이라도 실패하면, 전체를 실패로 간주하고 RuntimeError를 발생시킵니다.
+        """
+        try:
+            chat_context_entries = []
+            next_player_message_time = 0
+            chat_url = self.vod_chat_url_template.format(video_no=video_no)
 
-        while next_player_message_time is not None:
-            try:
+            while next_player_message_time is not None:
                 params = {"playerMessageTime": next_player_message_time}
                 content = self._api_request(url=chat_url, params=params)
 
-                # 데이터가 성공적으로 받아와진 경우에만 파싱 진행
                 video_chats, next_player_message_time = self._parse_video_chats(content)
 
                 if video_chats:
@@ -272,19 +264,13 @@ class ChzzkPlatformClient:
                 logger.info(f"next_player_message_time: {next_player_message_time}")
                 time.sleep(self.BASE_SLEEP_TIME * random.uniform(0.5, 1.5))
 
-            except requests.exceptions.RequestException as e:
-                # tenacity의 모든 재시도가 실패한 경우 (네트워크/API 문제)
-                logger.error(f"❌ API request failed after all retries for video {video_no}: {e}")
-                raise RuntimeError(f"API request failed for {video_no}") from e
+            logger.success(f"🎉 Successfully crawled {len(chat_context_entries)} chats for video {video_no}.")
+            return chat_context_entries
 
-            except ValueError as e:
-                # _parse_video_chats에서 응답 형식이 깨진 경우 (파싱 문제)
-                logger.error(f"❌ Failed to parse response for video {video_no}: {e}")
-                raise RuntimeError(f"Response parsing failed for {video_no}") from e
-
-        logger.success(f"🎉 Successfully crawled {len(chat_context_entries)} chats for video {video_no}.")
-
-        return chat_context_entries
+        except Exception as e:
+            # tenacity 재시도 실패 또는 파싱 실패 등 모든 예외를 여기서 처리
+            logger.error(f"❌ Failed during chat crawling for video {video_no}: {e}")
+            raise RuntimeError(f"API request failed for {video_no}") from e
 
     @retry(stop=stop_after_attempt(3), wait=wait_random(min=1, max=2), before_sleep=_log_before_retry)
     def fetch_channel_details(self, channel_id: str) -> ChzzkChannelInfo:
