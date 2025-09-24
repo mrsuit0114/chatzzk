@@ -14,12 +14,12 @@ class ChannelRepository:
         """channel_id로 채널을 조회합니다."""
         return self.db.query(ChzzkChannelORM).filter(ChzzkChannelORM.channel_id == channel_id).first()
 
-    def get_or_create(self, channel_id: str, channel_name: str) -> ChzzkChannelORM:
+    def get_or_create(self, channel_id: str, channel_name: str, platform_id: int) -> ChzzkChannelORM:
         """channel_id로 채널을 조회하고, 없으면 새로 생성합니다."""
         db_channel = self.get_by_channel_id(channel_id)
         if not db_channel:
             logger.info(f"Channel not found for channel_id: {channel_id}. Creating new one.")
-            db_channel = ChzzkChannelORM(channel_id=channel_id, channel_name=channel_name)
+            db_channel = ChzzkChannelORM(channel_id=channel_id, channel_name=channel_name, platform_id=platform_id)
             try:
                 self.db.add(db_channel)
                 self.db.commit()
@@ -33,7 +33,7 @@ class ChannelRepository:
 
     def get_active_list(self) -> list[ChzzkChannelORM]:
         """데이터 수집이 활성화된 모든 채널 목록을 반환합니다."""
-        return self.db.query(ChzzkChannelORM).filter(ChzzkChannelORM.is_active).all()
+        return self.db.query(ChzzkChannelORM).filter(ChzzkChannelORM.allow_data_collection).all()
 
     def update_last_crawled_at(self, channel_id: str, crawl_time: datetime):
         """채널의 마지막 VOD 수집 시간을 업데이트합니다."""
