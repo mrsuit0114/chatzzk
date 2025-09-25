@@ -32,5 +32,4 @@ def test_celery_is_in_eager_mode(celery_app: Celery):
 def test_chzzk_client_is_mocked(test_container: Container):
     """외부 API 클라이언트인 ChzzkPlatformClient가 Mock 객체로 대체되었는지 확인합니다."""
     chzzk_client_instance = test_container.chzzk_client()
-    breakpoint()
     assert isinstance(chzzk_client_instance, MagicMock)

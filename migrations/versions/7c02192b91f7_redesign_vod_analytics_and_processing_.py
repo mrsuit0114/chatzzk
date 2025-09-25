@@ -80,7 +80,7 @@ def upgrade() -> None:
         """
     )
 
-    # 4. Create the ENUM type in the database
+    # 4. Create the ENUM type in the database if it doesn't exist
     vod_process_status_enum.create(op.get_bind(), checkfirst=True)
 
     # 5. Alter column to final Enum type to apply CHECK constraint
@@ -103,7 +103,7 @@ def upgrade() -> None:
     op.drop_column("chzzk_vods", "process_status")
     op.drop_column("chzzk_vods", "status_details")
 
-    # 7. Create foreign keys with ON DELETE CASCADE (since they don't exist)
+    # 7. Create foreign keys with ON DELETE CASCADE (assuming they don't exist)
     with op.batch_alter_table("chzzk_chat_entries", schema=None) as batch_op:
         batch_op.create_foreign_key(
             op.f("fk_chzzk_chat_entries_vod_pk_chzzk_vods"),
@@ -142,10 +142,10 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    # Define the Enum type object to be able to drop it
+    # Define the Enum type object to be able to use it
     vod_process_status_enum = sa.Enum("PENDING", "PROCESSING", "SUCCESS", "FAILED", name="vod_process_status_enum")
 
-    # Revert ON DELETE CASCADE changes
+    # Revert Foreign Key changes
     with op.batch_alter_table("chzzk_meta_summaries", schema=None) as batch_op:
         batch_op.drop_constraint(op.f("fk_chzzk_meta_summaries_vod_pk_chzzk_vods"), type_="foreignkey")
 
@@ -183,10 +183,8 @@ def downgrade() -> None:
         """
     )
 
-    # Make column not-nullable after data migration
-    op.alter_column("chzzk_vods", "process_status", nullable=False, server_default="PENDING")
-
-    # Recreate enum type and apply to chzzk_vods
+    # CORRECTED ORDER STARTS HERE
+    # 1. Alter column type to Enum first
     op.alter_column(
         "chzzk_vods",
         "process_status",
@@ -194,6 +192,10 @@ def downgrade() -> None:
         existing_type=sa.String(length=50),
         postgresql_using="process_status::vod_process_status_enum",
     )
+
+    # 2. Now, apply nullable and server_default constraints
+    op.alter_column("chzzk_vods", "process_status", nullable=False, server_default="PENDING")
+
     op.create_index("ix_chzzk_vods_process_status", "chzzk_vods", ["process_status"], unique=False)
 
     # Drop new tables
@@ -204,5 +206,4 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_chzzk_vod_analytics_vod_pk"), table_name="chzzk_vod_analytics")
     op.drop_table("chzzk_vod_analytics")
 
-    # Drop the ENUM type from the database
-    vod_process_status_enum.drop(op.get_bind(), checkfirst=True)
+    # DO NOT drop the enum type as it is needed by the revision we are downgrading to.
