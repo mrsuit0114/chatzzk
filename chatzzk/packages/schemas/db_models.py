@@ -18,9 +18,9 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, relationship
 
 from chatzzk.packages.constants.service_codes import (
+    Atmosphere,
     ChzzkMessageTypeCode,
     OsType,
-    Sentiment,
     SubscriptionTier,
     UserRoleCode,
     VodProcessStatus,
@@ -98,6 +98,24 @@ class ChzzkVodORM(Base):
     channel_pk = Column(BigInteger, ForeignKey("chzzk_channels.id", ondelete="CASCADE"), nullable=False)
     channel = relationship("ChzzkChannelORM", back_populates="vods")
 
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    processing_status = relationship(
+        "ChzzkVodProcessingStatusORM", back_populates="vod", uselist=False, cascade="all, delete-orphan"
+    )
+    analytics = relationship("ChzzkVodAnalyticsORM", back_populates="vod", uselist=False, cascade="all, delete-orphan")
+    chat_entries = relationship("ChzzkChatEntryORM", back_populates="vod", cascade="all, delete-orphan")
+    asr_entries = relationship("ChzzkAsrEntryORM", back_populates="vod", cascade="all, delete-orphan")
+    summaries = relationship("ChzzkSummaryORM", back_populates="vod", cascade="all, delete-orphan")
+    meta_summaries = relationship("ChzzkMetaSummaryORM", back_populates="vod", cascade="all, delete-orphan")
+
+
+class ChzzkVodProcessingStatusORM(Base):
+    __tablename__ = "chzzk_vod_processing_status"
+
+    id = Column(BigInteger, primary_key=True)
+    vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), unique=True, nullable=False)
     process_status = Column(
         Enum(VodProcessStatus, name="vod_process_status_enum", native_enum=False),
         nullable=False,
@@ -105,14 +123,36 @@ class ChzzkVodORM(Base):
         index=True,
     )
     status_details = Column(JSONB, nullable=True)
-
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    chat_entries = relationship("ChzzkChatEntryORM", back_populates="vod", cascade="all, delete-orphan")
-    asr_entries = relationship("ChzzkAsrEntryORM", back_populates="vod", cascade="all, delete-orphan")
-    summaries = relationship("ChzzkSummaryORM", back_populates="vod", cascade="all, delete-orphan")
-    meta_summaries = relationship("ChzzkMetaSummaryORM", back_populates="vod", cascade="all, delete-orphan")
+    vod = relationship("ChzzkVodORM", back_populates="processing_status")
+
+
+class ChzzkVodAnalyticsORM(Base):
+    __tablename__ = "chzzk_vod_analytics"
+
+    id = Column(BigInteger, primary_key=True)
+    vod_pk = Column(
+        BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), unique=True, nullable=False, index=True
+    )
+    total_chat_count = Column(Integer)
+    total_donation_count = Column(Integer)
+    total_donation_amount = Column(Integer)
+    donor_count = Column(Integer)
+    anonymous_donation_amount = Column(Integer)
+    anonymous_donation_count = Column(Integer)
+    chat_os_type_counts = Column(JSONB)
+    chat_participant_count = Column(Integer)
+    chat_participant_subscription_counts = Column(JSONB)
+    chat_count_by_subscription = Column(JSONB)
+    chat_participant_chat_counts = Column(JSONB)
+    mission_stats = Column(JSONB)
+    hidden_chat_count = Column(Integer)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    vod = relationship("ChzzkVodORM", back_populates="analytics")
 
 
 class ChzzkChatEntryORM(Base):
@@ -163,11 +203,11 @@ class ChzzkSummaryORM(Base):
     __tablename__ = "chzzk_summaries"
 
     id = Column(BigInteger, autoincrement=True)
-    vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id"), nullable=False, index=True)
+    vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), nullable=False, index=True)
     start_s = Column(Integer, nullable=False)
     end_s = Column(Integer, nullable=False)
     content = Column(Text)
-    sentiment = Column(Enum(Sentiment, name="sentiment_enum", native_enum=False), nullable=True)
+    atmosphere = Column(Enum(Atmosphere, name="atmosphere_enum", native_enum=False), nullable=True)
     score = Column(Float)
 
     vod_live_open_date = Column(DateTime(timezone=True), nullable=False, index=True)
@@ -181,7 +221,7 @@ class ChzzkMetaSummaryORM(Base):
     __tablename__ = "chzzk_meta_summaries"
 
     id = Column(BigInteger, autoincrement=True)
-    vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id"), nullable=False, index=True)
+    vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), nullable=False, index=True)
     start_s = Column(Integer, nullable=False)  # 요약들의 시작 시간
     end_s = Column(Integer, nullable=False)  # 요약들의 끝 시간
     content = Column(Text)

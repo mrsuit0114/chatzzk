@@ -40,7 +40,7 @@ class UserRoleCode(str, Enum):
     STREAMING_CHANNEL_MANAGER = "streaming_channel_manager"
 
 
-class Sentiment(str, Enum):
+class Atmosphere(str, Enum):
     """요약된 window의 분위기를 표현합니다."""
 
     # TODO: 사용자가 직접 항목을 추가할 예정
