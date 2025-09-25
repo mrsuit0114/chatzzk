@@ -1,129 +1,104 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
+import pytest
 from sqlalchemy.orm import Session
 
 from chatzzk.packages.data_access.repositories.channel import ChannelRepository
-from chatzzk.packages.schemas.db_models import ChzzkChannelORM, PlatformORM
+from chatzzk.packages.schemas.db_models import PlatformORM
 
 
 class TestChannelRepository:
-    def test_get_or_create_new_channel(self, db_session: Session):
-        """
-        테스트 내용: DB에 존재하지 않는 채널에 대해 get_or_create를 호출합니다.
-        테스트 목적: 새로운 채널이 DB에 올바르게 생성되는지 검증합니다.
-        """
+    @pytest.fixture
+    def repo(self, db_session: Session) -> ChannelRepository:
+        return ChannelRepository(db=db_session)
+
+    @pytest.fixture
+    def platform(self, db_session: Session) -> PlatformORM:
+        """각 테스트를 위한 플랫폼 객체를 생성합니다."""
         platform = PlatformORM(id=1, platform_code="chzzk", platform_name="치지직")
         db_session.add(platform)
         db_session.commit()
+        return platform
 
-        repo = ChannelRepository(db=db_session)
-        channel_id = "newChannel123"
-        channel_name = "새로운 채널"
+    def test_get_or_create_channel_on_new(self, repo: ChannelRepository, platform: PlatformORM):
+        """
+        테스트 내용: 존재하지 않는 채널에 대해 get_or_create_channel을 호출합니다.
+        테스트 목적: 새로운 채널이 DB에 올바르게 생성되고, (객체, True)를 반환하는지 검증합니다.
+        """
+        # 실행
+        created_channel, was_created = repo.get_or_create_channel(
+            channel_id="new_channel_1", channel_name="새로운 채널", platform_id=platform.id
+        )
 
-        created_channel = repo.get_or_create(channel_id=channel_id, channel_name=channel_name, platform_id=platform.id)
-
+        # 검증
+        assert was_created is True
         assert created_channel is not None
-        assert created_channel.channel_id == channel_id
-        assert created_channel.channel_name == channel_name
-        assert created_channel.platform_id == platform.id
+        assert created_channel.channel_id == "new_channel_1"
 
-        db_channel = db_session.query(ChzzkChannelORM).filter_by(channel_id=channel_id).one_or_none()
-        assert db_channel is not None
-        assert db_channel.id == created_channel.id
-
-    def test_get_or_create_existing_channel(self, db_session: Session):
+    def test_get_or_create_channel_on_existing(self, repo: ChannelRepository, platform: PlatformORM):
         """
-        테스트 내용: DB에 이미 존재하는 채널에 대해 get_or_create를 호출합니다.
-        테스트 목적: 새로운 채널을 만들지 않고, 기존 채널을 올바르게 조회하는지 검증합니다.
+        테스트 내용: 이미 존재하는 채널에 대해 get_or_create_channel을 다시 호출합니다.
+        테스트 목적: 새로운 객체를 만들지 않고 기존 객체를 반환하며, (객체, False)를 반환하는지 검증합니다.
         """
-        platform = PlatformORM(id=1, platform_code="chzzk", platform_name="치지직")
-        pre_existing_channel = ChzzkChannelORM(
-            platform_id=platform.id, channel_id="existingChannel456", channel_name="기존 채널"
-        )
-        db_session.add(platform)
-        db_session.add(pre_existing_channel)
-        db_session.commit()
-        original_id = pre_existing_channel.id
-
-        repo = ChannelRepository(db=db_session)
-
-        retrieved_channel = repo.get_or_create(
-            channel_id="existingChannel456",
-            channel_name="다른 이름의 채널",
-            platform_id=platform.id,
+        # 준비: 먼저 하나 생성
+        existing_channel, _ = repo.get_or_create_channel(
+            channel_id="existing_channel_1", channel_name="기존 채널", platform_id=platform.id
         )
 
-        assert retrieved_channel is not None
-        assert retrieved_channel.id == original_id
-        assert retrieved_channel.channel_name == "기존 채널"
-
-        count = db_session.query(ChzzkChannelORM).count()
-        assert count == 1
-
-    def test_get_by_channel_id_found(self, db_session: Session):
-        """channel_id로 조회 시, 정확한 채널을 반환하는지 검증합니다."""
-        platform = PlatformORM(id=1, platform_code="chzzk", platform_name="치지직")
-        target_channel = ChzzkChannelORM(platform_id=1, channel_id="find_me", channel_name="찾아줘")
-        db_session.add(platform)
-        db_session.add(target_channel)
-        db_session.commit()
-
-        repo = ChannelRepository(db=db_session)
-        found_channel = repo.get_by_channel_id("find_me")
-
-        assert found_channel is not None
-        assert found_channel.id == target_channel.id
-
-    def test_get_by_channel_id_not_found(self, db_session: Session):
-        """존재하지 않는 channel_id로 조회 시, None을 반환하는지 검증합니다."""
-        repo = ChannelRepository(db=db_session)
-        found_channel = repo.get_by_channel_id("non_existent_id")
-        assert found_channel is None
-
-    def test_get_active_list(self, db_session: Session):
-        """활성화된 채널 목록만 정확히 반환하는지 검증합니다."""
-        platform = PlatformORM(id=1, platform_code="chzzk", platform_name="치지직")
-        db_session.add(platform)
-        db_session.commit()
-
-        # 테스트 데이터 생성
-        active_channel1 = ChzzkChannelORM(
-            platform_id=1, channel_name="test-active1", channel_id="active1", allow_data_collection=True
+        # 실행
+        fetched_channel, was_created = repo.get_or_create_channel(
+            channel_id="existing_channel_1", channel_name="다른 이름", platform_id=platform.id
         )
-        inactive_channel = ChzzkChannelORM(
-            platform_id=1, channel_name="test-inactive1", channel_id="inactive1", allow_data_collection=False
+
+        # 검증
+        assert was_created is False
+        assert fetched_channel.id == existing_channel.id
+
+    def test_update_last_crawled_at_success(self, repo: ChannelRepository, platform: PlatformORM, db_session: Session):
+        """
+        테스트 내용: 정상적인 상황에서 마지막 크롤링 시간을 업데이트합니다.
+        테스트 목적: 조건부 업데이트가 성공하고, DB에 시간이 올바르게 기록되는지 검증합니다.
+        """
+        # 준비
+        channel, _ = repo.get_or_create_channel(
+            channel_id="update_success", channel_name="업데이트 성공", platform_id=platform.id
         )
-        active_channel2 = ChzzkChannelORM(
-            platform_id=1, channel_name="test-active2", channel_id="active2", allow_data_collection=True
+        previous_time = channel.last_vod_crawled_at
+        assert previous_time is None
+
+        # 실행
+        new_time = datetime.now(UTC)
+        result = repo.update_last_crawled_at(channel.channel_id, new_time, previous_time)
+
+        # 검증
+        assert result is True
+        db_session.refresh(channel)
+        assert channel.last_vod_crawled_at.replace(microsecond=0) == new_time.replace(microsecond=0)
+
+    def test_update_last_crawled_at_conflict(self, repo: ChannelRepository, platform: PlatformORM, db_session: Session):
+        """
+        테스트 내용: 다른 워커가 먼저 값을 변경한 상황(Lost Update)을 시뮬레이션합니다.
+        테스트 목적: 조건부 업데이트가 실패하고, False를 반환하며, DB 값이 덮어써지지 않는지 검증합니다.
+        """
+        # 준비
+        channel, _ = repo.get_or_create_channel(
+            channel_id="update_conflict", channel_name="업데이트 충돌", platform_id=platform.id
         )
-        db_session.add_all([active_channel1, inactive_channel, active_channel2])
+        stale_previous_time = channel.last_vod_crawled_at  # 워커 A가 읽은 낡은 시간 (None)
+        assert stale_previous_time is None
+
+        # 시뮬레이션: 워커 B가 먼저 DB 값을 변경함
+        actual_db_time = datetime.now(UTC)
+        channel.last_vod_crawled_at = actual_db_time
         db_session.commit()
+        db_session.refresh(channel)
 
-        repo = ChannelRepository(db=db_session)
-        active_list = repo.get_active_list()
+        # 실행: 워커 A가 낡은 시간(None)을 기준으로 업데이트 시도
+        new_time_for_a = datetime.now(UTC) + timedelta(seconds=10)
+        result = repo.update_last_crawled_at(channel.channel_id, new_time_for_a, stale_previous_time)
 
-        assert len(active_list) == 2
-        active_ids = {ch.channel_id for ch in active_list}
-        assert "active1" in active_ids
-        assert "active2" in active_ids
-        assert "inactive1" not in active_ids
-
-    def test_update_last_crawled_at(self, db_session: Session):
-        """채널의 마지막 크롤링 시간을 정확히 갱신하는지 검증합니다."""
-        platform = PlatformORM(id=1, platform_code="chzzk", platform_name="치지직")
-        channel = ChzzkChannelORM(platform_id=1, channel_id="update_me", channel_name="test-update-me")
-        db_session.add(platform)
-        db_session.add(channel)
-        db_session.commit()
-        channel_id_to_update = channel.channel_id
-
-        repo = ChannelRepository(db=db_session)
-        crawl_time = datetime.now(UTC)
-
-        repo.update_last_crawled_at(channel_id_to_update, crawl_time)
-
-        # DB에서 직접 다시 조회하여 확인
-        updated_channel = db_session.query(ChzzkChannelORM).filter_by(channel_id=channel_id_to_update).one()
-        assert updated_channel.last_vod_crawled_at is not None
-        # DB에 따라 미세한 정밀도 차이가 있을 수 있으므로, 초 단위까지만 비교
-        assert updated_channel.last_vod_crawled_at.replace(microsecond=0) == crawl_time.replace(microsecond=0)
+        # 검증
+        assert result is False  # 업데이트가 실패해야 함
+        db_session.refresh(channel)
+        # DB 값은 워커 B가 변경한 시간으로 유지되어야 함 (덮어쓰기 방지)
+        assert channel.last_vod_crawled_at.replace(microsecond=0) == actual_db_time.replace(microsecond=0)

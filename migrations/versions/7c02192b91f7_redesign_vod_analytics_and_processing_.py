@@ -21,7 +21,7 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     # Define the Enum type object
-    vod_process_status_enum = sa.Enum("PENDING", "PROCESSING", "SUCCESS", "FAILED", name="vod_process_status_enum")
+    vod_process_status_enum = sa.Enum("PENDING", "PROCESSING", "COMPLETED", "FAILED", name="vod_process_status_enum")
 
     # 1. Create chzzk_vod_analytics table
     op.create_table(
@@ -143,7 +143,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     # Define the Enum type object to be able to use it
-    vod_process_status_enum = sa.Enum("PENDING", "PROCESSING", "SUCCESS", "FAILED", name="vod_process_status_enum")
+    vod_process_status_enum = sa.Enum("PENDING", "PROCESSING", "COMPLETED", "FAILED", name="vod_process_status_enum")
 
     # Revert Foreign Key changes
     with op.batch_alter_table("chzzk_meta_summaries", schema=None) as batch_op:
