@@ -48,8 +48,6 @@ def test_extract_wav_success(mocker):
         extract_wav(
             input_video_path=input_path,
             output_wav_path=output_path,
-            sample_rate=SAMPLE_RATE,
-            audio_channels=AUDIO_CHANNELS,
         )
 
         # 검증 (Assert)
@@ -61,8 +59,8 @@ def test_extract_wav_success(mocker):
         mock_input_result.output.assert_called_once_with(
             str(output_path),
             acodec="pcm_s32le",
-            ac=AUDIO_CHANNELS,
-            ar=str(SAMPLE_RATE),
+            ac=1,
+            ar=str(16000),
         )
 
         # 3. .overwrite_output()이 호출되었는지 확인합니다.
@@ -128,7 +126,7 @@ def test_load_audio_with_torchcodec(mocker):
     이유: torchcodec 라이브러리를 올바른 인자(경로, 샘플링 속도, 채널)로 호출하고, 그 결과물을 후처리를 위해 numpy 배열로 잘 변환하는지 보장해야 합니다.
     """
     # 준비 (Arrange)
-    target_sr = SAMPLE_RATE
+    target_sr = 16000
     mock_audio_tensor = torch.randn(1, target_sr)  # 1채널, 16000 샘플
     mock_samples = MockSamples(data=mock_audio_tensor, sample_rate=target_sr)
 
