@@ -36,9 +36,11 @@ torchaudio = "^2.8.0"
 silero-vad = "^6.0.0"
 redis = "^6.4.0"
 soundfile = "^0.13.1"
+torchcodec = "^0.7.0"
 
-[tool.poetry.group.db_init.dependencies]
+[tool.poetry.group.scripts.dependencies]
 python-dotenv = "^1.1.1"
+alembic = "^1.16.5"
 
 
 
@@ -97,7 +99,7 @@ ignore = [
 
 [tool.ruff.lint.isort]
 # 'chatzzk'로 시작하는 모든 import를 first-party(내부) 모듈로 간주하도록 명시
-known-first-party = ["chatzzk"]
+known-first-party = ["chatzzk", "tests", "migrations"]
 
 
 [tool.ruff.format]

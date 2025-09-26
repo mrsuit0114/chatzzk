@@ -1,3 +1,4 @@
+import io
 from typing import IO, TypeVar
 
 import orjson
@@ -20,3 +21,11 @@ def load_jsonl_as_models(file_handle: IO, model_type: type[T]) -> list[T]:
             except (orjson.JSONDecodeError, Exception) as e:
                 logger.warning(f"Skipping invalid line in jsonl file: {line.strip()}. Error: {e}")
     return entries
+
+
+def load_jsonl_as_models_from_bytes(bytes_data: bytes, model_type: type[T]) -> list[T]:
+    """
+    바이트 데이터를 읽어 Pydantic 모델 객체 리스트로 반환합니다.
+    """
+    file_handle = io.BytesIO(bytes_data)
+    return load_jsonl_as_models(file_handle, model_type)
