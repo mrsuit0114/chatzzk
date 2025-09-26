@@ -111,3 +111,4 @@ START_DATE = datetime.date(2025, 1, 1)
 # ----------- speech common config ----------------
 MAX_SPEECH_DURAION_S = 30
 SAMPLE_RATE = 16000
+AUDIO_CHANNELS = 1

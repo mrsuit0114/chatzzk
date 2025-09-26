@@ -6,12 +6,14 @@ from loguru import logger
 from torch import Tensor
 from torchcodec.decoders import AudioDecoder
 
+from chatzzk.packages.constants.service_codes import AUDIO_CHANNELS, SAMPLE_RATE
+
 
 def extract_wav(
     input_video_path: Path,
     output_wav_path: Path,
-    sample_rate: int = 16000,
-    audio_channels: int = 1,
+    sample_rate: int = SAMPLE_RATE,
+    audio_channels: int = AUDIO_CHANNELS,
 ) -> None:
     """
     로컬 비디오 파일에서 WAV 오디오를 추출하여 로컬 경로에 저장합니다.
@@ -54,8 +56,8 @@ def extract_wav(
 
 def load_audio(
     source: Path | Tensor | bytes,
-    sample_rate: int = 16000,
-    audio_channels: int = 1,
+    sample_rate: int = SAMPLE_RATE,
+    audio_channels: int = AUDIO_CHANNELS,
 ) -> tuple[np.ndarray, int]:
     """
     다양한 소스(경로, 바이트, 텐서 등)로부터 오디오를 로드하고 NumPy 배열과 샘플링 속도를 반환합니다.
