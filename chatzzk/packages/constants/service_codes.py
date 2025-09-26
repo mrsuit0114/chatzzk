@@ -13,6 +13,7 @@ class VodProcessStatus(str, Enum):
     PROCESSING = "PROCESSING"  # 하나 이상의 파이프라인 단계가 진행 중인 상태
     COMPLETED = "COMPLETED"  # 모든 파이프라인 단계가 성공적으로 완료된 상태
     FAILED = "FAILED"  # 하나 이상의 필수 파이프라인 단계가 실패한 상태
+    PERMANENTLY_FAILED = "PERMANENTLY_FAILED"  # 여러 번의 재시도 끝에 영구적으로 실패로 처리된 상태
 
 
 class ChzzkMessageTypeCode(IntEnum):
@@ -45,10 +46,6 @@ class Atmosphere(str, Enum):
 
     # TODO: 사용자가 직접 항목을 추가할 예정
     pass
-
-
-# JSONB 필드에서 파이프라인 단계의 상태를 저장하는 키
-PIPELINE_STATUS_KEY = "status"
 
 
 class PipelineStep(str, Enum):

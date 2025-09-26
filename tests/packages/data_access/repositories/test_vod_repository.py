@@ -141,13 +141,55 @@ class TestVodRepository:
         vod, _ = repo.create_or_get_vod(channel=channel, vod_data={"video_no": "111111"})
         vod_pk = vod.id
 
+        status_dict = {"process_status": VodProcessStatus.COMPLETED}
+
         # 실행
-        result = repo.update_overall_status(vod_pk, VodProcessStatus.COMPLETED)
+        result = repo.update_status(vod_pk, status_dict)
 
         # 검증
         assert result is True
         db_session.refresh(vod.processing_status)
         assert vod.processing_status.process_status == VodProcessStatus.COMPLETED
+
+    def test_update_status_with_retry_count(self, repo: VodRepository, channel: ChzzkChannelORM, db_session: Session):
+        """
+        테스트 내용: VOD의 처리 상태와 재시도 횟수를 업데이트합니다.
+        테스트 목적: update_status 함수가 process_status와 retry_count 필드를 올바르게
+                     업데이트하는지 검증합니다. 특히, 재시도 횟수 증가와 그에 따른 상태 변화를 확인합니다.
+        """
+        # 준비
+        vod, _ = repo.create_or_get_vod(channel=channel, vod_data={"video_no": "222222"})
+        vod_pk = vod.id
+
+        # 1차 재시도: 상태를 FAILED로, retry_count를 1로 업데이트
+        updates_1 = {"process_status": VodProcessStatus.FAILED, "retry_count": 1}
+        result_1 = repo.update_status(vod_pk, updates_1)
+
+        # 검증 1
+        assert result_1 is True
+        db_session.refresh(vod.processing_status)
+        assert vod.processing_status.process_status == VodProcessStatus.FAILED
+        assert vod.processing_status.retry_count == 1
+
+        # 2차 재시도: 상태를 FAILED로, retry_count를 2로 업데이트 (재시도 한계에 도달했다고 가정)
+        updates_2 = {"process_status": VodProcessStatus.FAILED, "retry_count": 2}
+        result_2 = repo.update_status(vod_pk, updates_2)
+
+        # 검증 2
+        assert result_2 is True
+        db_session.refresh(vod.processing_status)
+        assert vod.processing_status.process_status == VodProcessStatus.FAILED
+        assert vod.processing_status.retry_count == 2
+
+        # 최종 상태: PERMANENTLY_FAILED로 업데이트 (외부 로직에 의해)
+        updates_final = {"process_status": VodProcessStatus.PERMANENTLY_FAILED, "retry_count": 2}
+        result_final = repo.update_status(vod_pk, updates_final)
+
+        # 검증 3
+        assert result_final is True
+        db_session.refresh(vod.processing_status)
+        assert vod.processing_status.process_status == VodProcessStatus.PERMANENTLY_FAILED
+        assert vod.processing_status.retry_count == 2
 
     def test_get_by_video_no_eager_loading(self, repo: VodRepository, channel: ChzzkChannelORM, db_session: Session):
         """

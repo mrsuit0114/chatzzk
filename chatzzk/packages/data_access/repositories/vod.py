@@ -137,24 +137,24 @@ class VodRepository:
             logger.error(f"Failed to update analytics for vod_pk {vod_pk}: {e}")
             raise
 
-    def update_overall_status(self, vod_pk: int, status: VodProcessStatus) -> bool:
-        """VOD의 최종 처리 상태를 업데이트합니다. (예: COMPLETED, FAILED)"""
+    def update_status(self, vod_pk: int, updates: dict) -> bool:
+        """VOD 처리 상태와 관련된 여러 필드를 원자적으로 업데이트합니다. (예: status, retry_count)"""
         try:
             result = (
                 self.db.query(ChzzkVodProcessingStatusORM)
                 .filter(ChzzkVodProcessingStatusORM.vod_pk == vod_pk)
-                .update({"process_status": status}, synchronize_session=False)
+                .update(updates, synchronize_session=False)
             )
             if result == 0:
                 logger.warning(f"No VOD processing status found for vod_pk {vod_pk} to update.")
                 return False
 
             self.db.commit()
-            logger.info(f"Updated overall status to '{status}' for vod_pk: {vod_pk}")
+            logger.info(f"Updated status fields {list(updates.keys())} for vod_pk: {vod_pk}")
             return True
         except Exception as e:
             self.db.rollback()
-            logger.error(f"Failed to update overall status for vod_pk {vod_pk}: {e}")
+            logger.error(f"Failed to update status for vod_pk {vod_pk}: {e}")
             raise
 
     def get_by_video_no(self, video_no: str) -> ChzzkVodORM | None:
