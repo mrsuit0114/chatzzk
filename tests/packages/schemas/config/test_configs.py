@@ -5,8 +5,8 @@ from pydantic import TypeAdapter, ValidationError
 
 from chatzzk.packages.constants.service_codes import MIN_SILENCE_DURATION_MS
 from chatzzk.packages.schemas.config.database import DatabaseConfig, PostgresConfig
-from chatzzk.packages.schemas.config.main import Settings
 from chatzzk.packages.schemas.config.ml import ASRConfig, ASRHttpConfig, WhisperXConfig
+from chatzzk.packages.schemas.config.settings import Settings
 from chatzzk.packages.schemas.config.storage import MinioConfig
 
 
