@@ -3,20 +3,15 @@ from typing import Any
 import orjson
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from chatzzk.packages.constants.service_codes import ContextType
-
-
-class StreamContextEntry(BaseModel):
-    timestamp_ms: int
-    type: ContextType
-    content: str
-    pay_amount: int
-
 
 class VideoSummary(BaseModel):
     start_ms: int
     end_ms: int
     content: str
+
+
+class ChzzkChannelIdInfo(BaseModel):
+    channelId: str
 
 
 class ChzzkVodInfo(BaseModel):
@@ -25,7 +20,7 @@ class ChzzkVodInfo(BaseModel):
     video_title: str = Field(..., alias="videoTitle")
     duration: int
     video_category_value: str = Field(..., alias="videoCategoryValue")
-    channel_id: str = Field(..., alias="channel")
+    channel: ChzzkChannelIdInfo = Field(..., alias="channel")  # Use nested model for channel info
     live_open_date: str = Field(..., alias="liveOpenDate")
     publish_date: str = Field(..., alias="publishDate")
 
@@ -34,13 +29,9 @@ class ChzzkVodInfo(BaseModel):
     def validate_video_no_to_str(cls, v: int) -> str:
         return str(v)
 
-    @field_validator("channel_id", mode="before")
-    @classmethod
-    def flatten_channel_id(cls, values: dict) -> str:
-        channel_id = values.get("channelId")
-        if channel_id:
-            return channel_id
-        raise ValueError("Could not find 'channelId' in 'channel' object")
+    @property
+    def channel_id(self) -> str:
+        return self.channel.channelId
 
     model_config = ConfigDict(populate_by_name=True)
 

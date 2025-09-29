@@ -17,8 +17,7 @@ def create_asr_client(model_config: ASRConfig, models_base_dir: str | None = Non
         final_model_path = model_config.model_path
         if models_base_dir:
             final_model_path = str(Path(models_base_dir) / model_config.model_path)
-        else:
-            final_model_path = None
+        # If models_base_dir is not provided, final_model_path remains model_config.model_path
 
         return WhisperxClient(config=model_config, model_path=final_model_path)
 

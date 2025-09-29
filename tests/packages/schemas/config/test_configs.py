@@ -4,6 +4,7 @@ import pytest
 from pydantic import TypeAdapter, ValidationError
 
 from chatzzk.packages.constants.service_codes import MIN_SILENCE_DURATION_MS
+from chatzzk.packages.schemas.config.api import ApiClientConfig
 from chatzzk.packages.schemas.config.database import DatabaseConfig, PostgresConfig
 from chatzzk.packages.schemas.config.ml import ASRConfig, ASRHttpConfig, WhisperXConfig
 from chatzzk.packages.schemas.config.settings import Settings
@@ -68,6 +69,34 @@ def test_asr_config_discriminator():
         adapter.validate_python(invalid_data)
 
 
+def test_api_client_config_success():
+    """
+    목적: 유효한 API 클라이언트 설정값이 주어졌을 때, ApiClientConfig 모델로 성공적으로 파싱되는지 테스트합니다.
+    이유: HTTP 클라이언트의 재시도 및 Rate Limit 같은 핵심 동작이 올바르게 설정되는지 보장하기 위함입니다.
+    """
+    # 1. 모든 값을 명시적으로 제공
+    config_data_1 = {
+        "retry": {"attempts": 5, "wait_min_s": 1, "wait_max_s": 5},
+        "rate_limit": {"max_rate": 10, "time_period": 2},
+    }
+    api_config_1 = ApiClientConfig.model_validate(config_data_1)
+    assert api_config_1.retry.attempts == 5
+    assert api_config_1.rate_limit.max_rate == 10
+
+    # 2. 일부 값만 제공 (나머지는 기본값 사용)
+    config_data_2 = {"retry": {"attempts": 1}}
+    api_config_2 = ApiClientConfig.model_validate(config_data_2)
+    assert api_config_2.retry.attempts == 1
+    assert api_config_2.retry.wait_max_s == 2  # 기본값
+    assert api_config_2.rate_limit.max_rate == 5  # 기본값
+
+    # 3. 빈 dict 제공 (모두 기본값 사용)
+    config_data_3 = {}
+    api_config_3 = ApiClientConfig.model_validate(config_data_3)
+    assert api_config_3.retry.attempts == 3
+    assert api_config_3.rate_limit.max_rate == 5
+
+
 def test_top_level_settings_composition():
     """
     목적: 최상위 Settings 모델이 여러 하위 설정 모델들을 올바르게 포함하여 구성되는지 테스트합니다.
@@ -93,6 +122,10 @@ def test_top_level_settings_composition():
             "vad_implementation": "silero",
             "min_silence_duration_ms": 500,
         },
+        "api": {
+            "retry": {"attemps": 3},
+            "rate_limit": {"max_rate": 10, "time_period": 1},
+        },
     }
     adapter = TypeAdapter(Settings)
     settings = adapter.validate_python(full_config_data)
@@ -100,7 +133,9 @@ def test_top_level_settings_composition():
     assert type(settings.db) is PostgresConfig
     assert type(settings.storage) is MinioConfig
     assert type(settings.asr) is WhisperXConfig
-
+    assert type(settings.api) is ApiClientConfig
     # 필드 값 체크
     assert settings.vad.min_silence_duration_ms == MIN_SILENCE_DURATION_MS
     assert settings.db.database_url == "postgresql://user:pass@host:5432/db"
+    assert settings.api.retry.attempts == 3
+    assert settings.api.rate_limit.max_rate == 10

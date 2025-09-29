@@ -12,4 +12,4 @@ def create_vad_client(model_config: VADConfig, models_base_dir: str | None = Non
 
         return SileroVADClient(config=model_config)
     else:
-        raise TypeError(f"Unsupported ASR config type: {type(model_config)}")
+        raise TypeError(f"Unsupported VAD config type: {type(model_config)}")

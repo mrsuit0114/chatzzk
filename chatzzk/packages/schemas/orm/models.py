@@ -4,25 +4,17 @@ from sqlalchemy import (
     Column,
     DateTime,
     Enum,
-    Float,
     ForeignKey,
     Integer,
-    PrimaryKeyConstraint,
     SmallInteger,
     String,
-    Text,
     TypeDecorator,
     func,
 )
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from chatzzk.packages.constants.service_codes import (
-    Atmosphere,
-    ChzzkMessageTypeCode,
-    OsType,
-    SubscriptionTier,
-    UserRoleCode,
     VodProcessStatus,
 )
 
@@ -105,10 +97,18 @@ class ChzzkVodORM(Base):
         "ChzzkVodProcessingStatusORM", back_populates="vod", uselist=False, cascade="all, delete-orphan"
     )
     analytics = relationship("ChzzkVodAnalyticsORM", back_populates="vod", uselist=False, cascade="all, delete-orphan")
-    chat_entries = relationship("ChzzkChatEntryORM", back_populates="vod", cascade="all, delete-orphan")
-    asr_entries = relationship("ChzzkAsrEntryORM", back_populates="vod", cascade="all, delete-orphan")
-    summaries = relationship("ChzzkSummaryORM", back_populates="vod", cascade="all, delete-orphan")
-    meta_summaries = relationship("ChzzkMetaSummaryORM", back_populates="vod", cascade="all, delete-orphan")
+
+    # 스토리지에 저장된 파일들의 키 (경로)
+    temp_video_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    temp_audio_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    temp_chat_entries_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    temp_asr_entries_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
+    final_video_context_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    final_chat_entries_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    final_asr_entries_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    final_summary_entries_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    final_meta_summary_entries_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
 
 class ChzzkVodProcessingStatusORM(Base):
@@ -154,81 +154,3 @@ class ChzzkVodAnalyticsORM(Base):
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
     vod = relationship("ChzzkVodORM", back_populates="analytics")
-
-
-class ChzzkChatEntryORM(Base):
-    __tablename__ = "chzzk_chat_entries"
-
-    id = Column(BigInteger, autoincrement=True)
-    timestamp_ms = Column(BigInteger, nullable=False, index=True)
-    content = Column(Text)
-    os_type = Column(Enum(OsType, name="os_type_enum", native_enum=False), nullable=True)
-    pay_amount = Column(Integer, nullable=True)
-    nickname = Column(String(255))
-    user_role_code = Column(Enum(UserRoleCode, name="user_role_code_enum", native_enum=False))
-    subscription_tier = Column(Enum(SubscriptionTier, name="subscription_tier_enum", native_enum=False), nullable=True)
-    subscription_accumulative_month = Column(Integer, nullable=True)
-    message_type_code = Column(Enum(ChzzkMessageTypeCode, name="chzzk_message_type_code_enum", native_enum=False))
-    user_id_hash = Column(String(255))
-
-    vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), nullable=False)
-    vod = relationship("ChzzkVodORM", back_populates="chat_entries")
-    vod_live_open_date = Column(DateTime(timezone=True), nullable=False, index=True)
-
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-
-    __table_args__ = (PrimaryKeyConstraint("id", "vod_live_open_date"),)
-
-
-class ChzzkAsrEntryORM(Base):
-    __tablename__ = "chzzk_asr_entries"
-
-    id = Column(BigInteger, autoincrement=True)
-    start_ms = Column(BigInteger, nullable=False)
-    end_ms = Column(BigInteger, nullable=False)
-    timestamp_ms = Column(BigInteger, index=True)
-    content = Column(Text)
-
-    vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), nullable=False)
-    vod = relationship("ChzzkVodORM", back_populates="asr_entries")
-    vod_live_open_date = Column(DateTime(timezone=True), nullable=False, index=True)
-
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-
-    __table_args__ = (PrimaryKeyConstraint("id", "vod_live_open_date"),)
-
-
-class ChzzkSummaryORM(Base):
-    __tablename__ = "chzzk_summaries"
-
-    id = Column(BigInteger, autoincrement=True)
-    vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), nullable=False, index=True)
-    start_s = Column(Integer, nullable=False)
-    end_s = Column(Integer, nullable=False)
-    content = Column(Text)
-    atmosphere = Column(Enum(Atmosphere, name="atmosphere_enum", native_enum=False), nullable=True)
-    score = Column(Float)
-
-    vod_live_open_date = Column(DateTime(timezone=True), nullable=False, index=True)
-
-    vod = relationship("ChzzkVodORM", back_populates="summaries")
-
-    __table_args__ = (PrimaryKeyConstraint("id", "vod_live_open_date"),)
-
-
-class ChzzkMetaSummaryORM(Base):
-    __tablename__ = "chzzk_meta_summaries"
-
-    id = Column(BigInteger, autoincrement=True)
-    vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), nullable=False, index=True)
-    start_s = Column(Integer, nullable=False)  # 요약들의 시작 시간
-    end_s = Column(Integer, nullable=False)  # 요약들의 끝 시간
-    content = Column(Text)
-
-    vod_live_open_date = Column(DateTime(timezone=True), nullable=False, index=True)
-
-    vod = relationship("ChzzkVodORM", back_populates="meta_summaries")
-
-    __table_args__ = (PrimaryKeyConstraint("id", "vod_live_open_date"),)
