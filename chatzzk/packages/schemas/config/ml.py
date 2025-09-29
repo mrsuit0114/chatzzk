@@ -2,13 +2,13 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field
 
-from chatzzk.packages.constants.service_codes import MAX_SPEECH_DURAION_S
+from chatzzk.packages.constants.service_codes import MAX_SPEECH_DURAION_S, MIN_SILENCE_DURATION_MS
 
 
 class SileroVADConfig(BaseModel):
     # 'vad_implementation'을 고정된 문자열 리터럴 타입으로 정의
     vad_implementation: Literal["silero"] = "silero"
-    min_silence_duration_ms: int = 500
+    min_silence_duration_ms: int = Field(MIN_SILENCE_DURATION_MS)
     max_speech_duration_s: int = Field(MAX_SPEECH_DURAION_S)
 
 

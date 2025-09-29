@@ -14,8 +14,9 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_nested_delimiter="__",  # 예: DB__DATABASE_URL
-        env_file=".env",
+        env_file="local.test.env",
         env_file_encoding="utf-8",
+        extra="ignore",
     )
 
     db: DatabaseConfig
@@ -23,3 +24,6 @@ class Settings(BaseSettings):
     asr: ASRConfig
     vad: VADConfig
     api: ApiClientConfig
+
+
+settings = Settings()
