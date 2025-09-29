@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 import requests
 
-from chatzzk.packages.utils.downloader import download_file_from_url
+from chatzzk.packages.media_processing.video_downloader import download_file_from_url
 
 
 def test_download_file_from_url_success(mocker):

@@ -21,6 +21,7 @@ def download_file_from_url(
     """
     주어진 URL에서 파일을 스트리밍 방식으로 다운로드하여 지정된 경로에 저장합니다.
     tqdm을 사용하여 진행률을 표시할 수 있습니다.
+    # TODO: http range를 사용해서 병렬로 다운로드할 수 있도록 구성할 것
 
     Args:
         url (str): 다운로드할 파일의 URL.

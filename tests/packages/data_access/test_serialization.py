@@ -5,7 +5,7 @@ import io
 import pytest
 from pydantic import BaseModel
 
-from chatzzk.packages.utils.file_io import load_jsonl_as_models, load_jsonl_as_models_from_bytes
+from chatzzk.packages.data_access.serialization import load_jsonl_as_models, load_jsonl_as_models_from_bytes
 
 
 # 테스트에 사용할 간단한 Pydantic 모델 정의
