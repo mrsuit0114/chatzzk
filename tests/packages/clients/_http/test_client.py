@@ -4,7 +4,7 @@ import pytest
 from aioresponses import CallbackResult, aioresponses
 
 from chatzzk.packages.clients._http.client import BaseHttpClient
-from chatzzk.packages.schemas.config.api import ApiClientConfig, RateLimitConfig, RetryConfig
+from chatzzk.packages.schemas.config.api import ApiClientConfig, ChzzkApiConfig, RateLimitConfig, RetryConfig
 
 # Assuming the global settings object is imported like this in BaseHttpClient:
 # from chatzzk.packages.schemas.config.settings import settings as global_settings_instance
@@ -13,10 +13,19 @@ from chatzzk.packages.schemas.config.api import ApiClientConfig, RateLimitConfig
 @pytest.fixture
 def mock_api_client_config() -> ApiClientConfig:
     """테스트용 ApiClientConfig 객체를 생성합니다."""
+    # ChzzkApiConfig의 mock 인스턴스 생성
+    mock_chzzk_api_config = ChzzkApiConfig(
+        channel_info_template="http://mock.chzzk.api/channels/{channel_id}",
+        channel_vods_template="http://mock.chzzk.api/channels/{channel_id}/videos",
+        vod_info_template="http://mock.chzzk.api/videos/{video_no}",
+        vod_chats_template="http://mock.chzzk.api/videos/{video_no}/chats",
+        vod_url_template="http://mock.chzzk.api/playback/{video_id}?key={in_key}",
+    )
+
     return ApiClientConfig(
-        base_url="http://test.com",
         rate_limit=RateLimitConfig(max_rate=10, time_period=1),
         retry=RetryConfig(attempts=5, wait_min_s=1, wait_max_s=2),
+        chzzk_api=mock_chzzk_api_config,  # 새로 추가된 chzzk_api 필드에 mock 인스턴스 할당
     )
 
 
@@ -30,37 +39,37 @@ def mock_settings(mocker, mock_api_client_config):
 
 
 @pytest.mark.asyncio
-async def test_successful_json_request(mock_settings):
+async def test_successful_json_request():
     """성공적인 JSON GET 요청을 테스트합니다."""
     async with BaseHttpClient() as client:
         with aioresponses() as m:
             m.get("http://test.com/data", status=200, payload={"key": "value"})
-            response = await client.request("GET", "http://test.com/data")
+            response = await client.get("http://test.com/data")
             assert response == {"key": "value"}
 
 
 @pytest.mark.asyncio
-async def test_successful_json_with_content_key(mock_settings):
+async def test_successful_json_with_content_key():
     """'content' 키를 포함하는 특정 JSON 응답 구조를 테스트합니다."""
     async with BaseHttpClient() as client:
         with aioresponses() as m:
             m.get("http://test.com/data", status=200, payload={"content": {"nested_key": "nested_value"}})
-            response = await client.request("GET", "http://test.com/data")
+            response = await client.get("http://test.com/data")
             assert response == {"nested_key": "nested_value"}
 
 
 @pytest.mark.asyncio
-async def test_successful_text_request(mock_settings):
+async def test_successful_text_request():
     """성공적인 일반 텍스트 GET 요청을 테스트합니다."""
     async with BaseHttpClient() as client:
         with aioresponses() as m:
             m.get("http://test.com/text", status=200, body="Hello, world!")
-            response = await client.request("GET", "http://test.com/text", expect_json=False)
+            response = await client.get("http://test.com/text", expect_json=False)
             assert response == "Hello, world!"
 
 
 @pytest.mark.asyncio
-async def test_retry_on_failure_then_succeed(mock_settings):
+async def test_retry_on_failure_then_succeed():
     """서버 오류 후 재시도하여 성공하는 경우를 테스트합니다. (callback 사용)"""
     call_count = 0
 
@@ -74,7 +83,7 @@ async def test_retry_on_failure_then_succeed(mock_settings):
     async with BaseHttpClient() as client:
         with aioresponses() as m:
             m.get("http://test.com/retry", callback=retry_callback, repeat=True)
-            response = await client.request("GET", "http://test.com/retry")
+            response = await client.get("http://test.com/retry")
             assert response == {"status": "ok"}
             assert call_count == 3
 
@@ -101,7 +110,7 @@ async def test_retry_exhausted(mock_settings):
             m.get("http://test.com/fail", callback=retry_callback, repeat=True)
 
             with pytest.raises(Exception) as excinfo:
-                await client.request("GET", "http://test.com/fail")
+                await client.get("http://test.com/fail")
 
             # tenacity가 재시도 후 마지막 예외를 다시 발생시키는지 확인
             assert "503" in str(excinfo.value)
@@ -110,7 +119,7 @@ async def test_retry_exhausted(mock_settings):
 
 
 @pytest.mark.asyncio
-async def test_context_manager_closes_session(mock_settings):
+async def test_context_manager_closes_session():
     """컨텍스트 관리자(async with)가 세션을 올바르게 닫는지 테스트합니다."""
     client = BaseHttpClient()
     assert client._session is None

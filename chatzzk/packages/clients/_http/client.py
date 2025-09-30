@@ -13,9 +13,9 @@ class BaseHttpClient:
 
     def __init__(self):
         self._session = None
+        self._headers = settings.api.chzzk_api.default_headers
 
         self._limiter = AsyncLimiter(settings.api.rate_limit.max_rate, settings.api.rate_limit.time_period)
-
         self._retryer = AsyncRetrying(
             stop=stop_after_attempt(settings.api.retry.attempts),
             wait=wait_random(min=settings.api.retry.wait_min_s, max=settings.api.retry.wait_max_s),
@@ -28,7 +28,7 @@ class BaseHttpClient:
         유효한 세션을 가져오거나, 없으면 새로 생성합니다.
         """
         if self._session is None or self._session.closed:
-            self._session = aiohttp.ClientSession()
+            self._session = aiohttp.ClientSession(headers=self._headers)
         return self._session
 
     async def __aenter__(self):
@@ -38,10 +38,13 @@ class BaseHttpClient:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.close()
 
-    async def _perform_request(self, method: str, url: str, expect_json: bool = True, **kwargs) -> dict | list | str:
+    async def _perform_request(
+        self, method: str, url: str, expect_json: bool = True, proxy: str | None = None, **kwargs
+    ):
         """실제 HTTP 요청을 보내는 내부 메소드. Rate Limit이 여기에 적용됩니다."""
+        session = await self._get_session()
         async with self._limiter:
-            async with self._session.request(method, url, **kwargs) as response:
+            async with session.request(method, url, proxy=proxy, **kwargs) as response:
                 response.raise_for_status()
                 if not expect_json:
                     return await response.text()
@@ -49,9 +52,9 @@ class BaseHttpClient:
                 content = data.get("content")
                 return content if content is not None else data
 
-    async def request(self, *args, **kwargs):
+    async def get(self, url: str, **kwargs):
         """외부에 노출되는 공개 메소드. 재시도 로직이 여기에 적용됩니다."""
-        return await self._retryer(self._perform_request, *args, **kwargs)
+        return await self._retryer(self._perform_request, method="GET", url=url, **kwargs)
 
     async def close(self):
         """세션을 안전하게 닫습니다."""
