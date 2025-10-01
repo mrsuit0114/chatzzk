@@ -12,11 +12,11 @@ class ChzzkApiClient:
     Chzzk API와의 통신을 담당하는 클라이언트.
     """
 
-    def __init__(self, http_client: BaseHttpClient, chzzk_api_config: ChzzkApiConfig):
+    def __init__(self, config: ChzzkApiConfig, http_client: BaseHttpClient):
         self._http_client = http_client
-        self.chzzk_api_config = chzzk_api_config
-        self._proxy: str | None = chzzk_api_config.https_proxy
-        self._vod_manifest_headers: dict[str, str] | None = chzzk_api_config.vod_manifest_headers
+        self.config = config
+        self._proxy: str | None = config.https_proxy
+        self._vod_manifest_headers: dict[str, str] | None = config.vod_manifest_headers
 
     async def get_channel_info(self, channel_id: str) -> dict[str, Any] | None:
         """
@@ -24,7 +24,7 @@ class ChzzkApiClient:
         - 채널을 찾을 수 없는 경우(404): None을 반환합니다.
         - 그 외 모든 통신/서버 오류: 예외를 그대로 발생시킵니다.
         """
-        url = self.chzzk_api_config.channel_info_template.format(channel_id=channel_id)
+        url = self.config.channel_info_template.format(channel_id=channel_id)
         try:
             content = await self._http_client.get(url)
             return content
@@ -47,7 +47,7 @@ class ChzzkApiClient:
         - VOD 목록을 찾을 수 없는 경우(404): None을 반환합니다.
         - 그 외 모든 통신/서버 오류: 예외를 그대로 발생시킵니다.
         """
-        url = self.chzzk_api_config.channel_vods_info_template.format(channel_id=channel_id, page_idx=page_idx)
+        url = self.config.channel_vods_info_template.format(channel_id=channel_id, page_idx=page_idx)
         try:
             content = await self._http_client.get(url)
             return content
@@ -72,7 +72,7 @@ class ChzzkApiClient:
         - VOD를 찾을 수 없는 경우(404): None을 반환합니다.
         - 그 외 모든 통신/서버 오류: 예외를 그대로 발생시킵니다.
         """
-        url = self.chzzk_api_config.vod_info_template.format(video_no=video_no)
+        url = self.config.vod_info_template.format(video_no=video_no)
         try:
             content = await self._http_client.get(url)
             return content
@@ -95,7 +95,7 @@ class ChzzkApiClient:
         - 채팅을 찾을 수 없는 경우(404): None을 반환합니다.
         - 그 외 모든 통신/서버 오류: 예외를 그대로 발생시킵니다.
         """
-        url = self.chzzk_api_config.vod_chats_template.format(video_no=video_no)
+        url = self.config.vod_chats_template.format(video_no=video_no)
         try:
             content = await self._http_client.get(url, params={"playerMessageTime": next_player_message_time_ms})
             return content
@@ -118,7 +118,7 @@ class ChzzkApiClient:
         - 매니페스트를 찾을 수 없는 경우(404): None을 반환합니다.
         - 그 외 모든 통신/서버 오류: 예외를 그대로 발생시킵니다.
         """
-        url = self.chzzk_api_config.vod_url_template.format(video_id=video_id, in_key=in_key)
+        url = self.config.vod_url_template.format(video_id=video_id, in_key=in_key)
         try:
             content = await self._http_client.get(
                 url,

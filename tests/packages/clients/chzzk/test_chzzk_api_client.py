@@ -37,7 +37,7 @@ def chzzk_api_client(mock_http_client, test_chzzk_api_config):
     """
     Fixture to provide an instance of ChzzkApiClient with a mocked BaseHttpClient.
     """
-    return ChzzkApiClient(mock_http_client, test_chzzk_api_config)
+    return ChzzkApiClient(test_chzzk_api_config, mock_http_client)
 
 
 # --- Tests for get_channel_info ---

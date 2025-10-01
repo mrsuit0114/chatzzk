@@ -11,14 +11,14 @@ class BaseHttpClient:
     - Rate Limit, 재시도 정책을 외부에서 설정 가능
     """
 
-    def __init__(self, base_http_config: BaseHttpConfig):
+    def __init__(self, config: BaseHttpConfig):
         self._session = None
-        self._headers = base_http_config.default_headers
+        self._headers = config.default_headers
 
-        self._limiter = AsyncLimiter(base_http_config.rate_limit.max_rate, base_http_config.rate_limit.time_period)
+        self._limiter = AsyncLimiter(config.rate_limit.max_rate, config.rate_limit.time_period)
         self._retryer = AsyncRetrying(
-            stop=stop_after_attempt(base_http_config.retry.attempts),
-            wait=wait_random(min=base_http_config.retry.wait_min_s, max=base_http_config.retry.wait_max_s),
+            stop=stop_after_attempt(config.retry.attempts),
+            wait=wait_random(min=config.retry.wait_min_s, max=config.retry.wait_max_s),
             retry=retry_if_exception_type((aiohttp.ClientError, ValueError)),
             reraise=True,
         )
@@ -53,8 +53,12 @@ class BaseHttpClient:
                 return content if content is not None else data
 
     async def get(self, url: str, **kwargs):
-        """외부에 노출되는 공개 메소드. 재시도 로직이 여기에 적용됩니다."""
+        """GET 요청을 보내는 공개 메소드. 재시도 로직이 적용됩니다."""
         return await self._retryer(self._perform_request, method="GET", url=url, **kwargs)
+
+    async def post(self, url: str, **kwargs):
+        """POST 요청을 보내는 공개 메소드. 재시도 로직이 적용됩니다."""
+        return await self._retryer(self._perform_request, method="POST", url=url, **kwargs)
 
     async def close(self):
         """세션을 안전하게 닫습니다."""
