@@ -77,7 +77,7 @@ class TestASRHttpClient:
 
 
 class TestWhisperxClient:
-    @patch("whisperx.load_model")
+    @patch("chatzzk.packages.clients.ml.asr.whisperx_client.whisperx.load_model")
     def test_initialization_success(self, mock_load_model, whisperx_config):
         """
         목적: WhisperxClient 초기화 시, whisperx.load_model이 올바른 인자로 호출되는지 테스트합니다.
@@ -92,7 +92,7 @@ class TestWhisperxClient:
             download_root=Path("/models"),
         )
 
-    @patch("whisperx.load_model")
+    @patch("chatzzk.packages.clients.ml.asr.whisperx_client.whisperx.load_model")
     def test_initialization_failure_raises_asr_error(self, mock_load_model, whisperx_config):
         """
         목적: 모델 로딩 중 예외가 발생하면, ASRError가 발생하는지 테스트합니다.
@@ -103,7 +103,7 @@ class TestWhisperxClient:
             WhisperxClient(config=whisperx_config, model_path="/models")
 
     @pytest.mark.asyncio
-    @patch("whisperx.load_model")
+    @patch("chatzzk.packages.clients.ml.asr.whisperx_client.whisperx.load_model")
     async def test_transcribe_success(self, mock_load_model, whisperx_config):
         """
         목적: transcribe 메소드가 내부 모델을 호출하고, 결과를 올바르게 후처리하는지 테스트합니다.
@@ -127,7 +127,7 @@ class TestWhisperxClient:
         mock_model_instance.transcribe.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("whisperx.load_model")
+    @patch("chatzzk.packages.clients.ml.asr.whisperx_client.whisperx.load_model")
     async def test_transcribe_failure_raises_asr_error(self, mock_load_model, whisperx_config):
         """
         목적: 모델 추론 중 예외가 발생하면, ASRError가 발생하는지 테스트합니다.

@@ -28,7 +28,7 @@ def asr_http_config() -> ASRHttpConfig:
 
 
 # whisperx.load_model 호출을 막기 위해 patch 사용
-@patch("whisperx.load_model")
+@patch("chatzzk.packages.clients.ml.asr.whisperx_client.whisperx.load_model")
 def test_create_asr_client_with_whisperx_config(mock_load_model, whisperx_config):
     """
     목적: WhisperXConfig가 주어졌을 때, 팩토리가 WhisperxClient 인스턴스를 생성하는지 테스트합니다.

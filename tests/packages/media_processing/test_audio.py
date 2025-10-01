@@ -19,44 +19,34 @@ def test_extract_wav_success(mocker):
     """
     # 준비 (Arrange)
     # 1. 메서드 체이닝의 각 단계를 모킹합니다.
-    mock_run = mocker.patch("ffmpeg.run")
+    mock_run = mocker.patch("chatzzk.packages.media_processing.audio.ffmpeg.run")
 
     # overwrite_output()이 호출되면 반환될 모킹 객체
-    mock_overwrite_output_result = mocker.MagicMock()
-    # 이 객체의 run 메서드를 mock_run으로 설정
-    mock_overwrite_output_result.run = mock_run
-
-    # output()이 호출되면 반환될 모킹 객체
-    mock_output_result = mocker.MagicMock()
-    # 이 객체의 overwrite_output 메서드가 mock_overwrite_output_result 객체를 반환하도록 설정
-    mock_output_result.overwrite_output.return_value = mock_overwrite_output_result
-
-    # ffmpeg.input()이 호출되면 반환될 모킹 객체
-    mock_input_result = mocker.MagicMock()
-    # 이 객체의 output 메서드가 mock_output_result 객체를 반환하도록 설정
-    mock_input_result.output.return_value = mock_output_result
+    mock_overwrite_output = mocker.MagicMock()
+    mock_overwrite_output.run = mock_run
+    mock_output = mocker.MagicMock()
+    mock_output.overwrite_output.return_value = mock_overwrite_output
+    mock_input = mocker.MagicMock()
+    mock_input.output.return_value = mock_output
 
     # ffmpeg.input 자체를 모킹하여 mock_input_result를 반환하도록 설정
-    mocker.patch("ffmpeg.input", return_value=mock_input_result)
+    mocker.patch("chatzzk.packages.media_processing.audio.ffmpeg.input", return_value=mock_input)
 
     # 2. 임시 로컬 파일 경로를 생성합니다.
     with tempfile.TemporaryDirectory() as tmpdir:
         input_path = Path(tmpdir) / "video.mp4"
         output_path = Path(tmpdir) / "audio.wav"
 
-        # 실행 (Act)
         extract_wav(
             input_video_path=input_path,
             output_wav_path=output_path,
         )
 
-        # 검증 (Assert)
         # 1. ffmpeg.input이 올바른 경로로 호출되었는지 확인합니다.
-        # mocker.patch("ffmpeg.input")을 사용했으므로 바로 ffmpeg.input.assert...를 사용할 수 있습니다.
         ffmpeg.input.assert_called_once_with(str(input_path))
 
         # 2. .output이 올바른 경로와 오디오 옵션으로 호출되었는지 확인합니다.
-        mock_input_result.output.assert_called_once_with(
+        mock_input.output.assert_called_once_with(
             str(output_path),
             acodec="pcm_s32le",
             ac=1,
@@ -64,7 +54,7 @@ def test_extract_wav_success(mocker):
         )
 
         # 3. .overwrite_output()이 호출되었는지 확인합니다.
-        mock_output_result.overwrite_output.assert_called_once()
+        mock_output.overwrite_output.assert_called_once()
 
         # 4. 최종적으로 .run()이 호출되었는지 확인합니다.
         mock_run.assert_called_once()
@@ -78,32 +68,29 @@ def test_extract_wav_ffmpeg_error(mocker):
     # 준비 (Arrange): ffmpeg.run이 ffmpeg.Error를 발생시키도록 설정합니다.
     # 1. 메서드 체이닝의 각 단계를 모킹합니다.
     # mock_run의 side_effect를 ffmpeg.Error로 설정합니다.
-    mock_run = mocker.patch("ffmpeg.run", side_effect=ffmpeg.Error("mocked ffmpeg error", b"", b""))
+    mock_ffmpeg = mocker.patch("chatzzk.packages.media_processing.audio.ffmpeg")
 
-    # overwrite_output()이 호출되면 반환될 모킹 객체
-    mock_overwrite_output_result = mocker.MagicMock()
-    # 이 객체의 run 메서드를 mock_run으로 설정
-    mock_overwrite_output_result.run = mock_run
+    # run이 호출될 때 ffmpeg.Error 발생
+    mock_ffmpeg.Error = Exception  # 필요 시 ffmpeg.Error도 정의
+    mock_run = mocker.MagicMock(side_effect=mock_ffmpeg.Error("mocked ffmpeg error"))
 
-    # output()이 호출되면 반환될 모킹 객체
-    mock_output_result = mocker.MagicMock()
-    # 이 객체의 overwrite_output 메서드가 mock_overwrite_output_result 객체를 반환하도록 설정
-    mock_output_result.overwrite_output.return_value = mock_overwrite_output_result
+    # overwrite_output() 호출 시 run이 호출되는 구조
+    mock_overwrite_output = mocker.MagicMock()
+    mock_overwrite_output.run = mock_run
+    mock_output = mocker.MagicMock()
+    mock_output.overwrite_output.return_value = mock_overwrite_output
+    mock_input = mocker.MagicMock()
+    mock_input.output.return_value = mock_output
 
-    # ffmpeg.input()이 호출되면 반환될 모킹 객체
-    mock_input_result = mocker.MagicMock()
-    # 이 객체의 output 메서드가 mock_output_result 객체를 반환하도록 설정
-    mock_input_result.output.return_value = mock_output_result
+    # ffmpeg.input() 호출 시 mock_input 반환
+    mock_ffmpeg.input.return_value = mock_input
 
-    # ffmpeg.input 자체를 모킹하여 mock_input_result를 반환하도록 설정
-    mocker.patch("ffmpeg.input", return_value=mock_input_result)
-
+    # 임시 디렉토리에서 테스트
     with tempfile.TemporaryDirectory() as tmpdir:
         input_path = Path(tmpdir) / "video.mp4"
         output_path = Path(tmpdir) / "audio.wav"
 
-        # 실행 및 검증 (Act & Assert): ffmpeg.Error가 발생하는지 확인합니다.
-        with pytest.raises(ffmpeg.Error):
+        with pytest.raises(mock_ffmpeg.Error):
             extract_wav(
                 input_video_path=input_path,
                 output_wav_path=output_path,
