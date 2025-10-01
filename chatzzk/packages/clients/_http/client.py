@@ -2,7 +2,7 @@ import aiohttp
 from aiolimiter import AsyncLimiter
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, wait_random
 
-from chatzzk.packages.schemas.config.settings import settings
+from chatzzk.packages.schemas.config.api import BaseHttpConfig
 
 
 class BaseHttpClient:
@@ -11,14 +11,14 @@ class BaseHttpClient:
     - Rate Limit, 재시도 정책을 외부에서 설정 가능
     """
 
-    def __init__(self):
+    def __init__(self, base_http_config: BaseHttpConfig):
         self._session = None
-        self._headers = settings.api.chzzk_api.default_headers
+        self._headers = base_http_config.default_headers
 
-        self._limiter = AsyncLimiter(settings.api.rate_limit.max_rate, settings.api.rate_limit.time_period)
+        self._limiter = AsyncLimiter(base_http_config.rate_limit.max_rate, base_http_config.rate_limit.time_period)
         self._retryer = AsyncRetrying(
-            stop=stop_after_attempt(settings.api.retry.attempts),
-            wait=wait_random(min=settings.api.retry.wait_min_s, max=settings.api.retry.wait_max_s),
+            stop=stop_after_attempt(base_http_config.retry.attempts),
+            wait=wait_random(min=base_http_config.retry.wait_min_s, max=base_http_config.retry.wait_max_s),
             retry=retry_if_exception_type((aiohttp.ClientError, ValueError)),
             reraise=True,
         )

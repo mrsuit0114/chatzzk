@@ -24,6 +24,3 @@ class Settings(BaseSettings):
     asr: ASRConfig
     vad: VADConfig
     api: ApiClientConfig
-
-
-settings = Settings()

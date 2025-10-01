@@ -16,18 +16,24 @@ class RateLimitConfig(BaseModel):
     time_period: int = 1  # 시간 기준 (초)
 
 
-class ChzzkApiConfig(BaseModel):
-    channel_info_template: str
-    channel_vods_template: str
-    vod_info_template: str
-    vod_chats_template: str
-    vod_url_template: str
+class BaseHttpConfig(BaseModel):
+    retry: RetryConfig = Field(default_factory=RetryConfig)
+    rate_limit: RateLimitConfig = Field(default_factory=RateLimitConfig)
     default_headers: dict = Field(
         {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
         }
     )
-    accept_headers: dict = Field({"Accept": "application/dash+xml"})
+
+
+class ChzzkApiConfig(BaseModel):
+    channel_info_template: str
+    channel_vods_info_template: str
+    vod_info_template: str
+    vod_chats_template: str
+    vod_url_template: str
+
+    vod_manifest_headers: dict = Field({"Accept": "application/dash+xml"})
     dash_ns: dict = Field({"mpd": "urn:mpeg:dash:schema:mpd:2011"})
 
     http_proxy: str = Field(None)
@@ -37,6 +43,5 @@ class ChzzkApiConfig(BaseModel):
 class ApiClientConfig(BaseModel):
     """API 클라이언트의 모든 동작 설정을 포함하는 모델"""
 
-    retry: RetryConfig = Field(default_factory=RetryConfig)
-    rate_limit: RateLimitConfig = Field(default_factory=RateLimitConfig)
+    base_http: BaseHttpConfig = Field(default_factory=BaseHttpConfig)
     chzzk_api: ChzzkApiConfig = Field(default_factory=ChzzkApiConfig)
