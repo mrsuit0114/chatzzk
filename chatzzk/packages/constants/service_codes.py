@@ -109,7 +109,7 @@ class StorageBucket(str, Enum):
 START_DATE = datetime.date(2025, 1, 1)
 
 # ----------- speech common config ----------------
-MAX_SPEECH_DURAION_S = 30
+MAX_SPEECH_DURATION_S = 30
 MIN_SILENCE_DURATION_MS = 500
 SAMPLE_RATE = 16000
 AUDIO_CHANNELS = 1

@@ -1,5 +1,3 @@
-# packages/utils/downloader.py
-
 from pathlib import Path
 
 import requests
