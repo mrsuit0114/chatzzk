@@ -30,7 +30,9 @@ def whisperx_config() -> WhisperXConfig:
     테스트용 `WhisperXConfig` 객체를 생성합니다.
     실제 모델을 로드하지 않으므로, 설정값은 유효한 형태이기만 하면 됩니다.
     """
-    return WhisperXConfig(asr_implementation="whisperx", model_size="tiny", device="cpu", compute_type="int8")
+    return WhisperXConfig(
+        asr_implementation="whisperx", model_size="tiny", device="cpu", compute_type="int8", language="ko"
+    )
 
 
 # --- ASRHttpClient Tests ---
@@ -90,6 +92,7 @@ class TestWhisperxClient:
             device=whisperx_config.device,
             compute_type=whisperx_config.compute_type,
             download_root=Path("/models"),
+            language=whisperx_config.language,
         )
 
     @patch("chatzzk.packages.clients.ml.asr.whisperx_client.whisperx.load_model")

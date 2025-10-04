@@ -24,7 +24,11 @@ class WhisperxClient(ASRClientInterface):
         download_root_path = Path(model_path) if model_path else None
         try:
             self.model = whisperx.load_model(
-                self.model_size, device=self.device, compute_type=self.compute_type, download_root=download_root_path
+                self.model_size,
+                device=self.device,
+                compute_type=self.compute_type,
+                download_root=download_root_path,
+                language=self.language,
             )
 
             logger.info("✅ WhisperX model loaded successfully")
@@ -32,18 +36,20 @@ class WhisperxClient(ASRClientInterface):
             logger.error(f"❌ Failed to initialize WhisperX model: {e}")
             raise ASRError("Failed to initialize WhisperX model") from e
 
-    # 추론 서버 워커는 gpu 1개마다 띄운다 했을 때 동시에 처리할 작업수를 5개정도로 제한하면 되려나? 서버에서 추론하는 부분에 asyncio 세마포어 적용
+        self._lock = asyncio.Lock()
+
+    # 비동기 병렬처리는 불가능 https://github.com/m-bain/whisperX/issues/861
+    # 모델 자체에서 lock을 이용하여 동시에 모델을 접근하는 상황을 예방하고 서버 replicas를 늘려서 gpu최대로 사용하기
+    def _run_transcription(self, audio_chunk_np: np.ndarray):
+        result = self.model.transcribe(audio_chunk_np, batch_size=self.batch_size)
+        clean_segments = [segment.get("text", "").strip() for segment in result.get("segments", [])]
+        return " ".join(seg for seg in clean_segments if seg)
+
     async def transcribe(self, audio_chunk_np: np.ndarray) -> str:
-        def _run_transcription():
-            """WhisperX의 동기적인 transcribe 함수를 실행하는 래퍼 함수"""
+        async with self._lock:
             try:
-                result = self.model.transcribe(audio_chunk_np, batch_size=self.batch_size, language=self.language)
-                clean_segments = [segment.get("text", "").strip() for segment in result.get("segments", [])]
-                return " ".join(seg for seg in clean_segments if seg)
+                return await asyncio.to_thread(self._run_transcription, audio_chunk_np)
             except Exception as e:
                 logger.error(f"WhisperX transcription failed: {e}")
                 # ASRError를 발생시켜 일관된 예외 처리 보장
                 raise ASRError("WhisperX transcription failed") from e
-
-        # 동기 함수를 별도의 스레드에서 실행하여 이벤트 루프를 막지 않음
-        return await asyncio.to_thread(_run_transcription)
