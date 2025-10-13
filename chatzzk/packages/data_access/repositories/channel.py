@@ -1,84 +1,55 @@
-from datetime import datetime
+from sqlalchemy.orm import Session, sessionmaker
 
-from loguru import logger
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from chatzzk.packages.schemas.orm.models import ChannelORM, PlatformORM
 
-from chatzzk.packages.schemas.db_models import ChzzkChannelORM
+from . import chzzk_channel_logic
+from .channel_logic_interface import ChannelLogicInterface
 
 
 class ChannelRepository:
-    def __init__(self, db: Session):
-        self.db = db
+    """플랫폼 중립적인 채널 애그리거트 데이터 접근을 캡슐화합니다."""
 
-    def get_by_channel_id(self, channel_id: str) -> ChzzkChannelORM | None:
-        """channel_id로 채널을 조회합니다."""
-        return self.db.query(ChzzkChannelORM).filter(ChzzkChannelORM.channel_id == channel_id).first()
+    def __init__(self, db_session_factory: sessionmaker[Session]):
+        self.db_session_factory = db_session_factory
+        # 플랫폼 코드와 해당 플랫폼의 로직 모듈을 매핑하는 레지스트리
+        # 타입 힌트를 통해 모든 로직 모듈이 인터페이스를 준수함을 명시
+        self.logic_registry: dict[str, ChannelLogicInterface] = {
+            "chzzk": chzzk_channel_logic,
+            # "youtube": youtube_channel_logic, # 유튜브 추가 시 등록
+        }
 
-    def get_or_create_channel(
-        self, channel_id: str, channel_name: str, platform_id: int
-    ) -> tuple[ChzzkChannelORM, bool]:
+    def get_by_platform_id(self, platform_code: str, platform_channel_id: str) -> ChannelORM | None:
         """
-        channel_id로 채널을 조회하고, 없으면 새로 생성합니다.
-        Race Condition 발생 시에도 멱등성을 보장합니다.
-        :return: (채널 객체, 생성 여부 bool)
+        플랫폼에 맞는 로직을 호출하여 채널 정보를 조회합니다.
         """
-        db_channel = self.get_by_channel_id(channel_id)
-        if db_channel:
-            return db_channel, False
+        logic_module = self.logic_registry.get(platform_code)
+        if not logic_module:
+            raise ValueError(f"Unsupported platform code: {platform_code}")
 
-        try:
-            logger.info(f"Channel not found for channel_id: {channel_id}. Creating new one.")
-            db_channel = ChzzkChannelORM(channel_id=channel_id, channel_name=channel_name, platform_id=platform_id)
-            self.db.add(db_channel)
-            self.db.commit()
-            self.db.refresh(db_channel)
-            logger.success(f"Successfully created channel: {channel_name} ({channel_id})")
-            return db_channel, True
-        except IntegrityError:  # 동시 생성 요청으로 인한 UNIQUE 제약조건 위반
-            self.db.rollback()
-            logger.warning(f"Race condition detected for channel {channel_id}. Re-fetching.")
-            # 다른 워커가 먼저 생성했으므로, 다시 조회하여 반환
-            db_channel = self.get_by_channel_id(channel_id)
-            return db_channel, False
-        except Exception as e:
-            self.db.rollback()
-            logger.error(f"Failed to create channel {channel_name}: {e}")
-            raise
+        with self.db_session_factory() as session:
+            return logic_module.get_by_platform_id(session, platform_channel_id)
 
-    def get_active_list(self) -> list[ChzzkChannelORM]:
-        """데이터 수집이 활성화된 모든 채널 목록을 반환합니다."""
-        return self.db.query(ChzzkChannelORM).filter(ChzzkChannelORM.allow_data_collection).all()
-
-    def update_last_crawled_at(
-        self, channel_id: str, new_crawl_time: datetime, previous_crawl_time: datetime | None
-    ) -> bool:
+    def create(self, platform: PlatformORM, **kwargs) -> ChannelORM:
         """
-        Lost Update 문제를 방지하기 위해 조건부 업데이트(낙관적 잠금)를 사용합니다.
-        이전에 읽었던 crawl_time을 조건으로 넣어, 그 사이에 값이 변경되지 않았을 때만 업데이트합니다.
-        :return: 업데이트 성공 시 True, 실패(충돌 발생) 시 False
+        플랫폼에 맞는 로직을 호출하여 새로운 채널을 생성하고 DB에 저장합니다.
+        트랜잭션 관리를 책임집니다.
         """
-        try:
-            query = self.db.query(ChzzkChannelORM).filter(ChzzkChannelORM.channel_id == channel_id)
+        logic_module = self.logic_registry.get(platform.platform_code)
+        if not logic_module:
+            raise ValueError(f"Unsupported platform code: {platform.platform_code}")
 
-            # 조건부 업데이트를 위한 WHERE 절 추가
-            if previous_crawl_time is not None:
-                query = query.filter(ChzzkChannelORM.last_vod_crawled_at == previous_crawl_time)
-            else:
-                query = query.filter(ChzzkChannelORM.last_vod_crawled_at.is_(None))
+        with self.db_session_factory() as session:
+            try:
+                # 1. 실제 객체 생성은 로직 모듈에 위임
+                new_channel = logic_module.create(session, platform, **kwargs)
 
-            result = query.update({"last_vod_crawled_at": new_crawl_time}, synchronize_session=False)
+                # 2. 트랜잭션 커밋
+                session.commit()
 
-            self.db.commit()
+                # 3. DB의 최신 정보로 객체 새로고침
+                session.refresh(new_channel)
 
-            if result == 0:
-                # 업데이트된 행이 0개 -> 다른 워커가 먼저 값을 변경했음 (충돌 발생)
-                logger.warning(f"Optimistic lock failed for channel {channel_id}. Another worker may have updated it.")
-                return False
-
-            logger.success(f"Updated last_vod_crawled_at for channel {channel_id}.")
-            return True
-        except Exception as e:
-            self.db.rollback()
-            logger.error(f"Failed to update last_vod_crawled_at for channel {channel_id}: {e}")
-            raise
+                return new_channel
+            except Exception:
+                session.rollback()
+                raise

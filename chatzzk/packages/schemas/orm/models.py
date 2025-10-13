@@ -4,19 +4,20 @@ from sqlalchemy import (
     Column,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Integer,
     SmallInteger,
     String,
     TypeDecorator,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import relationship
 
-from chatzzk.packages.constants.service_codes import (
-    VodProcessStatus,
-)
+from chatzzk.packages.constants.service_codes import ResultObjectFileType, VodProcessStatus
+from chatzzk.packages.data_access.db.base import Base
 
 
 class StringAsInt(TypeDecorator):
@@ -39,118 +40,203 @@ class StringAsInt(TypeDecorator):
             return str(value)
 
 
-class Base(DeclarativeBase):
-    pass
-
-
 class PlatformORM(Base):
     __tablename__ = "platforms"
 
     id = Column(SmallInteger, primary_key=True)
     platform_code = Column(String(50), unique=True, nullable=False)
     platform_name = Column(String(100), nullable=False)
-    donation_unit = Column(String(50))
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    donation_unit = Column(String(50), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
-    chzzk_channels = relationship("ChzzkChannelORM", back_populates="platform")
+    channels = relationship("ChannelORM", back_populates="platform")
+
+
+class ChannelORM(Base):
+    __tablename__ = "channels"
+    id = Column(BigInteger, primary_key=True)
+    platform_id = Column(SmallInteger, ForeignKey("platforms.id"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    platform = relationship("PlatformORM", back_populates="channels")
+    vods = relationship("VodORM", back_populates="channel", cascade="all, delete-orphan")
+    setting = relationship("ChannelSettingORM", back_populates="channel", uselist=False, cascade="all, delete-orphan")
+    llm_metadata = relationship(
+        "ChannelLlmMetadataORM", back_populates="channel", uselist=False, cascade="all, delete-orphan"
+    )
+    chzzk_channel = relationship(
+        "ChzzkChannelORM", back_populates="channel", uselist=False, cascade="all, delete-orphan"
+    )
+
+
+class VodORM(Base):
+    __tablename__ = "vods"
+    id = Column(BigInteger, primary_key=True)
+    channel_id = Column(BigInteger, ForeignKey("channels.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    # Relationships
+    channel = relationship("ChannelORM", back_populates="vods")
+    result_object_keys = relationship("ResultObjectKeyORM", back_populates="vod", cascade="all, delete-orphan")
+    processing_status = relationship(
+        "VodProcessingStatusORM", back_populates="vod", uselist=False, cascade="all, delete-orphan"
+    )
+    processing_history = relationship(
+        "VodProcessingHistoryORM", back_populates="vod", uselist=False, cascade="all, delete-orphan"
+    )
+    chzzk_vod = relationship("ChzzkVodORM", back_populates="vod", uselist=False, cascade="all, delete-orphan")
+
+
+class ChannelSettingORM(Base):
+    __tablename__ = "channel_settings"
+
+    id = Column(BigInteger, primary_key=True)
+    channel_id = Column(BigInteger, ForeignKey("channels.id", ondelete="CASCADE"), unique=True, nullable=False)
+
+    allow_data_collection = Column(Boolean, nullable=False, default=False)
+    is_exposure_default = Column(Boolean, nullable=False, default=True)
+    allow_detailed_stats = Column(Boolean, nullable=False, default=False)
+    last_vod_crawled_at = Column(DateTime(timezone=True), nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    channel = relationship("ChannelORM", back_populates="setting")
+
+
+class ChannelLlmMetadataORM(Base):
+    __tablename__ = "channel_llm_metadatas"
+
+    id = Column(BigInteger, primary_key=True)
+    channel_id = Column(BigInteger, ForeignKey("channels.id", ondelete="CASCADE"), unique=True, nullable=False)
+
+    metadata_description = Column(JSONB, nullable=False)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    channel = relationship("ChannelORM", back_populates="llm_metadata")
+
+
+class ResultObjectKeyORM(Base):
+    __tablename__ = "result_object_keys"
+    __table_args__ = (UniqueConstraint("vod_id", "file_type", name="uq_vod_id_file_type"),)
+
+    id = Column(BigInteger, primary_key=True)
+    vod_id = Column(BigInteger, ForeignKey("vods.id", ondelete="CASCADE"), nullable=False)
+
+    file_type = Column(Enum(ResultObjectFileType), nullable=False)
+    object_key = Column(String(255), nullable=False)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    vod = relationship("VodORM", back_populates="result_object_keys")
+
+
+class VodProcessingStatusORM(Base):
+    __tablename__ = "vod_processing_statuses"
+
+    id = Column(BigInteger, primary_key=True)
+    vod_id = Column(BigInteger, ForeignKey("vods.id", ondelete="CASCADE"), unique=True, nullable=False)
+
+    status = Column(Enum(VodProcessStatus), nullable=False)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    vod = relationship("VodORM", back_populates="processing_status")
+
+
+class VodProcessingHistoryORM(Base):
+    __tablename__ = "vod_processing_histories"
+
+    id = Column(BigInteger, primary_key=True)
+    vod_id = Column(BigInteger, ForeignKey("vods.id", ondelete="CASCADE"), unique=True, nullable=False)
+
+    status_details = Column(JSONB, nullable=False)
+    fail_count = Column(SmallInteger, nullable=False, default=0)
+
+    started_at = Column(DateTime(timezone=True), nullable=True)
+    archived_at = Column(DateTime(timezone=True), nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    vod = relationship("VodORM", back_populates="processing_history")
 
 
 class ChzzkChannelORM(Base):
     __tablename__ = "chzzk_channels"
 
-    id = Column(BigInteger, primary_key=True)
-    platform_id = Column(SmallInteger, ForeignKey("platforms.id"), nullable=False, index=True)
-    channel_id = Column(String(255), unique=True, nullable=False, index=True)
-    channel_name = Column(String(255), nullable=False)
-    is_verified = Column(Boolean, default=False)
-    allow_data_collection = Column(Boolean, default=False, index=True)
-    is_exposure_default = Column(Boolean, default=True)
-    allow_detailed_stats = Column(Boolean, default=False)
-    channel_metadata = Column(JSONB, nullable=True)
-    last_vod_crawled_at = Column(DateTime(timezone=True), nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-
-    platform = relationship("PlatformORM", back_populates="chzzk_channels")
+    id = Column(BigInteger, ForeignKey("channels.id", ondelete="CASCADE"), primary_key=True)
+    channel_id = Column(String(100), unique=True, nullable=False)
+    channel_name = Column(String(100), nullable=False)
+    is_verified = Column(Boolean, nullable=False, default=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    channel = relationship("ChannelORM", back_populates="chzzk_channel")
     vods = relationship("ChzzkVodORM", back_populates="channel", cascade="all, delete-orphan")
 
 
 class ChzzkVodORM(Base):
     __tablename__ = "chzzk_vods"
 
-    id = Column(BigInteger, primary_key=True)
-    video_no = Column(StringAsInt, unique=True, nullable=False, index=True)
-    video_title = Column(String(500))
-    duration = Column(Integer)
+    id = Column(BigInteger, ForeignKey("vods.id", ondelete="CASCADE"), primary_key=True)
+    channel_id = Column(BigInteger, ForeignKey("chzzk_channels.id", ondelete="CASCADE"), nullable=False, index=True)
+    video_no = Column(StringAsInt, unique=True, nullable=False)
+    video_title = Column(String(255), nullable=False)
+    duration = Column(Integer, nullable=False)
     video_category_value = Column(String(100))
     publish_date = Column(DateTime(timezone=True))
     live_open_date = Column(DateTime(timezone=True))
-
-    channel_pk = Column(BigInteger, ForeignKey("chzzk_channels.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    vod = relationship("VodORM", back_populates="chzzk_vod")
     channel = relationship("ChzzkChannelORM", back_populates="vods")
-
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-
-    processing_status = relationship(
-        "ChzzkVodProcessingStatusORM", back_populates="vod", uselist=False, cascade="all, delete-orphan"
+    chat_analytics = relationship(
+        "ChzzkVodChatAnalyticsORM", back_populates="vod", uselist=False, cascade="all, delete-orphan"
     )
-    analytics = relationship("ChzzkVodAnalyticsORM", back_populates="vod", uselist=False, cascade="all, delete-orphan")
-
-    # 스토리지에 저장된 파일들의 키 (경로)
-    temp_video_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    temp_audio_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    temp_chat_entries_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    temp_asr_entries_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
-
-    final_video_context_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    final_chat_entries_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    final_asr_entries_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    final_summary_entries_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    final_meta_summary_entries_storage_key: Mapped[str | None] = mapped_column(String(500), nullable=True)
-
-
-class ChzzkVodProcessingStatusORM(Base):
-    __tablename__ = "chzzk_vod_processing_status"
-
-    id = Column(BigInteger, primary_key=True)
-    vod_pk = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), unique=True, nullable=False)
-    process_status = Column(
-        Enum(VodProcessStatus, name="vod_process_status_enum", native_enum=False),
-        nullable=False,
-        default=VodProcessStatus.PENDING,
-        index=True,
+    asr_analytics = relationship(
+        "ChzzkVodAsrAnalyticsORM", back_populates="vod", uselist=False, cascade="all, delete-orphan"
     )
-    status_details = Column(JSONB, nullable=True)
-    retry_count = Column(Integer, nullable=False, default=0, server_default="0")
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-
-    vod = relationship("ChzzkVodORM", back_populates="processing_status")
 
 
-class ChzzkVodAnalyticsORM(Base):
-    __tablename__ = "chzzk_vod_analytics"
+class ChzzkVodChatAnalyticsORM(Base):
+    __tablename__ = "chzzk_vod_chat_analytics"
 
-    id = Column(BigInteger, primary_key=True)
-    vod_pk = Column(
-        BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), unique=True, nullable=False, index=True
-    )
-    total_chat_count = Column(Integer)
-    total_donation_count = Column(Integer)
-    total_donation_amount = Column(Integer)
-    donor_count = Column(Integer)
-    anonymous_donation_amount = Column(Integer)
-    anonymous_donation_count = Column(Integer)
-    chat_os_type_counts = Column(JSONB)
-    chat_participant_count = Column(Integer)
-    chat_participant_subscription_counts = Column(JSONB)
-    chat_count_by_subscription = Column(JSONB)
-    chat_participant_chat_counts = Column(JSONB)
+    id = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), primary_key=True)
+    total_chat_count = Column(Integer, nullable=False)
+    chat_os_type_counts = Column(JSONB, nullable=False)
+    chat_participant_count = Column(Integer, nullable=False)
+    chat_participant_chat_counts = Column(JSONB, nullable=False)
+    chat_count_by_subscription = Column(JSONB, nullable=False)
+    hidden_chat_count = Column(Integer, nullable=False)
+    avg_chat_count_per_minute = Column(Float, nullable=False)
+    total_donation_count = Column(Integer, nullable=False)
+    total_donation_amount = Column(Float, nullable=False)
+    donor_count = Column(Integer, nullable=False)
+    anonymous_donation_amount = Column(Float, nullable=False)
+    anonymous_donation_count = Column(Integer, nullable=False)
+    avg_donation_amount = Column(Float, nullable=False)
+    avg_donation_count_per_minute = Column(Float, nullable=False)
     mission_stats = Column(JSONB)
-    hidden_chat_count = Column(Integer)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    vod = relationship("ChzzkVodORM", back_populates="chat_analytics")
 
-    vod = relationship("ChzzkVodORM", back_populates="analytics")
+
+class ChzzkVodAsrAnalyticsORM(Base):
+    __tablename__ = "chzzk_vod_asr_analytics"
+
+    id = Column(BigInteger, ForeignKey("chzzk_vods.id", ondelete="CASCADE"), primary_key=True)
+    total_speech_time_ms = Column(BigInteger, nullable=False)
+    avg_speech_time_per_minute = Column(Float, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    vod = relationship("ChzzkVodORM", back_populates="asr_analytics")

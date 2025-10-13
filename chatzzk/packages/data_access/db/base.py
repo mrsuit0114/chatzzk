@@ -1,12 +1,5 @@
-from loguru import logger
-from sqlalchemy import Engine
+from sqlalchemy.orm import declarative_base
 
-# ORM 모델 임포트
-from chatzzk.packages.schemas.db_models import Base
-
-
-def create_all_tables(engine: Engine):
-    """DB에 정의된 모든 테이블을 생성합니다. (최초 1회 실행용)"""
-    logger.info("Initializing database tables...")
-    Base.metadata.create_all(bind=engine)
-    logger.success("Database tables initialized successfully.")
+# Create a single DeclarativeBase instance for the entire application's ORM models.
+# All ORM models will inherit from this Base.
+Base = declarative_base()
