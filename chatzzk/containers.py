@@ -2,7 +2,6 @@ from dependency_injector import containers, providers
 
 from chatzzk.packages.clients.containers import ClientsContainer
 from chatzzk.packages.data_access.containers import DataAccessContainer
-from chatzzk.services.collector.containers import CollectorContainer
 
 
 class AppContainer(containers.DeclarativeContainer):
@@ -21,5 +20,3 @@ class AppContainer(containers.DeclarativeContainer):
         ClientsContainer,
         config=config,
     )
-
-    collector = providers.Container(CollectorContainer, clients=clients, data_access=data_access)

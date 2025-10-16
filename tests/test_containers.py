@@ -4,7 +4,6 @@ from chatzzk.containers import AppContainer
 from chatzzk.packages.clients._http.client import BaseHttpClient
 from chatzzk.packages.data_access.repositories.channel import ChannelRepository
 from chatzzk.packages.schemas.config.settings import Settings
-from chatzzk.services.collector.chzzk.chzzk_service import ChzzkCollectorService
 
 
 @pytest.fixture(scope="module")
@@ -39,10 +38,6 @@ def test_provider_types(app_container: AppContainer):
     # clients 레이어 검증
     base_http_client = app_container.clients.base_http_client()
     assert isinstance(base_http_client, BaseHttpClient)
-
-    # services 레이어 검증
-    collector_service = app_container.collector.chzzk_collector_service()
-    assert isinstance(collector_service, ChzzkCollectorService)
 
 
 def test_singleton_and_factory_behavior(app_container: AppContainer):

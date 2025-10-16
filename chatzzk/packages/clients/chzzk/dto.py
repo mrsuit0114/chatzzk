@@ -16,6 +16,7 @@ class ChannelInfo(BaseModel):
 
     channel_id: str = Field(alias="channelId")
     channel_name: str = Field(alias="channelName")
+    channel_image_url: str = Field(alias="channelImageUrl")
     verified_mark: bool = Field(alias="verifiedMark")
     follower_count: int = Field(alias="followerCount")
     open_live: bool = Field(alias="openLive")
