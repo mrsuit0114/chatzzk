@@ -6,10 +6,10 @@ import numpy as np
 import pytest
 
 from chatzzk.packages.clients._http.client import BaseHttpClient
-from chatzzk.packages.clients.ml.asr.asr_http_client import ASRHttpClient
+from chatzzk.packages.clients.ml.asr.asr_http_client import AsrHttpClient
 from chatzzk.packages.clients.ml.asr.whisperx_client import WhisperxClient
-from chatzzk.packages.clients.ml.exceptions import ASRError
-from chatzzk.packages.schemas.config.ml import ASRHttpConfig, WhisperXConfig
+from chatzzk.packages.clients.ml.exceptions import AsrError
+from chatzzk.packages.schemas.config.ml import AsrHttpConfig, WhisperXConfig
 
 
 @pytest.fixture
@@ -19,9 +19,9 @@ def mock_http_client() -> AsyncMock:
 
 
 @pytest.fixture
-def asr_http_config() -> ASRHttpConfig:
-    """테스트용 `ASRHttpConfig` 객체를 생성합니다."""
-    return ASRHttpConfig(asr_inference_server_url="http://mock-asr-server:8000")
+def asr_http_config() -> AsrHttpConfig:
+    """테스트용 `AsrHttpConfig` 객체를 생성합니다."""
+    return AsrHttpConfig(asr_inference_server_url="http://mock-asr-server:8000")
 
 
 @pytest.fixture
@@ -35,19 +35,19 @@ def whisperx_config() -> WhisperXConfig:
     )
 
 
-# --- ASRHttpClient Tests ---
+# --- AsrHttpClient Tests ---
 
 
-class TestASRHttpClient:
+class TestAsrHttpClient:
     @pytest.mark.asyncio
     async def test_transcribe_success(self, asr_http_config, mock_http_client):
         """
         목적: transcribe 메소드가 성공적으로 HTTP POST 요청을 보내고, 응답을 파싱하여 텍스트를 반환하는지 테스트합니다.
         검증: BaseHttpClient.post가 호출되고, 반환된 텍스트가 예상과 일치하는지 확인합니다.
         """
-        # 응답 모킹: ASRResponse Pydantic 모델에 맞는 dict 형태
+        # 응답 모킹: AsrResponse Pydantic 모델에 맞는 dict 형태
         mock_http_client.post.return_value = {"text": "hello world"}
-        client = ASRHttpClient(config=asr_http_config, http_client=mock_http_client)
+        client = AsrHttpClient(config=asr_http_config, http_client=mock_http_client)
         audio_chunk = np.random.rand(16000).astype(np.float32)
 
         result = await client.transcribe(audio_chunk)
@@ -61,14 +61,14 @@ class TestASRHttpClient:
     @pytest.mark.asyncio
     async def test_transcribe_http_error_raises_asr_error(self, asr_http_config, mock_http_client):
         """
-        목적: HTTP 통신 중 오류가 발생했을 때, ASRError 예외가 발생하는지 테스트합니다.
-        검증: aiohttp.ClientError가 발생하면, 이를 감싸서 ASRError를 raise하는지 확인합니다.
+        목적: HTTP 통신 중 오류가 발생했을 때, AsrError 예외가 발생하는지 테스트합니다.
+        검증: aiohttp.ClientError가 발생하면, 이를 감싸서 AsrError를 raise하는지 확인합니다.
         """
         mock_http_client.post.side_effect = aiohttp.ClientError("Connection failed")
-        client = ASRHttpClient(config=asr_http_config, http_client=mock_http_client)
+        client = AsrHttpClient(config=asr_http_config, http_client=mock_http_client)
         audio_chunk = np.random.rand(16000).astype(np.float32)
 
-        with pytest.raises(ASRError) as excinfo:
+        with pytest.raises(AsrError) as excinfo:
             await client.transcribe(audio_chunk)
 
         # 원래 예외(ClientError)가 체인으로 연결되어 있는지 확인
@@ -98,11 +98,11 @@ class TestWhisperxClient:
     @patch("chatzzk.packages.clients.ml.asr.whisperx_client.whisperx.load_model")
     def test_initialization_failure_raises_asr_error(self, mock_load_model, whisperx_config):
         """
-        목적: 모델 로딩 중 예외가 발생하면, ASRError가 발생하는지 테스트합니다.
+        목적: 모델 로딩 중 예외가 발생하면, AsrError가 발생하는지 테스트합니다.
         """
         mock_load_model.side_effect = Exception("Model file not found")
 
-        with pytest.raises(ASRError):
+        with pytest.raises(AsrError):
             WhisperxClient(config=whisperx_config, model_path="/models")
 
     @pytest.mark.asyncio
@@ -133,7 +133,7 @@ class TestWhisperxClient:
     @patch("chatzzk.packages.clients.ml.asr.whisperx_client.whisperx.load_model")
     async def test_transcribe_failure_raises_asr_error(self, mock_load_model, whisperx_config):
         """
-        목적: 모델 추론 중 예외가 발생하면, ASRError가 발생하는지 테스트합니다.
+        목적: 모델 추론 중 예외가 발생하면, AsrError가 발생하는지 테스트합니다.
         """
         mock_model_instance = MagicMock()
         mock_model_instance.transcribe.side_effect = Exception("CUDA out of memory")
@@ -142,5 +142,5 @@ class TestWhisperxClient:
         client = WhisperxClient(config=whisperx_config, model_path="/models")
         audio_chunk = np.random.rand(16000).astype(np.float32)
 
-        with pytest.raises(ASRError):
+        with pytest.raises(AsrError):
             await client.transcribe(audio_chunk)

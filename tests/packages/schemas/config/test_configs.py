@@ -6,7 +6,7 @@ from pydantic import TypeAdapter, ValidationError
 from chatzzk.packages.constants.service_codes import MIN_SILENCE_DURATION_MS
 from chatzzk.packages.schemas.config.api import ApiClientConfig, BaseHttpConfig, ChzzkApiConfig
 from chatzzk.packages.schemas.config.database import DatabaseConfig, PostgresConfig
-from chatzzk.packages.schemas.config.ml import ASRConfig, ASRHttpConfig, WhisperXConfig
+from chatzzk.packages.schemas.config.ml import AsrConfig, AsrHttpConfig, WhisperXConfig
 from chatzzk.packages.schemas.config.settings import Settings
 from chatzzk.packages.schemas.config.storage import MinioConfig
 
@@ -37,10 +37,10 @@ def test_database_config_missing_field():
 
 def test_asr_config_discriminator():
     """
-    목적: ASRConfig의 discriminator 필드('asr_implementation') 값에 따라 올바른 하위 모델로 파싱되는지 테스트합니다.
-    이유: 런타임에 어떤 ASR 클라이언트 구현체를 주입할지 결정하는 핵심 로직이 정확하게 동작하는지 보장하기 위함입니다.
+    목적: AsrConfig의 discriminator 필드('asr_implementation') 값에 따라 올바른 하위 모델로 파싱되는지 테스트합니다.
+    이유: 런타임에 어떤 Asr 클라이언트 구현체를 주입할지 결정하는 핵심 로직이 정확하게 동작하는지 보장하기 위함입니다.
     """
-    adapter = TypeAdapter(ASRConfig)
+    adapter = TypeAdapter(AsrConfig)
     # 1. "whisperx" 구현체 테스트
     whisperx_data = {
         "asr_implementation": "whisperx",
@@ -57,7 +57,7 @@ def test_asr_config_discriminator():
         "asr_inference_server_url": "http://localhost:8000",
     }
     asr_config_2 = adapter.validate_python(http_data)
-    assert isinstance(asr_config_2, ASRHttpConfig)
+    assert isinstance(asr_config_2, AsrHttpConfig)
     assert asr_config_2.asr_inference_server_url == "http://localhost:8000"
 
     # 3. 유효하지 않은 구현체 테스트

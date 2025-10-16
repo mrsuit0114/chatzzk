@@ -3,14 +3,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import numpy as np
 import pytest
 
-from chatzzk.packages.clients.ml.vad.silero_vad_client import SileroVADClient, init_vad_worker
-from chatzzk.packages.schemas.config.ml import SileroVADConfig
+from chatzzk.packages.clients.ml.vad.silero_vad_client import SileroVadClient, init_vad_worker
+from chatzzk.packages.schemas.config.ml import SileroVadConfig
 
 
 @pytest.fixture
-def silero_vad_config() -> SileroVADConfig:
-    """테스트용 `SileroVADConfig` 객체를 생성합니다."""
-    return SileroVADConfig(
+def silero_vad_config() -> SileroVadConfig:
+    """테스트용 `SileroVadConfig` 객체를 생성합니다."""
+    return SileroVadConfig(
         vad_implementation="silero",
         min_silence_duration_ms=500,
         max_speech_duration_s=30,
@@ -23,10 +23,10 @@ def silero_vad_config() -> SileroVADConfig:
 
 
 @pytest.fixture
-def vad_client(silero_vad_config: SileroVADConfig) -> SileroVADClient:
-    """테스트용 `SileroVADClient` 객체를 생성합니다."""
+def vad_client(silero_vad_config: SileroVadConfig) -> SileroVadClient:
+    """테스트용 `SileroVadClient` 객체를 생성합니다."""
     with patch("chatzzk.packages.clients.ml.vad.silero_vad_client.ProcessPoolExecutor"):
-        client = SileroVADClient(config=silero_vad_config)
+        client = SileroVadClient(config=silero_vad_config)
     return client
 
 
@@ -36,13 +36,13 @@ def test_client_initialization(mock_executor, silero_vad_config):
     목적: 클라이언트 초기화 시, ProcessPoolExecutor가 올바른 초기화 함수와 함께 생성되는지 테스트합니다.
     검증: `ProcessPoolExecutor`가 `max_workers`와 `initializer` 인자를 정확히 전달받아 호출되는지 확인합니다.
     """
-    SileroVADClient(config=silero_vad_config)
+    SileroVadClient(config=silero_vad_config)
     mock_executor.assert_called_once_with(max_workers=silero_vad_config.max_workers, initializer=init_vad_worker)
 
 
 @pytest.mark.asyncio
 @patch("chatzzk.packages.clients.ml.vad.silero_vad_client.asyncio.get_running_loop")
-async def test_detect_speech_orchestration(mock_get_loop, vad_client: SileroVADClient, silero_vad_config):
+async def test_detect_speech_orchestration(mock_get_loop, vad_client: SileroVadClient, silero_vad_config):
     """
     목적: detect_speech가 분할, 병렬처리, 병합의 전체 과정을 올바르게 조율하는지 테스트합니다.
     검증: 오디오를 분할하고, 각 조각을 병렬 실행 요청하며, 결과를 받아 병합 함수를 호출하는지 확인합니다.
@@ -50,7 +50,7 @@ async def test_detect_speech_orchestration(mock_get_loop, vad_client: SileroVADC
     # --- Arrange ---
     # loop.run_in_executor 모킹
     mock_loop_instance = MagicMock()
-    # 각 chunk에 대한 VAD 결과를 실제 데이터 타입인 dict의 리스트로 모킹
+    # 각 chunk에 대한 Vad 결과를 실제 데이터 타입인 dict의 리스트로 모킹
     mock_run_in_executor = AsyncMock(
         side_effect=[
             [{"start": 16000, "end": 32000}],
@@ -102,7 +102,7 @@ async def test_detect_speech_orchestration(mock_get_loop, vad_client: SileroVADC
 class TestSplitAudio:
     """_split_audio 메서드의 단위 테스트 클래스"""
 
-    def test_split_audio_even_division(self, vad_client: SileroVADClient):
+    def test_split_audio_even_division(self, vad_client: SileroVadClient):
         """
         목적: 오디오 길이가 max_workers로 나누어 떨어지는 경우, 오디오가 정확히 분할되는지 테스트합니다.
         검증: 생성된 청크의 수, 각 청크의 시작/끝 위치, 오버랩 적용 여부를 확인합니다.
@@ -123,7 +123,7 @@ class TestSplitAudio:
         # 마지막 청크: 3000 ~ 4000
         assert len(chunks[3]) == 1000
 
-    def test_split_audio_shorter_than_one_chunk(self, vad_client: SileroVADClient):
+    def test_split_audio_shorter_than_one_chunk(self, vad_client: SileroVadClient):
         """
         목적: 오디오 길이가 단일 청크 크기보다 작은 경우를 테스트합니다.
         """
@@ -203,7 +203,7 @@ class TestCombineTimestamps:
         ],
     )
     def test_merging_scenarios(
-        self, vad_client: SileroVADClient, chunk_results, chunk_starts, min_silence_samples, expected
+        self, vad_client: SileroVadClient, chunk_results, chunk_starts, min_silence_samples, expected
     ):
         """
         목적: 다양한 시나리오에 대해 _combine_chunk_timestamps 메서드가 정확히 동작하는지 테스트합니다.

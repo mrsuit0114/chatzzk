@@ -3,10 +3,10 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from chatzzk.packages.clients._http.client import BaseHttpClient
-from chatzzk.packages.clients.ml.asr.asr_http_client import ASRHttpClient
+from chatzzk.packages.clients.ml.asr.asr_http_client import AsrHttpClient
 from chatzzk.packages.clients.ml.asr.factory import create_asr_client
 from chatzzk.packages.clients.ml.asr.whisperx_client import WhisperxClient
-from chatzzk.packages.schemas.config.ml import ASRHttpConfig, WhisperXConfig
+from chatzzk.packages.schemas.config.ml import AsrHttpConfig, WhisperXConfig
 
 
 @pytest.fixture
@@ -22,9 +22,9 @@ def whisperx_config() -> WhisperXConfig:
 
 
 @pytest.fixture
-def asr_http_config() -> ASRHttpConfig:
-    """테스트용 `ASRHttpConfig` 객체를 생성합니다."""
-    return ASRHttpConfig(asr_implementation="http", asr_inference_server_url="http://mock")
+def asr_http_config() -> AsrHttpConfig:
+    """테스트용 `AsrHttpConfig` 객체를 생성합니다."""
+    return AsrHttpConfig(asr_implementation="http", asr_inference_server_url="http://mock")
 
 
 # whisperx.load_model 호출을 막기 위해 patch 사용
@@ -39,17 +39,17 @@ def test_create_asr_client_with_whisperx_config(mock_load_model, whisperx_config
 
 def test_create_asr_client_with_http_config(asr_http_config, mock_http_client):
     """
-    목적: ASRHttpConfig와 http_client가 주어졌을 때, 팩토리가 ASRHttpClient 인스턴스를 생성하는지 테스트합니다.
+    목적: AsrHttpConfig와 http_client가 주어졌을 때, 팩토리가 AsrHttpClient 인스턴스를 생성하는지 테스트합니다.
     """
     client = create_asr_client(model_config=asr_http_config, http_client=mock_http_client)
-    assert isinstance(client, ASRHttpClient)
+    assert isinstance(client, AsrHttpClient)
 
 
 def test_create_asr_client_with_http_config_missing_client_raises_error(asr_http_config):
     """
-    목적: ASRHttpConfig 사용 시 http_client를 전달하지 않으면 ValueError가 발생하는지 테스트합니다.
+    목적: AsrHttpConfig 사용 시 http_client를 전달하지 않으면 ValueError가 발생하는지 테스트합니다.
     """
-    with pytest.raises(ValueError, match="http_client must be provided for ASRHttpClient"):
+    with pytest.raises(ValueError, match="http_client must be provided for AsrHttpClient"):
         create_asr_client(model_config=asr_http_config)  # http_client 누락
 
 
@@ -60,5 +60,5 @@ def test_create_asr_client_with_unsupported_config_raises_error():
     # Pydantic 모델이 아닌 일반 객체를 사용하여 테스트
     unsupported_config = type("UnsupportedConfig", (), {"asr_implementation": "unknown"})()
 
-    with pytest.raises(TypeError, match="Unsupported ASR config type"):
+    with pytest.raises(TypeError, match="Unsupported Asr config type"):
         create_asr_client(model_config=unsupported_config)

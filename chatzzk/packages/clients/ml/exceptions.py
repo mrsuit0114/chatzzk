@@ -3,19 +3,19 @@ Custom exceptions for ML clients.
 """
 
 
-class MLException(Exception):
+class MlException(Exception):
     """Base exception for all ML client errors."""
 
     pass
 
 
-class ASRError(MLException):
-    """Raised for errors during ASR processing."""
+class AsrError(MlException):
+    """Raised for errors during Asr processing."""
 
     pass
 
 
-class VADError(MLException):
-    """Raised for errors during VAD processing."""
+class VadError(MlException):
+    """Raised for errors during Vad processing."""
 
     pass

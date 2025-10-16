@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from chatzzk.packages.schemas.config.api import ApiClientConfig
 from chatzzk.packages.schemas.config.database import DatabaseConfig
-from chatzzk.packages.schemas.config.ml import ASRConfig, VADConfig
+from chatzzk.packages.schemas.config.ml import AsrConfig, VadConfig
 from chatzzk.packages.schemas.config.storage import StorageConfig
 
 
@@ -21,6 +21,6 @@ class Settings(BaseSettings):
 
     db: DatabaseConfig
     storage: StorageConfig
-    asr: ASRConfig
-    vad: VADConfig
+    asr: AsrConfig
+    vad: VadConfig
     api: ApiClientConfig
