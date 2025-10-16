@@ -1,8 +1,8 @@
-"""initial migration from current ORM
+"""initial_migration_from_current_orm
 
-Revision ID: b4bc6af6b3c6
+Revision ID: a7e313a72021
 Revises:
-Create Date: 2025-10-13 22:38:19.745324
+Create Date: 2025-10-16 15:05:39.460892
 
 """
 
@@ -15,7 +15,7 @@ from sqlalchemy.dialects import postgresql
 from chatzzk.packages.schemas.orm.models import StringAsInt
 
 # revision identifiers, used by Alembic.
-revision: str = "b4bc6af6b3c6"
+revision: str = "a7e313a72021"
 down_revision: str | Sequence[str] | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -27,7 +27,7 @@ def upgrade() -> None:
     op.create_table(
         "platforms",
         sa.Column("id", sa.SmallInteger(), nullable=False),
-        sa.Column("platform_code", sa.String(length=50), nullable=False),
+        sa.Column("platform_code", sa.Enum("CHZZK", "YOUTUBE", "SOOP", name="platformcode"), nullable=False),
         sa.Column("platform_name", sa.String(length=100), nullable=False),
         sa.Column("donation_unit", sa.String(length=50), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),

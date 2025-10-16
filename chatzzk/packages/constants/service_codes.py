@@ -109,9 +109,16 @@ class StorageObject:
 
 class StorageBucket(str, Enum):
     CHZZK = "chzzk"
+    YOUTUBE = "youtube"
+    SOOP = "sooplive"
 
 
 # ----------------- constants ----------------------
+class PlatformCode(str, Enum):
+    CHZZK = "chzzk"
+    YOUTUBE = "youtube"
+    SOOP = "sooplive"
+
 
 START_DATE = datetime.date(2025, 1, 1)
 

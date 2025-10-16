@@ -16,7 +16,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
-from chatzzk.packages.constants.service_codes import ResultObjectFileType, VodProcessStatus
+from chatzzk.packages.constants.service_codes import PlatformCode, ResultObjectFileType, VodProcessStatus
 from chatzzk.packages.data_access.db.base import Base
 
 
@@ -44,7 +44,7 @@ class PlatformORM(Base):
     __tablename__ = "platforms"
 
     id = Column(SmallInteger, primary_key=True)
-    platform_code = Column(String(50), unique=True, nullable=False)
+    platform_code = Column(Enum(PlatformCode), unique=True, nullable=False)
     platform_name = Column(String(100), nullable=False)
     donation_unit = Column(String(50), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
