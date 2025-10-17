@@ -4,6 +4,7 @@ from chatzzk.packages.constants.service_codes import PlatformCode
 from chatzzk.packages.data_access.db.session import create_session_factory
 from chatzzk.packages.data_access.repositories import chzzk_channel_logic
 from chatzzk.packages.data_access.repositories.channel import ChannelRepository
+from chatzzk.packages.data_access.repositories.platform import PlatformRepository
 from chatzzk.packages.data_access.repositories.vod import VodRepository
 
 
@@ -22,6 +23,8 @@ class DataAccessContainer(containers.DeclarativeContainer):
     }
 
     _logic_registry_provider = providers.Object(_logic_registry)
+
+    platform_repo = providers.Factory(PlatformRepository, db_session_factory=db_session_factory)
 
     channel_repo = providers.Factory(
         ChannelRepository,
