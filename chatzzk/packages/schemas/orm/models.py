@@ -158,7 +158,7 @@ class ChzzkChannelORM(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
-    channel = relationship("ChannelORM", back_populates="chzzk_channel")
+    channel = relationship("ChannelORM")
 
 
 class ChzzkVodORM(Base):
@@ -176,7 +176,7 @@ class ChzzkVodORM(Base):
 
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
-    vod = relationship("VodORM", back_populates="chzzk_vod")
+    vod = relationship("VodORM")
 
 
 class ChzzkVodChatAnalyticsORM(Base):
@@ -203,7 +203,7 @@ class ChzzkVodChatAnalyticsORM(Base):
 
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
-    vod = relationship("ChzzkVodORM", back_populates="chat_analytics")
+    vod = relationship("VodORM")
 
 
 class ChzzkVodAsrAnalyticsORM(Base):
@@ -217,4 +217,4 @@ class ChzzkVodAsrAnalyticsORM(Base):
 
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
-    vod = relationship("ChzzkVodORM", back_populates="asr_analytics")
+    vod = relationship("VodORM")

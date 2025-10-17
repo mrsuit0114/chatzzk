@@ -1,8 +1,8 @@
 """initial_migration_from_current_orm
 
-Revision ID: 24a91906a21a
+Revision ID: 8412274b8fd1
 Revises:
-Create Date: 2025-10-17 20:24:05.245898
+Create Date: 2025-10-17 20:44:36.227593
 
 """
 
@@ -15,7 +15,7 @@ from sqlalchemy.dialects import postgresql
 from chatzzk.packages.schemas.orm.models import StringAsInt
 
 # revision identifiers, used by Alembic.
-revision: str = "24a91906a21a"
+revision: str = "8412274b8fd1"
 down_revision: str | Sequence[str] | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
