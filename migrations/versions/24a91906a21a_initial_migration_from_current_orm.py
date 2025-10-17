@@ -1,8 +1,8 @@
 """initial_migration_from_current_orm
 
-Revision ID: a7e313a72021
+Revision ID: 24a91906a21a
 Revises:
-Create Date: 2025-10-16 15:05:39.460892
+Create Date: 2025-10-17 20:24:05.245898
 
 """
 
@@ -15,7 +15,7 @@ from sqlalchemy.dialects import postgresql
 from chatzzk.packages.schemas.orm.models import StringAsInt
 
 # revision identifiers, used by Alembic.
-revision: str = "a7e313a72021"
+revision: str = "24a91906a21a"
 down_revision: str | Sequence[str] | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -29,9 +29,7 @@ def upgrade() -> None:
         sa.Column("id", sa.SmallInteger(), nullable=False),
         sa.Column("platform_code", sa.Enum("CHZZK", "YOUTUBE", "SOOP", name="platformcode"), nullable=False),
         sa.Column("platform_name", sa.String(length=100), nullable=False),
-        sa.Column("donation_unit", sa.String(length=50), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column("donation_unit", sa.String(length=50), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("platform_code"),
     )
@@ -39,6 +37,8 @@ def upgrade() -> None:
         "channels",
         sa.Column("id", sa.BigInteger(), nullable=False),
         sa.Column("platform_id", sa.SmallInteger(), nullable=False),
+        sa.Column("is_active", sa.Boolean(), nullable=False),
+        sa.Column("last_vod_crawled_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(
@@ -53,21 +53,6 @@ def upgrade() -> None:
         sa.Column("id", sa.BigInteger(), nullable=False),
         sa.Column("channel_id", sa.BigInteger(), nullable=False),
         sa.Column("metadata_description", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.ForeignKeyConstraint(["channel_id"], ["channels.id"], ondelete="CASCADE"),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("channel_id"),
-    )
-    op.create_table(
-        "channel_settings",
-        sa.Column("id", sa.BigInteger(), nullable=False),
-        sa.Column("channel_id", sa.BigInteger(), nullable=False),
-        sa.Column("allow_data_collection", sa.Boolean(), nullable=False),
-        sa.Column("is_exposure_default", sa.Boolean(), nullable=False),
-        sa.Column("allow_detailed_stats", sa.Boolean(), nullable=False),
-        sa.Column("last_vod_crawled_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(["channel_id"], ["channels.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
@@ -76,102 +61,41 @@ def upgrade() -> None:
     op.create_table(
         "chzzk_channels",
         sa.Column("id", sa.BigInteger(), nullable=False),
-        sa.Column("channel_id", sa.String(length=100), nullable=False),
+        sa.Column("channel_id", sa.BigInteger(), nullable=False),
+        sa.Column("platform_channel_id", sa.String(length=100), nullable=False),
         sa.Column("channel_name", sa.String(length=100), nullable=False),
         sa.Column("is_verified", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.ForeignKeyConstraint(["id"], ["channels.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["channel_id"], ["channels.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("channel_id"),
+        sa.UniqueConstraint("platform_channel_id"),
     )
     op.create_table(
         "vods",
         sa.Column("id", sa.BigInteger(), nullable=False),
         sa.Column("channel_id", sa.BigInteger(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(["channel_id"], ["channels.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_vods_channel_id"), "vods", ["channel_id"], unique=False)
     op.create_table(
-        "chzzk_vods",
-        sa.Column("id", sa.BigInteger(), nullable=False),
-        sa.Column("channel_id", sa.BigInteger(), nullable=False),
-        sa.Column("video_no", StringAsInt(), nullable=False),
-        sa.Column("video_title", sa.String(length=255), nullable=False),
-        sa.Column("duration", sa.Integer(), nullable=False),
-        sa.Column("video_category_value", sa.String(length=100), nullable=True),
-        sa.Column("publish_date", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("live_open_date", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.ForeignKeyConstraint(["channel_id"], ["chzzk_channels.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["id"], ["vods.id"], ondelete="CASCADE"),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("video_no"),
-    )
-    op.create_index(op.f("ix_chzzk_vods_channel_id"), "chzzk_vods", ["channel_id"], unique=False)
-    op.create_table(
-        "result_object_keys",
-        sa.Column("id", sa.BigInteger(), nullable=False),
-        sa.Column("vod_id", sa.BigInteger(), nullable=False),
-        sa.Column(
-            "file_type",
-            sa.Enum("CHAT_ENTRIES", "ASR_ENTRIES", "SUMMARIES", "META_SUMMARIES", name="resultobjectfiletype"),
-            nullable=False,
-        ),
-        sa.Column("object_key", sa.String(length=255), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.ForeignKeyConstraint(["vod_id"], ["vods.id"], ondelete="CASCADE"),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("vod_id", "file_type", name="uq_vod_id_file_type"),
-    )
-    op.create_table(
-        "vod_processing_histories",
-        sa.Column("id", sa.BigInteger(), nullable=False),
-        sa.Column("vod_id", sa.BigInteger(), nullable=False),
-        sa.Column("status_details", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-        sa.Column("fail_count", sa.SmallInteger(), nullable=False),
-        sa.Column("started_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("archived_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.ForeignKeyConstraint(["vod_id"], ["vods.id"], ondelete="CASCADE"),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("vod_id"),
-    )
-    op.create_table(
-        "vod_processing_statuses",
-        sa.Column("id", sa.BigInteger(), nullable=False),
-        sa.Column("vod_id", sa.BigInteger(), nullable=False),
-        sa.Column(
-            "status",
-            sa.Enum("PENDING", "PROCESSING", "COMPLETED", "FAILED", "PERMANENTLY_FAILED", name="vodprocessstatus"),
-            nullable=False,
-        ),
-        sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.ForeignKeyConstraint(["vod_id"], ["vods.id"], ondelete="CASCADE"),
-        sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint("vod_id"),
-    )
-    op.create_table(
         "chzzk_vod_asr_analytics",
         sa.Column("id", sa.BigInteger(), nullable=False),
+        sa.Column("vod_id", sa.BigInteger(), nullable=False),
         sa.Column("total_speech_time_ms", sa.BigInteger(), nullable=False),
         sa.Column("avg_speech_time_per_minute", sa.Float(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.ForeignKeyConstraint(["id"], ["chzzk_vods.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["vod_id"], ["vods.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("vod_id"),
     )
     op.create_table(
         "chzzk_vod_chat_analytics",
         sa.Column("id", sa.BigInteger(), nullable=False),
+        sa.Column("vod_id", sa.BigInteger(), nullable=False),
         sa.Column("total_chat_count", sa.Integer(), nullable=False),
         sa.Column("chat_os_type_counts", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
         sa.Column("chat_participant_count", sa.Integer(), nullable=False),
@@ -186,11 +110,68 @@ def upgrade() -> None:
         sa.Column("anonymous_donation_count", sa.Integer(), nullable=False),
         sa.Column("avg_donation_amount", sa.Float(), nullable=False),
         sa.Column("avg_donation_count_per_minute", sa.Float(), nullable=False),
-        sa.Column("mission_stats", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column("mission_stats", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.ForeignKeyConstraint(["vod_id"], ["vods.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("vod_id"),
+    )
+    op.create_table(
+        "chzzk_vods",
+        sa.Column("id", sa.BigInteger(), nullable=False),
+        sa.Column("vod_id", sa.BigInteger(), nullable=False),
+        sa.Column("video_no", StringAsInt(), nullable=False),
+        sa.Column("video_title", sa.String(length=255), nullable=True),
+        sa.Column("duration", sa.Integer(), nullable=False),
+        sa.Column("video_category_value", sa.String(length=100), nullable=True),
+        sa.Column("publish_date", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("live_open_date", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.ForeignKeyConstraint(["vod_id"], ["vods.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("video_no"),
+        sa.UniqueConstraint("vod_id"),
+    )
+    op.create_table(
+        "result_object_keys",
+        sa.Column("id", sa.BigInteger(), nullable=False),
+        sa.Column("vod_id", sa.BigInteger(), nullable=False),
+        sa.Column(
+            "file_type",
+            sa.Enum("CHAT_ENTRIES", "ASR_ENTRIES", "SUMMARIES", "META_SUMMARIES", name="resultobjectfiletype"),
+            nullable=False,
+        ),
+        sa.Column("object_key", sa.String(length=255), nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.ForeignKeyConstraint(["vod_id"], ["vods.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("vod_id", "file_type", name="uq_vod_id_file_type"),
+    )
+    op.create_table(
+        "vod_overall_processing_statuses",
+        sa.Column("id", sa.BigInteger(), nullable=False),
+        sa.Column("vod_id", sa.BigInteger(), nullable=False),
+        sa.Column(
+            "status",
+            sa.Enum("PENDING", "PROCESSING", "COMPLETED", "FAILED", "PERMANENTLY_FAILED", name="vodprocessstatus"),
+            nullable=False,
+        ),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
-        sa.ForeignKeyConstraint(["id"], ["chzzk_vods.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(["vod_id"], ["vods.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("vod_id"),
+    )
+    op.create_table(
+        "vod_processing_status_details",
+        sa.Column("id", sa.BigInteger(), nullable=False),
+        sa.Column("vod_id", sa.BigInteger(), nullable=False),
+        sa.Column("status_details", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.ForeignKeyConstraint(["vod_id"], ["vods.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("vod_id"),
     )
     # ### end Alembic commands ###
 
@@ -198,17 +179,15 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Downgrade schema."""
     # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_table("vod_processing_status_details")
+    op.drop_table("vod_overall_processing_statuses")
+    op.drop_table("result_object_keys")
+    op.drop_table("chzzk_vods")
     op.drop_table("chzzk_vod_chat_analytics")
     op.drop_table("chzzk_vod_asr_analytics")
-    op.drop_table("vod_processing_statuses")
-    op.drop_table("vod_processing_histories")
-    op.drop_table("result_object_keys")
-    op.drop_index(op.f("ix_chzzk_vods_channel_id"), table_name="chzzk_vods")
-    op.drop_table("chzzk_vods")
     op.drop_index(op.f("ix_vods_channel_id"), table_name="vods")
     op.drop_table("vods")
     op.drop_table("chzzk_channels")
-    op.drop_table("channel_settings")
     op.drop_table("channel_llm_metadatas")
     op.drop_index(op.f("ix_channels_platform_id"), table_name="channels")
     op.drop_table("channels")
