@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 from chatzzk.packages.constants.service_codes import PlatformCode
@@ -7,8 +8,9 @@ from chatzzk.packages.data_access.repositories.platform import PlatformRepositor
 def test_find_by_code_existing():
     """find_by_code 호출 시, DB에 플랫폼이 존재하면 해당 객체를 반환하는지 테스트"""
     # given: Mock 세션과 세션 팩토리 설정
+    mock_platform = SimpleNamespace(id=123)
     mock_session = MagicMock()
-    mock_session.query.return_value.filter_by.return_value.first.return_value = "EXISTING_PLATFORM"
+    mock_session.query.return_value.filter_by.return_value.first.return_value = mock_platform
 
     mock_session_factory = MagicMock()
     mock_session_factory.return_value.__enter__.return_value = mock_session
@@ -19,7 +21,7 @@ def test_find_by_code_existing():
     result = repo.find_by_code(PlatformCode.CHZZK)
 
     # then: Mock 객체가 반환하도록 설정한 값이 나왔는지 확인
-    assert result == "EXISTING_PLATFORM"
+    assert result == mock_platform
     mock_session.query.return_value.filter_by.assert_called_once_with(platform_code=PlatformCode.CHZZK)
 
 
