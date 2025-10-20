@@ -14,7 +14,7 @@ def test_add_platform_when_not_existing():
     service = PlatformService(platform_repo=mock_repo)
 
     # when
-    service.add_platform(PlatformCode.CHZZK, "치지직", "치즈")
+    service.get_or_add_platform(PlatformCode.CHZZK, "치지직", "치즈")
 
     # then
     # 1. find_by_code가 올바른 인자로 호출되었는가?
@@ -33,7 +33,7 @@ def test_add_platform_when_existing():
     service = PlatformService(platform_repo=mock_repo)
 
     # when
-    result = service.add_platform(PlatformCode.CHZZK, "치지직", "치즈")
+    result = service.get_or_add_platform(PlatformCode.CHZZK, "치지직", "치즈")
 
     # then
     # 1. find_by_code가 호출되었는가?

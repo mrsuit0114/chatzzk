@@ -8,7 +8,7 @@ class PlatformService:
     def __init__(self, platform_repo: PlatformRepository):
         self.platform_repo = platform_repo
 
-    def add_platform(self, platform_code: PlatformCode, platform_name: str, donation_unit: str) -> int:
+    def get_or_add_platform(self, platform_code: PlatformCode, platform_name: str, donation_unit: str) -> int:
         """
         새로운 플랫폼을 DB에 등록하거나, 이미 존재하면 기존 정보를 반환합니다.
         """
