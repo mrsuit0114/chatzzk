@@ -1,8 +1,8 @@
 """initial_migration_from_current_orm
 
-Revision ID: 8412274b8fd1
+Revision ID: a4895baa33b2
 Revises:
-Create Date: 2025-10-17 20:44:36.227593
+Create Date: 2025-10-20 17:52:29.987415
 
 """
 
@@ -15,7 +15,7 @@ from sqlalchemy.dialects import postgresql
 from chatzzk.packages.schemas.orm.models import StringAsInt
 
 # revision identifiers, used by Alembic.
-revision: str = "8412274b8fd1"
+revision: str = "a4895baa33b2"
 down_revision: str | Sequence[str] | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -52,7 +52,12 @@ def upgrade() -> None:
         "channel_llm_metadatas",
         sa.Column("id", sa.BigInteger(), nullable=False),
         sa.Column("channel_id", sa.BigInteger(), nullable=False),
-        sa.Column("metadata_description", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
+        sa.Column(
+            "metadata_description",
+            postgresql.JSONB(astext_type=sa.Text()),
+            server_default=sa.text("'{}'::jsonb"),
+            nullable=False,
+        ),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(["channel_id"], ["channels.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),

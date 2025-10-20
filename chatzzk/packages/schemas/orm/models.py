@@ -12,6 +12,7 @@ from sqlalchemy import (
     TypeDecorator,
     UniqueConstraint,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
@@ -95,7 +96,7 @@ class ChannelLlmMetadataORM(Base):
     id = Column(BigInteger, primary_key=True)
     channel_id = Column(BigInteger, ForeignKey("channels.id", ondelete="CASCADE"), unique=True, nullable=False)
 
-    metadata_description = Column(JSONB, nullable=False)
+    metadata_description = Column(JSONB, nullable=False, default=dict, server_default=text("'{}'::jsonb"))
 
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
