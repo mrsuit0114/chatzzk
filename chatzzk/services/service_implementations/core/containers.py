@@ -8,5 +8,6 @@ class CoreContainer(containers.DeclarativeContainer):
 
     platform_service = providers.Factory(
         PlatformService,
+        db_session_factory=data_access.db_session_factory,
         platform_repo=data_access.platform_repo,
     )

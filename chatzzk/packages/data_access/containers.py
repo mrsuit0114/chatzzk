@@ -24,7 +24,7 @@ class DataAccessContainer(containers.DeclarativeContainer):
 
     _logic_registry_provider = providers.Object(_logic_registry)
 
-    platform_repo = providers.Factory(PlatformRepository, db_session_factory=db_session_factory)
+    platform_repo = providers.Factory(PlatformRepository)
 
     channel_repo = providers.Factory(
         ChannelRepository,
