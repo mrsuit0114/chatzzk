@@ -6,8 +6,8 @@ from loguru import logger
 
 from chatzzk.packages.clients._http.client import BaseHttpClient
 from chatzzk.packages.clients.ml.asr.base import AsrClientInterface
-from chatzzk.packages.clients.ml.asr.dto import AsrResponse
 from chatzzk.packages.clients.ml.exceptions import AsrError
+from chatzzk.packages.schemas.clients.ml import AsrResponse
 from chatzzk.packages.schemas.config.ml import AsrHttpConfig
 
 

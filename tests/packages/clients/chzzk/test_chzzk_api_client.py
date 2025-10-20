@@ -5,6 +5,7 @@ import pytest
 
 from chatzzk.packages.clients._http.client import BaseHttpClient
 from chatzzk.packages.clients.chzzk.chzzk_api_client import ChzzkApiClient
+from chatzzk.packages.schemas.clients.chzzk import ChannelInfo
 from chatzzk.packages.schemas.config.api import ChzzkApiConfig
 
 
@@ -40,43 +41,51 @@ def chzzk_api_client(mock_http_client, test_chzzk_api_config):
     return ChzzkApiClient(test_chzzk_api_config, mock_http_client)
 
 
-# --- Tests for get_channel_info ---
+# --- Tests for fetch_channel_info ---
 
 
 @pytest.mark.asyncio
-async def test_get_channel_info_success(chzzk_api_client, mock_http_client):
+async def test_fetch_channel_info_success(chzzk_api_client, mock_http_client):
     """
-    목적: get_channel_info가 성공적인 API 응답을 올바르게 처리하는지 테스트합니다.
+    목적: fetch_channel_info가 성공적인 API 응답을 올바르게 처리하는지 테스트합니다.
     """
     channel_id = "test_channel_id"
-    mock_response_content = {"channelId": channel_id, "channelName": "Test Channel"}
+    mock_response_content = {
+        "channelId": channel_id,
+        "channelName": "Test Channel",
+        "channelImageUrl": "http://mock.image/url.jpg",
+        "verifiedMark": True,
+        "followerCount": 1234,
+        "openLive": False,
+        "subscriptionAvailability": True,
+    }
     mock_http_client.get.return_value = mock_response_content
 
-    result = await chzzk_api_client.get_channel_info(channel_id)
+    result = await chzzk_api_client.fetch_channel_info(channel_id)
 
     mock_http_client.get.assert_called_once_with(f"http://mock.api/channel/{channel_id}")
-    assert result == mock_response_content
+    assert result == ChannelInfo.model_validate(mock_response_content)
 
 
 @pytest.mark.asyncio
-async def test_get_channel_info_not_found(chzzk_api_client, mock_http_client):
+async def test_fetch_channel_info_not_found(chzzk_api_client, mock_http_client):
     """
-    목적: get_channel_info가 404 Not Found 에러 발생 시 None을 반환하는지 테스트합니다.
+    목적: fetch_channel_info가 404 Not Found 에러 발생 시 None을 반환하는지 테스트합니다.
     """
     channel_id = "not_found_channel"
     mock_http_client.get.side_effect = aiohttp.ClientResponseError(
         request_info=None, history=None, status=404, message="Not Found"
     )
 
-    result = await chzzk_api_client.get_channel_info(channel_id)
+    result = await chzzk_api_client.fetch_channel_info(channel_id)
 
     assert result is None
 
 
 @pytest.mark.asyncio
-async def test_get_channel_info_server_error(chzzk_api_client, mock_http_client):
+async def test_fetch_channel_info_server_error(chzzk_api_client, mock_http_client):
     """
-    목적: get_channel_info가 500 서버 에러 발생 시 예외를 그대로 raise하는지 테스트합니다.
+    목적: fetch_channel_info가 500 서버 에러 발생 시 예외를 그대로 raise하는지 테스트합니다.
     """
     channel_id = "server_error_channel"
     mock_http_client.get.side_effect = aiohttp.ClientResponseError(
@@ -84,20 +93,20 @@ async def test_get_channel_info_server_error(chzzk_api_client, mock_http_client)
     )
 
     with pytest.raises(aiohttp.ClientResponseError) as excinfo:
-        await chzzk_api_client.get_channel_info(channel_id)
+        await chzzk_api_client.fetch_channel_info(channel_id)
     assert excinfo.value.status == 500
 
 
 @pytest.mark.asyncio
-async def test_get_channel_info_network_error(chzzk_api_client, mock_http_client):
+async def test_fetch_channel_info_network_error(chzzk_api_client, mock_http_client):
     """
-    목적: get_channel_info가 네트워크 에러(ClientError) 발생 시 예외를 raise하는지 테스트합니다.
+    목적: fetch_channel_info가 네트워크 에러(ClientError) 발생 시 예외를 raise하는지 테스트합니다.
     """
     channel_id = "network_error_channel"
     mock_http_client.get.side_effect = aiohttp.ClientError("Mock Network Error")
 
     with pytest.raises(aiohttp.ClientError):
-        await chzzk_api_client.get_channel_info(channel_id)
+        await chzzk_api_client.fetch_channel_info(channel_id)
 
 
 # --- Tests for get_channel_vods_info ---
