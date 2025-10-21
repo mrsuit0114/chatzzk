@@ -21,7 +21,7 @@ from chatzzk.services.service_implementations.management.chzzk_channel_managemen
 
 pytestmark = pytest.mark.asyncio
 
-TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql+asyncpg://testuser:testpass@localhost/testdb")
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL", "postgresql+asyncpg://testuser:testpassword@localhost:5433/testdb")
 
 
 @pytest_asyncio.fixture(scope="module")
@@ -31,7 +31,10 @@ async def setup_database():
     Alembic을 사용하여 DB를 깨끗한 최신 상태로 만듭니다.
     """
     alembic_cfg = Config("alembic.ini")
+    alembic_cfg.set_main_option("sqlalchemy.url", TEST_DATABASE_URL.replace("+asyncpg", ""))
 
+    command.downgrade(alembic_cfg, "base")
+    command.upgrade(alembic_cfg, "head")
     # DB를 초기 상태로 되돌리고 최신 버전으로 업그레이드
     command.downgrade(alembic_cfg, "base")
     command.upgrade(alembic_cfg, "head")
