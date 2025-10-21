@@ -1,8 +1,8 @@
 """initial_migration_from_current_orm
 
-Revision ID: a4895baa33b2
+Revision ID: 479c4ff69dfa
 Revises:
-Create Date: 2025-10-20 17:52:29.987415
+Create Date: 2025-10-21 14:56:39.229595
 
 """
 
@@ -15,7 +15,7 @@ from sqlalchemy.dialects import postgresql
 from chatzzk.packages.schemas.orm.models import StringAsInt
 
 # revision identifiers, used by Alembic.
-revision: str = "a4895baa33b2"
+revision: str = "479c4ff69dfa"
 down_revision: str | Sequence[str] | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -27,7 +27,11 @@ def upgrade() -> None:
     op.create_table(
         "platforms",
         sa.Column("id", sa.SmallInteger(), nullable=False),
-        sa.Column("platform_code", sa.Enum("CHZZK", "YOUTUBE", "SOOP", name="platformcode"), nullable=False),
+        sa.Column(
+            "platform_code",
+            postgresql.ENUM("CHZZK", "YOUTUBE", "SOOP", name="platformcode", create_type=False),
+            nullable=False,
+        ),
         sa.Column("platform_name", sa.String(length=100), nullable=False),
         sa.Column("donation_unit", sa.String(length=50), nullable=True),
         sa.PrimaryKeyConstraint("id"),
@@ -143,7 +147,14 @@ def upgrade() -> None:
         sa.Column("vod_id", sa.BigInteger(), nullable=False),
         sa.Column(
             "file_type",
-            sa.Enum("CHAT_ENTRIES", "ASR_ENTRIES", "SUMMARIES", "META_SUMMARIES", name="resultobjectfiletype"),
+            postgresql.ENUM(
+                "CHAT_ENTRIES",
+                "ASR_ENTRIES",
+                "SUMMARIES",
+                "META_SUMMARIES",
+                name="resultobjectfiletype",
+                create_type=False,
+            ),
             nullable=False,
         ),
         sa.Column("object_key", sa.String(length=255), nullable=False),
@@ -158,7 +169,15 @@ def upgrade() -> None:
         sa.Column("vod_id", sa.BigInteger(), nullable=False),
         sa.Column(
             "status",
-            sa.Enum("PENDING", "PROCESSING", "COMPLETED", "FAILED", "PERMANENTLY_FAILED", name="vodprocessstatus"),
+            postgresql.ENUM(
+                "PENDING",
+                "PROCESSING",
+                "COMPLETED",
+                "FAILED",
+                "PERMANENTLY_FAILED",
+                name="vodprocessstatus",
+                create_type=False,
+            ),
             nullable=False,
         ),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),

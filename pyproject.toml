@@ -27,6 +27,7 @@ dependency-injector = "^4.48.1"
 alembic = "^1.16.5"
 aiolimiter = "^1.2.1"
 asyncpg = "^0.30.0"
+alembic-postgresql-enum = "^1.8.0"
 
 [tool.poetry.group.collector.dependencies]
 requests = "^2.32.5"
