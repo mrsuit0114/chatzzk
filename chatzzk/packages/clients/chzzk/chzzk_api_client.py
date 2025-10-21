@@ -1,9 +1,11 @@
 from typing import Any
 
 import aiohttp
+import pydantic
 from loguru import logger
 
 from chatzzk.packages.clients._http.client import BaseHttpClient
+from chatzzk.packages.schemas.clients.chzzk import ChannelInfo
 from chatzzk.packages.schemas.config.api import ChzzkApiConfig
 
 
@@ -18,7 +20,7 @@ class ChzzkApiClient:
         self._proxy: str | None = config.https_proxy
         self._vod_manifest_headers: dict[str, str] | None = config.vod_manifest_headers
 
-    async def get_channel_info(self, channel_id: str) -> dict[str, Any] | None:
+    async def fetch_channel_info(self, channel_id: str) -> ChannelInfo | None:
         """
         채널 정보를 가져옵니다.
         - 채널을 찾을 수 없는 경우(404): None을 반환합니다.
@@ -26,8 +28,15 @@ class ChzzkApiClient:
         """
         url = self.config.channel_info_template.format(channel_id=channel_id)
         try:
-            content = await self._http_client.get(url)
-            return content
+            raw_content = await self._http_client.get(url)
+            if raw_content is None:
+                return None
+
+            try:
+                return ChannelInfo.model_validate(raw_content)
+            except pydantic.ValidationError as e:
+                logger.error(f"Failed to validate channel info for {channel_id}: {e}")
+                raise
         except aiohttp.ClientResponseError as e:
             if e.status == 404:
                 logger.warning(f"Channel not found for id: {channel_id}. Returning None.")

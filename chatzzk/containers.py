@@ -3,6 +3,7 @@ from dependency_injector import containers, providers
 from chatzzk.packages.clients.containers import ClientsContainer
 from chatzzk.packages.data_access.containers import DataAccessContainer
 from chatzzk.services.service_implementations.core.containers import CoreContainer
+from chatzzk.services.service_implementations.management.containers import ManagementContainer
 
 
 class AppContainer(containers.DeclarativeContainer):
@@ -27,4 +28,8 @@ class AppContainer(containers.DeclarativeContainer):
     core_services = providers.Container(
         CoreContainer,
         data_access=data_access,
+    )
+
+    management_services = providers.Container(
+        ManagementContainer, core=core_services, data_access=data_access, clients=clients
     )

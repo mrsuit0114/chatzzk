@@ -1,59 +1,74 @@
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from chatzzk.packages.schemas.orm.models import (
     ChannelLlmMetadataORM,
     ChannelORM,
-    ChannelSettingORM,
     ChzzkChannelORM,
-    PlatformORM,
 )
+from chatzzk.packages.schemas.repositories.channel import ChzzkChannelCreateDTO
 
 
-def get_by_platform_id(session: Session, platform_channel_id: str) -> ChannelORM | None:
+async def get_by_platform_id(session: AsyncSession, platform_channel_id: str) -> ChannelORM | None:
     """
-    치지직 플랫폼의 채널 ID를 사용하여 채널 정보를 조회합니다.
+    치지직 플랫폼의 채널 ID를 사용하여 채널 정보를 조회하기 위한 쿼리문을 반환합니다.
     """
-    query = (
-        session.query(ChannelORM)
-        .options(
-            joinedload(ChannelORM.platform),
-            joinedload(ChannelORM.setting),
-            joinedload(ChannelORM.chzzk_channel),
-        )
-        .join(ChannelORM.chzzk_channel)
-        .filter(ChzzkChannelORM.channel_id == platform_channel_id)
+    stmt = (
+        select(ChannelORM)
+        .join(ChzzkChannelORM, ChannelORM.id == ChzzkChannelORM.channel_id)
+        .where(ChzzkChannelORM.platform_channel_id == platform_channel_id)
     )
-    return query.first()
+    result = await session.execute(stmt)
+    return result.scalars().first()
 
 
-def create(session: Session, platform: PlatformORM, **kwargs) -> ChannelORM:
+def create_channel(platform_id: int, dto: ChzzkChannelCreateDTO) -> ChannelORM:
     """
     치지직 채널 생성을 위한 상세 로직.
     필요한 모든 ORM 객체를 생성하고 관계를 설정하여 반환합니다.
     """
-    chzzk_channel_id = kwargs.get("chzzk_channel_id")
-    channel_name = kwargs.get("channel_name")
-    is_verified = kwargs.get("is_verified", False)
+    generic_channel = ChannelORM(platform_id=platform_id)
+    chzzk_channel = ChzzkChannelORM(channel=generic_channel, **dto.model_dump())
+    llm_metadata = ChannelLlmMetadataORM(channel=generic_channel)
 
-    if not all([chzzk_channel_id, channel_name]):
-        raise ValueError("chzzk_channel_id and channel_name are required for chzzk channel")
+    return generic_channel, chzzk_channel, llm_metadata
 
-    # 1. 제네릭 및 상세 정보 객체들을 메모리에 생성
-    generic_channel = ChannelORM(platform_id=platform.id)
-    chzzk_channel = ChzzkChannelORM(
-        channel_id=chzzk_channel_id,
-        channel_name=channel_name,
-        is_verified=is_verified,
-    )
-    setting = ChannelSettingORM()  # 기본값 사용
-    llm_metadata = ChannelLlmMetadataORM(metadata_description={})  # 비어있는 JSON으로 초기화
 
-    # 2. ORM 객체 간의 관계를 메모리에서 연결 (객체 그래프 구성)
-    chzzk_channel.channel = generic_channel
-    setting.channel = generic_channel
-    llm_metadata.channel = generic_channel
+# def get_discoverable_channels_for_platform(session: Session, offset: int = 0, limit: int = 100) -> list[ChannelORM]:
+#     stmt = (
+#         select(ChannelORM)
+#         .join(ChannelORM.setting)
+#         .join(ChannelORM.platform)  # PlatformORM과 조인하여 플랫폼 코드로 필터링
+#         .filter(ChannelSettingORM.allow_data_collection)
+#         .filter(PlatformORM.platform_code == PlatformCode.CHZZK)  # 치지직 플랫폼 채널만 필터링
+#         .order_by(nullsfirst(ChannelSettingORM.last_vod_crawled_at.asc()))
+#         .options(
+#             joinedload(ChannelORM.platform),
+#             joinedload(ChannelORM.chzzk_channel),
+#             joinedload(ChannelORM.setting),
+#         )
+#         .offset(offset)
+#         .limit(limit)
+#     )
+#     return session.scalars(stmt).all()
 
-    # 3. 최상위 객체를 세션에 추가. cascade 설정에 따라 연관 객체들도 함께 추가됨.
-    session.add(generic_channel)
 
-    return generic_channel
+# def update(session: Session, channel: ChannelORM, **kwargs) -> ChannelORM:
+#     """
+#     치지직 채널의 상세 정보를 업데이트합니다.
+#     """
+#     chzzk_channel = channel.chzzk_channel
+#     if not chzzk_channel:
+#         raise ValueError(f"ChzzkChannelORM not found for ChannelORM ID: {channel.id}")
+
+#     # kwargs에 제공된 필드를 업데이트합니다.
+#     if "channel_name" in kwargs:
+#         chzzk_channel.channel_name = kwargs["channel_name"]
+#     if "is_verified" in kwargs:
+#         chzzk_channel.is_verified = kwargs["is_verified"]
+#     # 필요한 경우 여기에 다른 chzzk-specific 필드 업데이트 로직을 추가합니다.
+
+#     session.add(chzzk_channel)  # 변경 사항을 세션에 반영
+#     session.flush()  # 변경 사항이 DB에 반영되도록 플러시 (아직 커밋은 아님)
+
+#     return channel  # 업데이트된 chzzk_channel을 포함하는 제네릭 채널 반환
