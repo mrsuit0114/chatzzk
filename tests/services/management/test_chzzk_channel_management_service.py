@@ -2,7 +2,6 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from chatzzk.packages.constants.service_codes import PlatformCode
 from chatzzk.packages.schemas.clients.chzzk import ChannelInfo
 from chatzzk.services.service_implementations.management.chzzk_channel_management_service import (
     ChzzkChannelManagementService,
@@ -47,7 +46,7 @@ async def test_add_channel_when_channel_exists(mock_repos):
     service = ChzzkChannelManagementService(**mock_repos)
 
     # when
-    result_id = await service.add_channel(PlatformCode.CHZZK.value, "existing_id")
+    result_id = await service.add_channel("existing_id")
 
     # then
     # 1. find_by_platform_channel_id가 올바른 session 객체와 함께 호출되었는지 확인
@@ -99,7 +98,7 @@ async def test_add_channel_when_new_channel(mock_repos):
     service = ChzzkChannelManagementService(**mock_repos)
 
     # when
-    result_id = await service.add_channel(PlatformCode.CHZZK.value, "new_chzzk_id")
+    result_id = await service.add_channel("new_chzzk_id")
 
     # then
     # 1. find 메서드들이 정상적으로 호출되었는지 확인

@@ -6,7 +6,7 @@ class ChannelManagement(Protocol):
     수집 대상인 '채널'을 관리하는 책임을 정의합니다.
     """
 
-    async def add_channel(self, platform_code: str, platform_channel_id: str) -> int:
+    async def add_channel(self, platform_channel_id: str) -> int:
         """
         플랫폼 고유 ID를 사용하여 새로운 채널을 DB에 등록하고,
         시스템의 통합 channel_id를 반환합니다.

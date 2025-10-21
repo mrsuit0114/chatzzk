@@ -25,21 +25,18 @@ class ChzzkChannelManagementService(ChannelManagement):
         self.channel_repo = channel_repo
         self.api_client = chzzk_api_client
 
-    async def add_channel(self, platform_code: str, platform_channel_id: str) -> int:
+    async def add_channel(self, platform_channel_id: str) -> int:
         """
         채널을 DB에 추가합니다.
         이미 존재하는 경우 해당 채널의 id를를 반환합니다.
         """
-        if platform_code != PlatformCode.CHZZK.value:
-            raise ValueError(f"This service only supports '{PlatformCode.CHZZK.value}'.")
-
         logger.info(f"Attempting to add new Chzzk channel: {platform_channel_id}")
 
         async with self.db_session_factory() as session:
             async with session.begin():
-                chzzk_platform = await self.platform_repo.find_by_code(session, platform_code)
+                chzzk_platform = await self.platform_repo.find_by_code(session, PlatformCode.CHZZK)
                 if chzzk_platform is None:
-                    raise ValueError(f"platform not found in db: {platform_code}")
+                    raise ValueError(f"platform not found in db: {PlatformCode.CHZZK}")
 
                 existing_channel = await self.channel_repo.find_by_platform_channel_id(
                     session, chzzk_platform, platform_channel_id
