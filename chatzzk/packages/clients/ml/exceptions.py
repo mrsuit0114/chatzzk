@@ -9,13 +9,13 @@ class MlException(Exception):
     pass
 
 
-class AsrError(MlException):
-    """Raised for errors during Asr processing."""
+class ASRError(MlException):
+    """Raised for errors during ASR processing."""
 
     pass
 
 
-class VadError(MlException):
-    """Raised for errors during Vad processing."""
+class VADError(MlException):
+    """Raised for errors during VAD processing."""
 
     pass

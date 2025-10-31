@@ -16,7 +16,7 @@ class RateLimitConfig(BaseModel):
     time_period: int = 1  # 시간 기준 (초)
 
 
-class BaseHttpConfig(BaseModel):
+class BaseHTTPConfig(BaseModel):
     retry: RetryConfig = Field(default_factory=RetryConfig)
     rate_limit: RateLimitConfig = Field(default_factory=RateLimitConfig)
     default_headers: dict = Field(
@@ -26,7 +26,7 @@ class BaseHttpConfig(BaseModel):
     )
 
 
-class ChzzkApiConfig(BaseModel):
+class ChzzkAPIConfig(BaseModel):
     channel_info_template: str
     channel_vods_info_template: str
     vod_info_template: str
@@ -40,8 +40,8 @@ class ChzzkApiConfig(BaseModel):
     https_proxy: str = Field(None)
 
 
-class ApiClientConfig(BaseModel):
+class APIClientConfig(BaseModel):
     """API 클라이언트의 모든 동작 설정을 포함하는 모델"""
 
-    base_http: BaseHttpConfig = Field(default_factory=BaseHttpConfig)
-    chzzk_api: ChzzkApiConfig = Field(default_factory=ChzzkApiConfig)
+    base_http: BaseHTTPConfig = Field(default_factory=BaseHTTPConfig)
+    chzzk_api: ChzzkAPIConfig = Field(default_factory=ChzzkAPIConfig)

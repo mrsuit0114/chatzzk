@@ -1,8 +1,10 @@
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from chatzzk.packages.schemas.config.api import ApiClientConfig
+from chatzzk.packages.schemas.config.api import APIClientConfig
 from chatzzk.packages.schemas.config.database import DatabaseConfig
-from chatzzk.packages.schemas.config.ml import AsrConfig, VadConfig
+from chatzzk.packages.schemas.config.discovery import DiscoveryServiceConfig
+from chatzzk.packages.schemas.config.ml import ASRConfig, VADConfig
 from chatzzk.packages.schemas.config.storage import StorageConfig
 
 
@@ -21,6 +23,8 @@ class Settings(BaseSettings):
 
     db: DatabaseConfig
     storage: StorageConfig
-    asr: AsrConfig
-    vad: VadConfig
-    api: ApiClientConfig
+    asr: ASRConfig
+    vad: VADConfig
+    api: APIClientConfig
+
+    discovery_service: DiscoveryServiceConfig = Field(default_factory=DiscoveryServiceConfig)

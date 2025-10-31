@@ -6,12 +6,12 @@ import torch
 import whisperx
 from loguru import logger
 
-from chatzzk.packages.clients.ml.asr.base import AsrClientInterface
-from chatzzk.packages.clients.ml.exceptions import AsrError
+from chatzzk.packages.clients.ml.asr.base import ASRClientInterface
+from chatzzk.packages.clients.ml.exceptions import ASRError
 from chatzzk.packages.schemas.config.ml import WhisperXConfig
 
 
-class WhisperxClient(AsrClientInterface):
+class WhisperxClient(ASRClientInterface):
     def __init__(self, config: WhisperXConfig, model_path: str | Path | None):
         logger.info("Initializing WhisperX model...")
         self.device = config.device if torch.cuda.is_available() else "cpu"
@@ -34,7 +34,7 @@ class WhisperxClient(AsrClientInterface):
             logger.info("✅ WhisperX model loaded successfully")
         except Exception as e:
             logger.error(f"❌ Failed to initialize WhisperX model: {e}")
-            raise AsrError("Failed to initialize WhisperX model") from e
+            raise ASRError("Failed to initialize WhisperX model") from e
 
         self._lock = asyncio.Lock()
 
@@ -51,5 +51,5 @@ class WhisperxClient(AsrClientInterface):
                 return await asyncio.to_thread(self._run_transcription, audio_chunk_np)
             except Exception as e:
                 logger.error(f"WhisperX transcription failed: {e}")
-                # AsrError를 발생시켜 일관된 예외 처리 보장
-                raise AsrError("WhisperX transcription failed") from e
+                # ASRError를 발생시켜 일관된 예외 처리 보장
+                raise ASRError("WhisperX transcription failed") from e

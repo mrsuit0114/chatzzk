@@ -5,7 +5,7 @@ from pydantic import BaseModel, Field
 from chatzzk.packages.constants.service_codes import MAX_SPEECH_DURATION_S, MIN_SILENCE_DURATION_MS, SAMPLE_RATE
 
 
-class SileroVadConfig(BaseModel):
+class SileroVADConfig(BaseModel):
     # 'vad_implementation'을 고정된 문자열 리터럴 타입으로 정의
     vad_implementation: Literal["silero"] = "silero"
     min_silence_duration_ms: int = Field(MIN_SILENCE_DURATION_MS)
@@ -15,12 +15,12 @@ class SileroVadConfig(BaseModel):
 
     max_workers: int = Field(
         4
-    )  # sileroVad 모델에 의존은 아니나 cpu사용 Vad가 가능하며 다른 모델 사용 예정이 없기 때문에 여기서 정의함
+    )  # sileroVAD 모델에 의존은 아니나 cpu사용 VAD가 가능하며 다른 모델 사용 예정이 없기 때문에 여기서 정의함
     overlap_num: int = Field(3)
     sample_chunk_size: int = Field(64)
 
 
-VadConfig = Annotated[SileroVadConfig, Field(discriminator="vad_implementation")]
+VADConfig = Annotated[SileroVADConfig, Field(discriminator="vad_implementation")]
 
 
 class WhisperXConfig(BaseModel):
@@ -33,11 +33,11 @@ class WhisperXConfig(BaseModel):
     model_path: str = "whisperx_models"
 
 
-class AsrHttpConfig(BaseModel):
+class ASRHTTPConfig(BaseModel):
     asr_implementation: Literal["http"] = "http"
     asr_inference_server_url: str
 
 
-AsrConfig = Annotated[WhisperXConfig | AsrHttpConfig, Field(discriminator="asr_implementation")]
+ASRConfig = Annotated[WhisperXConfig | ASRHTTPConfig, Field(discriminator="asr_implementation")]
 
-# UNEXPECTED_Asr_RESULTS: list[str] = ["뉴스", "고맙습니다", "감사합니다", "였습니다"]
+# UNEXPECTED_ASR_RESULTS: list[str] = ["뉴스", "고맙습니다", "감사합니다", "였습니다"]

@@ -7,21 +7,21 @@ import numpy as np
 import torch
 from loguru import logger
 
-from chatzzk.packages.clients.ml.exceptions import VadError
-from chatzzk.packages.clients.ml.vad.base import VadClientInterface
+from chatzzk.packages.clients.ml.exceptions import VADError
+from chatzzk.packages.clients.ml.vad.base import VADClientInterface
 from chatzzk.packages.constants.service_codes import MAX_SPEECH_DURATION_S, MIN_SILENCE_DURATION_MS
-from chatzzk.packages.schemas.config.ml import SileroVadConfig
+from chatzzk.packages.schemas.config.ml import SileroVADConfig
 
 # --- 멀티프로세싱을 위한 최상위 레벨 함수 정의 ---
 
 
 def init_vad_worker():
-    """각 자식 프로세스에서 Vad 모델을 초기화하는 함수"""
+    """각 자식 프로세스에서 VAD 모델을 초기화하는 함수"""
     global vad_model
     torch.set_num_threads(1)
     from silero_vad import load_silero_vad
 
-    logger.debug(f"Initializing Vad model in process {os.getpid()}...")
+    logger.debug(f"Initializing VAD model in process {os.getpid()}...")
     vad_model = load_silero_vad(onnx=True)
 
 
@@ -46,18 +46,18 @@ def process_vad_chunk(
         )
         return speech_timestamps
     except Exception as e:
-        logger.error(f"Vad detection failed in process {os.getpid()}: {e}")
-        raise VadError("Vad detection failed in worker process") from e
+        logger.error(f"VAD detection failed in process {os.getpid()}: {e}")
+        raise VADError("VAD detection failed in worker process") from e
 
 
-# --- SileroVadClient 클래스 --- Vad 작업 오케스트레이터
+# --- SileroVADClient 클래스 --- VAD 작업 오케스트레이터
 
 
-class SileroVadClient(VadClientInterface):
-    def __init__(self, config: SileroVadConfig):
+class SileroVADClient(VADClientInterface):
+    def __init__(self, config: SileroVADConfig):
         self.config = config
         self.executor = ProcessPoolExecutor(max_workers=config.max_workers, initializer=init_vad_worker)
-        logger.info(f"SileroVadClient initialized with ProcessPoolExecutor(max_workers={config.max_workers}).")
+        logger.info(f"SileroVADClient initialized with ProcessPoolExecutor(max_workers={config.max_workers}).")
 
     def _split_audio(self, audio_np: np.ndarray) -> tuple[list[np.ndarray], list[int]]:
         total_len = len(audio_np)
@@ -138,10 +138,10 @@ class SileroVadClient(VadClientInterface):
                 chunk_results, chunk_start_by_chunk_samples, self.config.min_silence_duration_samples
             )
         except Exception as e:
-            logger.error(f"An error occurred during parallel Vad processing: {e}")
-            raise VadError("Failed to execute Vad task in process pool") from e
+            logger.error(f"An error occurred during parallel VAD processing: {e}")
+            raise VADError("Failed to execute VAD task in process pool") from e
 
     def close(self):
         """애플리케이션 종료 시 Executor를 안전하게 종료합니다."""
-        logger.info("Shutting down Vad ProcessPoolExecutor...")
+        logger.info("Shutting down VAD ProcessPoolExecutor...")
         self.executor.shutdown()

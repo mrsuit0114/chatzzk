@@ -5,17 +5,17 @@ import aiohttp
 import pydantic
 from loguru import logger
 
-from chatzzk.packages.clients._http.client import BaseHttpClient
-from chatzzk.packages.schemas.clients.chzzk import ChannelInfo, ChannelVodsResponse, VodInfo, VodMeta
-from chatzzk.packages.schemas.config.api import ChzzkApiConfig
+from chatzzk.packages.clients._http.client import BaseHTTPClient
+from chatzzk.packages.schemas.clients.chzzk import ChannelInfo, ChannelVODsResponse, VODInfo, VODMeta
+from chatzzk.packages.schemas.config.api import ChzzkAPIConfig
 
 
-class ChzzkApiClient:
+class ChzzkAPIClient:
     """
     Chzzk API와의 통신을 담당하는 클라이언트.
     """
 
-    def __init__(self, config: ChzzkApiConfig, http_client: BaseHttpClient):
+    def __init__(self, config: ChzzkAPIConfig, http_client: BaseHTTPClient):
         self._http_client = http_client
         self.config = config
         self._proxy: str | None = config.https_proxy
@@ -53,7 +53,7 @@ class ChzzkApiClient:
 
     async def fetch_channel_vods(
         self, platform_channel_id: str, collect_after_timestamp_ms: int, page_size: int = 30
-    ) -> AsyncGenerator[VodMeta, None]:
+    ) -> AsyncGenerator[VODMeta, None]:
         """
         특정 채널의 VOD 메타데이터를 최신순으로 하나씩 반환하는 비동기 제너레이터입니다.
 
@@ -72,7 +72,7 @@ class ChzzkApiClient:
                 if raw_content is None:
                     break
 
-                response_data = ChannelVodsResponse.model_validate(raw_content)
+                response_data = ChannelVODsResponse.model_validate(raw_content)
 
             except Exception as e:
                 logger.error(f"Failed to fetch or parse VOD list page {page} for {platform_channel_id}: {e}")
@@ -93,7 +93,7 @@ class ChzzkApiClient:
 
             page += 1
 
-    async def fetch_vod_info(self, video_no: str) -> VodInfo | None:
+    async def fetch_vod_info(self, video_no: str) -> VODInfo | None:
         """
         VOD 상세 정보를 가져옵니다.
         - VOD를 찾을 수 없는 경우(404): None을 반환합니다.
@@ -106,7 +106,7 @@ class ChzzkApiClient:
                 return None
 
             try:
-                return VodInfo.model_validate(raw_content)
+                return VODInfo.model_validate(raw_content)
             except pydantic.ValidationError as e:
                 logger.error(f"Failed to validate vod info for {video_no}: {e}")
                 raise

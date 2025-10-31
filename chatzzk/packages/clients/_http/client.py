@@ -2,16 +2,16 @@ import aiohttp
 from aiolimiter import AsyncLimiter
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, wait_random
 
-from chatzzk.packages.schemas.config.api import BaseHttpConfig
+from chatzzk.packages.schemas.config.api import BaseHTTPConfig
 
 
-class BaseHttpClient:
+class BaseHTTPClient:
     """
     설정 주입이 가능한 범용 비동기 HTTP 클라이언트.
     - Rate Limit, 재시도 정책을 외부에서 설정 가능
     """
 
-    def __init__(self, config: BaseHttpConfig):
+    def __init__(self, config: BaseHTTPConfig):
         self._session = None
         self._headers = config.default_headers
 

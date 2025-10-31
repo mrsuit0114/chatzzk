@@ -54,7 +54,7 @@ class ChannelMeta(BaseModel):
     verified_mark: bool = Field(alias="verifiedMark")
 
 
-class VodInfo(BaseModel):  # video_no를 기준으로 스트리머를 추가할 가능성도 있기 때문에 채널에 대해 값을 추가할 것
+class VODInfo(BaseModel):  # video_no를 기준으로 스트리머를 추가할 가능성도 있기 때문에 채널에 대해 값을 추가할 것
     model_config = ConfigDict(validate_by_name=True, validate_by_alias=True, extra="ignore")
 
     video_no: Annotated[str, BeforeValidator(str)] = Field(alias="videoNo")
@@ -75,7 +75,7 @@ class VodInfo(BaseModel):  # video_no를 기준으로 스트리머를 추가할 
     m3u8_url: str | None = Field(default=None)
 
     @model_validator(mode="after")
-    def extract_m3u8_path(self) -> "VodInfo":
+    def extract_m3u8_path(self) -> "VODInfo":
         if self.live_rewind_playback_json:
             try:
                 parsed_json = json.loads(self.live_rewind_playback_json)
@@ -90,12 +90,12 @@ class VodInfo(BaseModel):  # video_no를 기준으로 스트리머를 추가할 
         return self
 
 
-class VodMeta(BaseModel):  # api요청을 최소화하기 위해 video_no를 필터링할 조건 후보는 파싱해서 보유할 것
+class VODMeta(BaseModel):  # api요청을 최소화하기 위해 video_no를 필터링할 조건 후보는 파싱해서 보유할 것
     model_config = ConfigDict(validate_by_name=True, validate_by_alias=True, extra="ignore")
 
     video_no: int = Field(
         alias="videoNo"
-    )  # VodMeta는 직접 db에 저장되는 데이터가 아니기 때문에 성능을 위해 int로 관리함
+    )  # VODMeta는 직접 db에 저장되는 데이터가 아니기 때문에 성능을 위해 int로 관리함
     publish_date_at: Annotated[int, BeforeValidator(normalize_timestamp_to_utc)] = Field(alias="publishDateAt")
     duration_s: int = Field(alias="duration")
     read_count: int = Field(alias="readCount")
@@ -106,7 +106,7 @@ class VodMeta(BaseModel):  # api요청을 최소화하기 위해 video_no를 필
     live_pv: int = Field(alias="livePv")
 
 
-class ChannelVodsResponse(BaseModel):
+class ChannelVODsResponse(BaseModel):
     """/videos API의 전체 응답 구조를 위한 모델"""
 
     model_config = ConfigDict(validate_by_name=True, validate_by_alias=True, extra="ignore")
@@ -115,4 +115,4 @@ class ChannelVodsResponse(BaseModel):
     size: int = Field(alias="size")
     total_count: int = Field(alias="totalCount")
     total_pages: int = Field(alias="totalPages")
-    data: list[VodMeta] = Field(alias="data")
+    data: list[VODMeta] = Field(alias="data")
