@@ -2,7 +2,6 @@ from dependency_injector import containers, providers
 
 from chatzzk.packages.clients.containers import ClientsContainer
 from chatzzk.packages.data_access.containers import DataAccessContainer
-from chatzzk.services.service_implementations.core.containers import CoreContainer
 from chatzzk.services.service_implementations.management.containers import ManagementContainer
 
 
@@ -13,23 +12,18 @@ class AppContainer(containers.DeclarativeContainer):
 
     config = providers.Configuration()
 
-    # 1. 최하위 계층 컨테이너 (외부 패키지)
-    data_access = providers.Container(
-        DataAccessContainer,
-        config=config,
-    )
+    data_access_package = providers.Container(DataAccessContainer, config=config.db)
 
-    clients = providers.Container(
+    clients_package = providers.Container(
         ClientsContainer,
-        config=config,
+        config=config.api,
     )
 
-    # 2. 서비스 계층 컨테이너
-    core_services = providers.Container(
-        CoreContainer,
-        data_access=data_access,
-    )
-
-    management_services = providers.Container(
-        ManagementContainer, core=core_services, data_access=data_access, clients=clients
+    #
+    management_service_package = providers.Container(
+        ManagementContainer,
+        db_session_factory=data_access_package.db_session_factory,
+        platform_repo=data_access_package.platform_repo,
+        channel_repo=data_access_package.channel_repo,
+        chzzk_api_client=clients_package.chzzk_api_client,
     )

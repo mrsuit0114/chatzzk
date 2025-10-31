@@ -1,28 +1,30 @@
 from dependency_injector import containers, providers
 
-from chatzzk.services.service_implementations.management.chzzk_channel_management_service import (
-    ChzzkChannelManagementService,
-)
+from chatzzk.packages.constants.service_codes import PlatformCode
+from chatzzk.services.service_implementations.management.chzzk_channel_management import ChzzkChannelManagementService
+from chatzzk.services.service_implementations.management.platform_management import PlatformManagementService
 
 
 class ManagementContainer(containers.DeclarativeContainer):
-    core = providers.DependenciesContainer()
-    data_access = providers.DependenciesContainer()
-    clients = providers.DependenciesContainer()
+    db_session_factory = providers.Dependency()
+    platform_repo = providers.Dependency()
+    channel_repo = providers.Dependency()
+    chzzk_api_client = providers.Dependency()
 
-    chzzk_channel_management_service = providers.Factory(
-        ChzzkChannelManagementService,
-        db_session_factory=data_access.db_session_factory,
-        platform_repo=data_access.platform_repo,
-        channel_repo=data_access.channel_repo,
-        chzzk_api_client=clients.chzzk_api_client,
+    platform_management_service = providers.Factory(
+        PlatformManagementService, db_session_factory=db_session_factory, platform_repo=platform_repo
     )
 
-    # youtube_channel_management_service  ..
+    _chzzk_channel_management_service = providers.Factory(
+        ChzzkChannelManagementService,
+        db_session_factory=db_session_factory,
+        platform_repo=platform_repo,
+        channel_repo=channel_repo,
+        chzzk_api_client=chzzk_api_client,
+    )
 
-    # chzzk_vod_management_service
-
-    channel_service_factory = providers.FactoryAggregate(
-        chzzk=chzzk_channel_management_service,
-        # youtube = ...
+    channel_service_factory = providers.Aggregate(
+        {
+            PlatformCode.CHZZK: _chzzk_channel_management_service,
+        }
     )

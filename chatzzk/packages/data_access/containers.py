@@ -1,34 +1,32 @@
 from dependency_injector import containers, providers
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from chatzzk.packages.constants.service_codes import PlatformCode
-from chatzzk.packages.data_access.db.session import create_session_factory
-from chatzzk.packages.data_access.repositories import chzzk_channel_logic
 from chatzzk.packages.data_access.repositories.channel import ChannelRepository
+from chatzzk.packages.data_access.repositories.logics.chzzk_channel_logic import ChzzkChannelLogic
 from chatzzk.packages.data_access.repositories.platform import PlatformRepository
-from chatzzk.packages.data_access.repositories.vod import VodRepository
+from chatzzk.packages.schemas.orm.models import ChzzkChannelORM
 
 
 class DataAccessContainer(containers.DeclarativeContainer):
-    """data_access 패키지의 의존성을 관리하는 컨테이너"""
-
     config = providers.Configuration()
 
-    db_session_factory = providers.Singleton(
-        create_session_factory,
-        database_url=config.db.database_url,
+    _db_engine = providers.Resource(create_async_engine, config.database_url)
+
+    db_session_factory = providers.Resource(
+        async_sessionmaker, bind=_db_engine, expire_on_commit=False, class_=AsyncSession
     )
 
-    _logic_registry = {
-        PlatformCode.CHZZK: chzzk_channel_logic,
+    _chzzk_field_map = {
+        "platform_channel_id": ChzzkChannelORM.platform_channel_id,
+        "channel_name": ChzzkChannelORM.channel_name,
+        "verified_mark": ChzzkChannelORM.verified_mark,
     }
 
-    _logic_registry_provider = providers.Object(_logic_registry)
+    _channel_repo_logics = providers.Object({PlatformCode.CHZZK: ChzzkChannelLogic(_chzzk_field_map)})
 
-    platform_repo = providers.Factory(PlatformRepository)
-
-    channel_repo = providers.Factory(
+    platform_repo = providers.Singleton(PlatformRepository)
+    channel_repo = providers.Singleton(
         ChannelRepository,
-        logic_registry=_logic_registry_provider,
+        channel_logic_factory=_channel_repo_logics,
     )
-
-    vod_repo = providers.Factory(VodRepository, db_session_factory=db_session_factory)

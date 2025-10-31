@@ -15,10 +15,13 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import DeclarativeBase, relationship
 
 from chatzzk.packages.constants.service_codes import PlatformCode, ResultObjectFileType, VodProcessStatus
-from chatzzk.packages.data_access.db.base import Base
+
+
+class Base(DeclarativeBase):
+    pass
 
 
 class StringAsInt(TypeDecorator):
@@ -70,6 +73,8 @@ class ChannelORM(Base):
     llm_metadata = relationship(
         "ChannelLlmMetadataORM", back_populates="channel", uselist=False, cascade="all, delete-orphan"
     )
+
+    chzzk_channel = relationship("ChzzkChannelORM", uselist=False, back_populates="channel")
 
 
 class VodORM(Base):
@@ -154,12 +159,12 @@ class ChzzkChannelORM(Base):
 
     platform_channel_id = Column(String(100), unique=True, nullable=False)
     channel_name = Column(String(100), nullable=False)
-    is_verified = Column(Boolean, nullable=False, default=False)
+    verified_mark = Column(Boolean, nullable=False, default=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
-    channel = relationship("ChannelORM")
+    channel = relationship("ChannelORM", uselist=False, back_populates="chzzk_channel")
 
 
 class ChzzkVodORM(Base):
