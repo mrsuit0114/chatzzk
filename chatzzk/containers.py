@@ -2,6 +2,7 @@ from dependency_injector import containers, providers
 
 from chatzzk.packages.clients.containers import ClientsContainer
 from chatzzk.packages.data_access.containers import DataAccessContainer
+from chatzzk.services.service_implementations.discovery.conatiners import DiscoveryContainer
 from chatzzk.services.service_implementations.management.containers import ManagementContainer
 
 
@@ -25,5 +26,14 @@ class AppContainer(containers.DeclarativeContainer):
         db_session_factory=data_access_package.db_session_factory,
         platform_repo=data_access_package.platform_repo,
         channel_repo=data_access_package.channel_repo,
+        chzzk_api_client=clients_package.chzzk_api_client,
+    )
+
+    discovery_service_package = providers.Container(
+        DiscoveryContainer,
+        config=config.discovery_service,
+        db_session_factory=data_access_package.db_session_factory,
+        channel_repo=data_access_package.channel_repo,
+        vod_repo=data_access_package.vod_repo,
         chzzk_api_client=clients_package.chzzk_api_client,
     )

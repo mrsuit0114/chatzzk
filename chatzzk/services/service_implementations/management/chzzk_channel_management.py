@@ -2,7 +2,7 @@ from loguru import logger
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from chatzzk.packages.clients.chzzk.chzzk_api_client import ChzzkApiClient
+from chatzzk.packages.clients.chzzk.chzzk_api_client import ChzzkAPIClient
 from chatzzk.packages.constants.service_codes import PlatformCode
 from chatzzk.packages.data_access.repositories.channel import ChannelRepository
 from chatzzk.packages.data_access.repositories.platform import PlatformRepository
@@ -18,7 +18,7 @@ class ChzzkChannelManagementService(ChannelManagementInterface):
         db_session_factory: async_sessionmaker[AsyncSession],
         platform_repo: PlatformRepository,
         channel_repo: ChannelRepository,
-        chzzk_api_client: ChzzkApiClient,
+        chzzk_api_client: ChzzkAPIClient,
     ):
         self.db_session_factory = db_session_factory
         self.platform_repo = platform_repo
@@ -39,17 +39,18 @@ class ChzzkChannelManagementService(ChannelManagementInterface):
                     chzzk_platform = await self.platform_repo.find_by_platform_code(session, self.platform_code)
                     if not chzzk_platform:
                         raise RuntimeError("Chzzk platform must be registered in the database first.")
+
                     params = ChzzkChannelCreateParams(
                         platform_id=chzzk_platform.id,
                         platform_channel_id=channel_info.channel_id,
                         channel_name=channel_info.channel_name,
                         verified_mark=channel_info.verified_mark,
                     )
-                    new_channel = await self.channel_repo.create_channel(session, self.platform_code, params)
+                    new_channel = self.channel_repo.create_platform_channel(session, self.platform_code, params)
                     await session.flush()
 
                     logger.success(f"Successfully added new Chzzk channel '{new_channel.chzzk_channel.channel_name}'.")
-                    # ORM이 더 많고 private 정보까지 포함되어 있는데 DTO에 정의된 값만 반환하는지 확인 필요함
+
                     return ChzzkChannelAddResponseDTO(
                         platform_channel_id=new_channel.chzzk_channel.platform_channel_id,
                         channel_name=new_channel.chzzk_channel.channel_name,
@@ -60,7 +61,7 @@ class ChzzkChannelManagementService(ChannelManagementInterface):
                 logger.warning(f"Chzzk channel '{dto.platform_channel_id}' already exists. Retrieving existing entry.")
 
                 params = ChzzkChannelFindParams(platform_channel_id=dto.platform_channel_id)
-                existing_channel = await self.channel_repo.find_channel(session, self.platform_code, params)
+                existing_channel = await self.channel_repo.find_platform_channel(session, self.platform_code, params)
 
                 if existing_channel:
                     chzzk_channel = existing_channel.chzzk_channel
@@ -70,7 +71,6 @@ class ChzzkChannelManagementService(ChannelManagementInterface):
                         verified_mark=chzzk_channel.verified_mark,
                     )
                 else:
-                    # IntegrityError가 발생했는데 조회가 안되는 매우 드문 경우
                     raise RuntimeError(
                         "Failed to add channel due to an unexpected race condition after an integrity error."
                     ) from e
