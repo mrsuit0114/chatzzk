@@ -1,61 +1,46 @@
-import datetime
 from dataclasses import dataclass
-from enum import Enum, IntEnum
+from enum import Enum
 
 
-# -------------- local temp path ---------------------
+class PlatformCode(str, Enum):
+    CHZZK = "chzzk"
+    YOUTUBE = "youtube"
+    SOOP = "sooplive"
+
+
+# -------------- db init value -------------------------
+@dataclass
+class DBDefaults:
+    # Platform
+    PLATFORM_NAME_MAX_LEN = 100
+    DONATION_UNIT_MAX_LEN = 50
+
+    # Channel
+    IS_ACTIVE_DEFAULT = "true"
+
+    # ResultObjectKey
+    OBJECT_KEY_MAX_LEN = 255
+
+
 class LocalTempPath:
     VIDEO_FILE = "{video_no}/video.mp4"
     AUDIO_FILE = "{video_no}/audio.wav"
     TIMESTAMPS_FILE = "{video_no}/timestamps.json"
 
 
-# --------------- chzzk --------------------------
-class ChzzkMessageTypeCode(IntEnum):
-    CHAT = 1
-    DONATION = 10
-    SYSTEM = 30
-
-
-class SubscriptionTier(IntEnum):
-    NO_SUBSCRIPTION = 0
-    GENERAL = 1
-    PREMIUM = 2
-
-
-class OsType(str, Enum):
-    IOS = "IOS"
-    PC = "PC"
-    AOS = "AOS"
-
-
-class UserRoleCode(str, Enum):
-    COMMON_USER = "common_user"
-    STREAMING_CHAT_MANAGER = "streaming_chat_manager"
-    STREAMING_CHANNEL_OWNER = "streaming_channel_owner"
-    STREAMING_CHANNEL_MANAGER = "streaming_channel_manager"
-
-
 class Atmosphere(str, Enum):
     """요약된 window의 분위기를 표현합니다."""
 
-    # TODO: 사용자가 직접 항목을 추가할 예정
-
 
 # ---------------------- pipeline status --------------------------------
-
-
-class VodProcessStatus(str, Enum):  # TODO: prefect 참고하여 수정 필요
+class VODProcessStatus(str, Enum):  # TODO: prefect 참고하여 수정 필요
     PENDING = "PENDING"  # 모든 처리를 기다리는 초기 상태
     PROCESSING = "PROCESSING"  # 하나 이상의 파이프라인 단계가 진행 중인 상태
     COMPLETED = "COMPLETED"  # 모든 파이프라인 단계가 성공적으로 완료된 상태
     FAILED = "FAILED"  # 하나 이상의 필수 파이프라인 단계가 실패한 상태
-    PERMANENTLY_FAILED = "PERMANENTLY_FAILED"  # 여러 번의 재시도 끝에 영구적으로 실패로 처리된 상태
 
 
 class ResultObjectFileType(str, Enum):
-    """처리 결과물 파일의 종류를 정의하는 Enum"""
-
     CHAT_ENTRIES = "CHAT_ENTRIES"
     ASR_ENTRIES = "ASR_ENTRIES"
     SUMMARIES = "SUMMARIES"
@@ -106,21 +91,6 @@ class StorageObject:
     SUMMARY_ENTRIES = "summaries/{video_no}/" + SUMMARY_ENTRIES_FILE_NAME
     META_SUMMARY_ENTRIES = "meta_summaries/{video_no}/" + META_SUMMARY_ENTRIES_FILE_NAME
 
-
-class StorageBucket(str, Enum):
-    CHZZK = "chzzk"
-    YOUTUBE = "youtube"
-    SOOP = "sooplive"
-
-
-# ----------------- constants ----------------------
-class PlatformCode(str, Enum):
-    CHZZK = "chzzk"
-    YOUTUBE = "youtube"
-    SOOP = "sooplive"
-
-
-START_DATE = datetime.date(2025, 1, 1)
 
 # ----------- speech common config ----------------
 MAX_SPEECH_DURATION_S = 30

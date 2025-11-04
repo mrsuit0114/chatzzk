@@ -1,226 +1,243 @@
+from datetime import datetime
+
 from sqlalchemy import (
     BigInteger,
     Boolean,
-    Column,
     DateTime,
     Enum,
     Float,
     ForeignKey,
     Integer,
-    SmallInteger,
     String,
-    TypeDecorator,
-    UniqueConstraint,
     func,
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from chatzzk.packages.constants.service_codes import PlatformCode, ResultObjectFileType, VodProcessStatus
+from chatzzk.packages.constants.service_codes import DBDefaults, PlatformCode, ResultObjectFileType, VODProcessStatus
 
 
 class Base(DeclarativeBase):
     pass
 
 
-class StringAsInt(TypeDecorator):
-    """
-    DB에는 BigInteger로 저장하지만, 파이썬 애플리케이션에서는
-    문자열(String)로 다룰 수 있게 해주는 커스텀 타입.
-    """
-
-    impl = BigInteger
-    cache_ok = True
-
-    def process_bind_param(self, value, dialect):
-        # 파이썬의 값을 DB에 저장할 때: str -> int
-        if value is not None:
-            return int(value)
-
-    def process_result_value(self, value, dialect):
-        # DB의 값을 파이썬으로 읽어올 때: int -> str
-        if value is not None:
-            return str(value)
-
-
-class PlatformORM(Base):
+class Platform(Base):
     __tablename__ = "platforms"
 
-    id = Column(SmallInteger, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
-    platform_code = Column(Enum(PlatformCode), unique=True, nullable=False)
-    platform_name = Column(String(100), nullable=False)
-    donation_unit = Column(String(50))
+    platform_code: Mapped[PlatformCode] = mapped_column(Enum(PlatformCode), unique=True)
+    platform_name: Mapped[str] = mapped_column(String(DBDefaults.PLATFORM_NAME_MAX_LEN))
+    donation_unit: Mapped[str | None] = mapped_column(String(DBDefaults.DONATION_UNIT_MAX_LEN))
 
-    channels = relationship("ChannelORM", back_populates="platform")
+    channels: Mapped[list["Channel"]] = relationship(back_populates="platform")
 
 
-class ChannelORM(Base):
+class Channel(Base):
     __tablename__ = "channels"
 
-    id = Column(BigInteger, primary_key=True)
-    platform_id = Column(SmallInteger, ForeignKey("platforms.id"), nullable=False, index=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    platform_id: Mapped[int] = mapped_column(ForeignKey("platforms.id"))
 
-    is_active = Column(Boolean, nullable=False, default=True)
-    last_vod_crawled_at = Column(DateTime(timezone=True), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default=DBDefaults.IS_ACTIVE_DEFAULT)
+    last_vod_crawled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
-
-    platform = relationship("PlatformORM", back_populates="channels")
-    vods = relationship("VodORM", back_populates="channel", cascade="all, delete-orphan")
-    llm_metadata = relationship(
-        "ChannelLlmMetadataORM", back_populates="channel", uselist=False, cascade="all, delete-orphan"
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    chzzk_channel = relationship("ChzzkChannelORM", uselist=False, back_populates="channel")
+    platform: Mapped["Platform"] = relationship(back_populates="channels")
+    vods: Mapped[list["VOD"]] = relationship(back_populates="channel", cascade="all, delete-orphan")
+    channel_llm_metadata: Mapped["ChannelLLMMetadata"] = relationship(
+        back_populates="channel", cascade="all, delete-orphan"
+    )
+    channel_metadata: Mapped["ChannelMetadata"] = relationship(back_populates="channel", cascade="all, delete-orphan")
+    chzzk_channel: Mapped["ChzzkChannel"] = relationship(back_populates="channel", cascade="all, delete-orphan")
 
 
-class VodORM(Base):
+class VOD(Base):
     __tablename__ = "vods"
 
-    id = Column(BigInteger, primary_key=True)
-    channel_id = Column(BigInteger, ForeignKey("channels.id", ondelete="CASCADE"), nullable=False, index=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    channel_id: Mapped[int] = mapped_column(ForeignKey("channels.id"))
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    channel = relationship("ChannelORM", back_populates="vods")
-    result_object_keys = relationship("ResultObjectKeyORM", back_populates="vod", cascade="all, delete-orphan")
-    vod_overall_processing_status = relationship(
-        "VodOverallProcessingStatusORM", back_populates="vod", uselist=False, cascade="all, delete-orphan"
+    channel: Mapped["Channel"] = relationship(back_populates="vods")
+    result_object_keys: Mapped[list["ResultObjectKey"]] = relationship(
+        back_populates="vod", cascade="all, delete-orphan"
     )
-    vod_processing_status_detail = relationship(
-        "VodProcessingStatusDetailORM", back_populates="vod", uselist=False, cascade="all, delete-orphan"
+    vod_overall_processing_status: Mapped["VODOverallProcessingStatus"] = relationship(
+        back_populates="vod", cascade="all, delete-orphan"
+    )
+    vod_processing_status_detail: Mapped["VODProcessingStatusDetail"] = relationship(
+        back_populates="vod", cascade="all, delete-orphan"
+    )
+    chzzk_vod: Mapped["ChzzkVOD"] = relationship(back_populates="vod", cascade="all, delete-orphan")
+
+
+class ChannelMetadata(Base):
+    __tablename__ = "channel_metadatas"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    channel_id: Mapped[int] = mapped_column(ForeignKey("channels.id"))
+
+    metadata_description: Mapped[dict] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
+
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
+    channel: Mapped["Channel"] = relationship(back_populates="channel_metadata")
 
-class ChannelLlmMetadataORM(Base):
+
+class ChannelLLMMetadata(Base):
     __tablename__ = "channel_llm_metadatas"
 
-    id = Column(BigInteger, primary_key=True)
-    channel_id = Column(BigInteger, ForeignKey("channels.id", ondelete="CASCADE"), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    channel_id: Mapped[int] = mapped_column(ForeignKey("channels.id"))
 
-    metadata_description = Column(JSONB, nullable=False, default=dict, server_default=text("'{}'::jsonb"))
+    llm_metadata_description: Mapped[dict] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
 
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
-    channel = relationship("ChannelORM", back_populates="llm_metadata")
+    channel: Mapped["Channel"] = relationship(back_populates="channel_llm_metadata")
 
 
-class ResultObjectKeyORM(Base):
+class ResultObjectKey(Base):
     __tablename__ = "result_object_keys"
-    __table_args__ = (UniqueConstraint("vod_id", "file_type", name="uq_vod_id_file_type"),)
 
-    id = Column(BigInteger, primary_key=True)
-    vod_id = Column(BigInteger, ForeignKey("vods.id", ondelete="CASCADE"), nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    vod_id: Mapped[int] = mapped_column(ForeignKey("vods.id"))
 
-    file_type = Column(Enum(ResultObjectFileType), nullable=False)
-    object_key = Column(String(255), nullable=False)
+    file_type: Mapped[ResultObjectFileType] = mapped_column(Enum(ResultObjectFileType))
+    object_key: Mapped[str] = mapped_column(String(DBDefaults.OBJECT_KEY_MAX_LEN))
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    vod = relationship("VodORM", back_populates="result_object_keys")
+    vod: Mapped["VOD"] = relationship(back_populates="result_object_keys")
 
 
-class VodOverallProcessingStatusORM(Base):
+class VODOverallProcessingStatus(Base):
     __tablename__ = "vod_overall_processing_statuses"
 
-    id = Column(BigInteger, primary_key=True)
-    vod_id = Column(BigInteger, ForeignKey("vods.id", ondelete="CASCADE"), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    vod_id: Mapped[int] = mapped_column(ForeignKey("vods.id"))
 
-    status = Column(Enum(VodProcessStatus), nullable=False)
+    status: Mapped[VODProcessStatus] = mapped_column(Enum(VODProcessStatus), server_default=VODProcessStatus.PENDING)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
-    vod = relationship("VodORM", back_populates="vod_overall_processing_status")
+    vod: Mapped["VOD"] = relationship(back_populates="vod_overall_processing_status")
 
 
-class VodProcessingStatusDetailORM(Base):
+class VODProcessingStatusDetail(Base):
     __tablename__ = "vod_processing_status_details"
 
-    id = Column(BigInteger, primary_key=True)
-    vod_id = Column(BigInteger, ForeignKey("vods.id", ondelete="CASCADE"), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    vod_id: Mapped[int] = mapped_column(ForeignKey("vods.id"))
 
-    status_details = Column(JSONB, nullable=False)
+    status_details: Mapped[dict] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
-    vod = relationship("VodORM", back_populates="vod_processing_status_detail")
+    vod: Mapped["VOD"] = relationship(back_populates="vod_processing_status_detail")
 
 
-class ChzzkChannelORM(Base):
+class ChzzkChannel(Base):
     __tablename__ = "chzzk_channels"
 
-    id = Column(BigInteger, primary_key=True)
-    channel_id = Column(BigInteger, ForeignKey("channels.id", ondelete="CASCADE"), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    channel_id: Mapped[int] = mapped_column(ForeignKey("channels.id"))
 
-    platform_channel_id = Column(String(100), unique=True, nullable=False)
-    channel_name = Column(String(100), nullable=False)
-    verified_mark = Column(Boolean, nullable=False, default=False)
+    platform_channel_id: Mapped[str] = mapped_column(String(100), unique=True)
+    channel_name: Mapped[str] = mapped_column(String(100))
+    verified_mark: Mapped[bool] = mapped_column(Boolean)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
-    channel = relationship("ChannelORM", uselist=False, back_populates="chzzk_channel")
+    channel: Mapped["Channel"] = relationship(back_populates="chzzk_channel")
 
 
-class ChzzkVodORM(Base):
+class ChzzkVOD(Base):
     __tablename__ = "chzzk_vods"
 
-    id = Column(BigInteger, primary_key=True)
-    vod_id = Column(BigInteger, ForeignKey("vods.id", ondelete="CASCADE"), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    vod_id: Mapped[int] = mapped_column(ForeignKey("vods.id"))
 
-    video_no = Column(StringAsInt, unique=True, nullable=False)
-    video_title = Column(String(255), nullable=True)
-    duration = Column(Integer, nullable=False)
-    video_category_value = Column(String(100), nullable=True)
-    publish_date = Column(DateTime(timezone=True), nullable=False)
-    live_open_date = Column(DateTime(timezone=True), nullable=False)
+    video_no: Mapped[int] = mapped_column(Integer, unique=True)
+    video_title: Mapped[str] = mapped_column(String(100))
+    duration: Mapped[int] = mapped_column(Integer)
+    video_category_value: Mapped[str] = mapped_column(String(100))
+    publish_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    live_open_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
-    vod = relationship("VodORM")
+    vod: Mapped["VOD"] = relationship(back_populates="chzzk_vod")
+    chzzk_vod_chat_analytics: Mapped["ChzzkVODChatAnalytics"] = relationship(
+        back_populates="chzzk_vod", cascade="all, delete-orphan"
+    )
+    chzzk_vod_asr_analytics: Mapped["ChzzkVODASRAnalytics"] = relationship(
+        back_populates="chzzk_vod", cascade="all, delete-orphan"
+    )
 
 
-class ChzzkVodChatAnalyticsORM(Base):
+class ChzzkVODChatAnalytics(Base):
     __tablename__ = "chzzk_vod_chat_analytics"
 
-    id = Column(BigInteger, primary_key=True)
-    vod_id = Column(BigInteger, ForeignKey("vods.id", ondelete="CASCADE"), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    chzzk_vod_id: Mapped[int] = mapped_column(ForeignKey("chzzk_vods.id"))
 
-    total_chat_count = Column(Integer, nullable=False)
-    chat_os_type_counts = Column(JSONB, nullable=False)
-    chat_participant_count = Column(Integer, nullable=False)
-    chat_participant_chat_counts = Column(JSONB, nullable=False)
-    chat_count_by_subscription = Column(JSONB, nullable=False)
-    hidden_chat_count = Column(Integer, nullable=False)
-    avg_chat_count_per_minute = Column(Float, nullable=False)
-    total_donation_count = Column(Integer, nullable=False)
-    total_donation_amount = Column(Float, nullable=False)
-    donor_count = Column(Integer, nullable=False)
-    anonymous_donation_amount = Column(Float, nullable=False)
-    anonymous_donation_count = Column(Integer, nullable=False)
-    avg_donation_amount = Column(Float, nullable=False)
-    avg_donation_count_per_minute = Column(Float, nullable=False)
-    mission_stats = Column(JSONB, nullable=False)
+    total_chat_count: Mapped[int] = mapped_column(Integer)
+    chat_os_type_counts: Mapped[dict] = mapped_column(JSONB)
+    chat_participant_count: Mapped[int] = mapped_column(Integer)
+    chat_participant_chat_counts: Mapped[dict] = mapped_column(JSONB)
+    chat_count_by_subscription: Mapped[dict] = mapped_column(JSONB)
+    hidden_chat_count: Mapped[int] = mapped_column(Integer)
+    avg_chat_count_per_minute: Mapped[float] = mapped_column(Float)
+    total_donation_count: Mapped[int] = mapped_column(Integer)
+    total_donation_amount: Mapped[float] = mapped_column(Float)
+    donor_count: Mapped[int] = mapped_column(Integer)
+    anonymous_donation_amount: Mapped[float] = mapped_column(Float)
+    anonymous_donation_count: Mapped[int] = mapped_column(Integer)
+    avg_donation_amount: Mapped[float] = mapped_column(Float)
+    avg_donation_count_per_minute: Mapped[float] = mapped_column(Float)
+    mission_stats: Mapped[dict] = mapped_column(JSONB)
 
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
-    vod = relationship("VodORM")
+    chzzk_vod: Mapped["ChzzkVOD"] = relationship(back_populates="chzzk_vod_chat_analytics")
 
 
-class ChzzkVodAsrAnalyticsORM(Base):
+class ChzzkVODASRAnalytics(Base):
     __tablename__ = "chzzk_vod_asr_analytics"
 
-    id = Column(BigInteger, primary_key=True)
-    vod_id = Column(BigInteger, ForeignKey("vods.id", ondelete="CASCADE"), unique=True, nullable=False)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    chzzk_vod_id: Mapped[int] = mapped_column(ForeignKey("chzzk_vods.id"))
 
-    total_speech_time_ms = Column(BigInteger, nullable=False)
-    avg_speech_time_per_minute = Column(Float, nullable=False)
+    total_speech_time_ms: Mapped[int] = mapped_column(BigInteger)
+    avg_speech_time_per_minute: Mapped[float] = mapped_column(Float)
 
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
-    vod = relationship("VodORM")
+    chzzk_vod: Mapped["ChzzkVOD"] = relationship(back_populates="chzzk_vod_asr_analytics")
