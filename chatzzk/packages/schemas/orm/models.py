@@ -15,7 +15,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from chatzzk.packages.constants.service_codes import DBDefaults, PlatformCode, ResultObjectFileType, VODProcessStatus
+from chatzzk.packages.constants.service_codes import DBDefault, PlatformCode, ResultObjectFileType, VODProcessStatus
 
 
 class Base(DeclarativeBase):
@@ -28,8 +28,8 @@ class Platform(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
 
     platform_code: Mapped[PlatformCode] = mapped_column(Enum(PlatformCode), unique=True)
-    platform_name: Mapped[str] = mapped_column(String(DBDefaults.PLATFORM_NAME_MAX_LEN))
-    donation_unit: Mapped[str | None] = mapped_column(String(DBDefaults.DONATION_UNIT_MAX_LEN))
+    platform_name: Mapped[str] = mapped_column(String(DBDefault.DEFAULT_STRING_MAX_LEN_SHORT))
+    donation_unit: Mapped[str | None] = mapped_column(String(DBDefault.DEFAULT_STRING_MAX_LEN_SHORT))
 
     channels: Mapped[list["Channel"]] = relationship(back_populates="platform")
 
@@ -40,7 +40,7 @@ class Channel(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     platform_id: Mapped[int] = mapped_column(ForeignKey("platforms.id"))
 
-    is_active: Mapped[bool] = mapped_column(Boolean, server_default=DBDefaults.IS_ACTIVE_DEFAULT)
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default=DBDefault.IS_ACTIVE_DEFAULT)
     last_vod_crawled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -60,7 +60,7 @@ class Channel(Base):
 class VOD(Base):
     __tablename__ = "vods"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     channel_id: Mapped[int] = mapped_column(ForeignKey("channels.id"))
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -111,11 +111,11 @@ class ChannelLLMMetadata(Base):
 class ResultObjectKey(Base):
     __tablename__ = "result_object_keys"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     vod_id: Mapped[int] = mapped_column(ForeignKey("vods.id"))
 
     file_type: Mapped[ResultObjectFileType] = mapped_column(Enum(ResultObjectFileType))
-    object_key: Mapped[str] = mapped_column(String(DBDefaults.OBJECT_KEY_MAX_LEN))
+    object_key: Mapped[str] = mapped_column(String(DBDefault.DEFAULT_STRING_MAX_LEN_MEDIUM))
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -125,7 +125,7 @@ class ResultObjectKey(Base):
 class VODOverallProcessingStatus(Base):
     __tablename__ = "vod_overall_processing_statuses"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     vod_id: Mapped[int] = mapped_column(ForeignKey("vods.id"))
 
     status: Mapped[VODProcessStatus] = mapped_column(Enum(VODProcessStatus), server_default=VODProcessStatus.PENDING)
@@ -141,7 +141,7 @@ class VODOverallProcessingStatus(Base):
 class VODProcessingStatusDetail(Base):
     __tablename__ = "vod_processing_status_details"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     vod_id: Mapped[int] = mapped_column(ForeignKey("vods.id"))
 
     status_details: Mapped[dict] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
@@ -175,7 +175,7 @@ class ChzzkChannel(Base):
 class ChzzkVOD(Base):
     __tablename__ = "chzzk_vods"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     vod_id: Mapped[int] = mapped_column(ForeignKey("vods.id"))
 
     video_no: Mapped[int] = mapped_column(Integer, unique=True)
@@ -201,7 +201,7 @@ class ChzzkVOD(Base):
 class ChzzkVODChatAnalytics(Base):
     __tablename__ = "chzzk_vod_chat_analytics"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     chzzk_vod_id: Mapped[int] = mapped_column(ForeignKey("chzzk_vods.id"))
 
     total_chat_count: Mapped[int] = mapped_column(Integer)
@@ -230,7 +230,7 @@ class ChzzkVODChatAnalytics(Base):
 class ChzzkVODASRAnalytics(Base):
     __tablename__ = "chzzk_vod_asr_analytics"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     chzzk_vod_id: Mapped[int] = mapped_column(ForeignKey("chzzk_vods.id"))
 
     total_speech_time_ms: Mapped[int] = mapped_column(BigInteger)

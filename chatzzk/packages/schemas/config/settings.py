@@ -1,19 +1,14 @@
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from chatzzk.packages.schemas.config.api import APIClientConfig
-from chatzzk.packages.schemas.config.database import DatabaseConfig
-from chatzzk.packages.schemas.config.discovery import DiscoveryServiceConfig
-from chatzzk.packages.schemas.config.ml import ASRConfig, VADConfig
-from chatzzk.packages.schemas.config.storage import StorageConfig
+from chatzzk.packages.schemas.config.clients.chzzk import ChzzkAPIConfig
+from chatzzk.packages.schemas.config.clients.http import AioHTTPConfig
+from chatzzk.packages.schemas.config.clients.ml import ASRConfig, VADConfig
+from chatzzk.packages.schemas.config.data_access.database import DatabaseConfig
+from chatzzk.packages.schemas.config.services.vod_discovery import VODDiscoveryServiceConfig
 
 
 class Settings(BaseSettings):
-    """
-    애플리케이션의 모든 설정을 통합 관리하는 최상위 모델입니다.
-    .env 파일, 환경 변수 등에서 설정을 계층적으로 로드합니다.
-    """
-
     model_config = SettingsConfigDict(
         env_nested_delimiter="__",  # 예: DB__DATABASE_URL
         env_file="local.test.env",
@@ -21,10 +16,12 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    db: DatabaseConfig
-    storage: StorageConfig
+    database: DatabaseConfig
     asr: ASRConfig
     vad: VADConfig
-    api: APIClientConfig
+    aiohttp: AioHTTPConfig = (
+        AioHTTPConfig()
+    )  # .env에서 주입되지않고 상수만 적용한 필드의 경우 인스턴스를 직접 생성해서 주입해야함
+    chzzk_api: ChzzkAPIConfig
 
-    discovery_service: DiscoveryServiceConfig = Field(default_factory=DiscoveryServiceConfig)
+    vod_discovery_service: VODDiscoveryServiceConfig = Field(default_factory=VODDiscoveryServiceConfig)

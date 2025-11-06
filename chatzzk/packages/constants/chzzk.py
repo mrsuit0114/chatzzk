@@ -3,11 +3,26 @@ from enum import Enum, IntEnum
 
 
 @dataclass
-class ChzzkDBDefaults:
-    PLATFORM_CHANNEL_ID_MAX_LEN = 100
-    CHANNEL_NAME_MAX_LEN = 100
-    VIDEO_TITLE_MAX_LEN = 100
-    VIDEO_CATEGORY_VALUE_MAX_LEN = 100
+class ChzzkAPIConstant:
+    DEFAULT_HEADERS = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+    }
+    VOD_MANIFEST_HEADERS = {"Accept": "application/dash+xml"}
+
+    CHANNEL_INFO_URL = "https://api.chzzk.naver.com/service/v1/channels/{channel_id}"
+    CHANNEL_VODS_URL = "https://api.chzzk.naver.com/service/v1/channels/{channel_id}/videos?sortType=LATEST&pagingType=PAGE&page={page_idx}&size={page_size}"
+
+    VOD_INFO_URL = "https://api.chzzk.naver.com/service/v2/videos/{video_no}"
+    VOD_CHATS_URL = (
+        "https://api.chzzk.naver.com/service/v1/videos/{video_no}/chats?playerMessageTime={player_message_time}"
+    )
+    VOD_PLAYBACK_URL = "https://apis.naver.com/neonplayer/vodplay/v2/playback/{video_id}?key={in_key}"
+
+    PAGE_SIZE = 30
+    WORKER_NUM = 10
+    LAST_END_TIME_OFFSET = 1000
+
+    DASH_NS = {"mpd": "urn:mpeg:dash:schema:mpd:2011"}
 
 
 @dataclass
@@ -37,3 +52,11 @@ class UserRoleCode(str, Enum):
     STREAMING_CHAT_MANAGER = "streaming_chat_manager"
     STREAMING_CHANNEL_OWNER = "streaming_channel_owner"
     STREAMING_CHANNEL_MANAGER = "streaming_channel_manager"
+
+
+@dataclass
+class ChzzkVODFilterConstant:
+    MIN_DURATION_S = 1800
+    MIN_PUBLISH_DATE_AT_AGE_MS = 30 * 60 * 1000
+    ALLOW_AUDLT = False
+    LIVE_PV = 0
