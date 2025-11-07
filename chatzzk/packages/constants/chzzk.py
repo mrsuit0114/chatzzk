@@ -21,6 +21,8 @@ class ChzzkAPIConstant:
     PAGE_SIZE = 30
     WORKER_NUM = 10
     LAST_END_TIME_OFFSET = 1000
+    CHUNK_SIZE = 262144
+    RS_IDX = 0  # lowest resolution idx
 
     DASH_NS = {"mpd": "urn:mpeg:dash:schema:mpd:2011"}
 

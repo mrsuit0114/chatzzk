@@ -41,6 +41,7 @@ redis = "^6.4.0"
 soundfile = "^0.13.1"
 torchcodec = "^0.7.0"
 onnxruntime = "^1.23.0"
+aiofiles = "^25.1.0"
 
 [tool.poetry.group.scripts.dependencies]
 python-dotenv = "^1.1.1"

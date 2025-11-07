@@ -1,7 +1,9 @@
 import asyncio
 import xml.etree.ElementTree as ET
 from collections import deque
+from pathlib import Path
 
+import aiofiles
 import pydantic
 from loguru import logger
 
@@ -37,6 +39,8 @@ class ChzzkAPIClient:
         self.page_size = config.page_size
         self.worker_num = config.worker_num
         self.last_end_ms_offset = config.last_end_ms_offset
+        self.chunk_size = config.chunk_size
+        self.rs_idx = config.rs_idx
 
         self.dash_ns = config.dash_ns
 
@@ -169,9 +173,37 @@ class ChzzkAPIClient:
         representations.sort(key=lambda x: x[0])
         return representations
 
-    async def fetch_vod_representations(self, video_no: int) -> list[tuple[int, str]]:
+    async def _fetch_vod_representations(self, video_no: int) -> list[tuple[int, str]]:
         vod_info = await self.fetch_vod_info(video_no)
         manifest_text = await self._fetch_vod_manifest_text(vod_info.video_id, vod_info.in_key)
         respresentations = self._parse_dash_representations(manifest_text)
 
         return respresentations
+
+    async def download_vod(self, video_no: int, dest_path: Path) -> Path:
+        try:
+            representations = await self._fetch_vod_representations(video_no)
+            if not representations:
+                logger.error("No available representations for this VOD.")
+                raise ValueError("No available representations.")
+
+            chunk_size = self.chunk_size
+            rs_idx_to_download = max(0, min(self.rs_idx, len(representations) - 1))
+            mp4_url = representations[rs_idx_to_download][1]
+
+            async with self._http_client.get(mp4_url, headers=self.default_headers) as response:
+                async with aiofiles.open(dest_path, "wb") as f:
+                    async for chunk in response.content.iter_chunked(chunk_size):
+                        await f.write(chunk)
+
+            logger.success(f"✅ Download complete: {dest_path}")
+            return dest_path
+
+        except Exception as e:
+            logger.error(f"❌ Download failed for VOD {video_no} at {dest_path}: {e}")
+            if dest_path.exists():
+                try:
+                    dest_path.unlink()
+                except Exception as delete_err:
+                    logger.warning(f"Failed to cleanup partial file {dest_path}: {delete_err}")
+            raise
