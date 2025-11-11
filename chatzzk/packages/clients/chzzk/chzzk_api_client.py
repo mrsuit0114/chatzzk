@@ -1,9 +1,9 @@
 import asyncio
 import xml.etree.ElementTree as ET
 from collections import deque
-from pathlib import Path
+from urllib.parse import urljoin
 
-import aiofiles
+import m3u8
 import pydantic
 from loguru import logger
 
@@ -39,7 +39,6 @@ class ChzzkAPIClient:
         self.page_size = config.page_size
         self.worker_num = config.worker_num
         self.last_end_ms_offset = config.last_end_ms_offset
-        self.chunk_size = config.chunk_size
         self.rs_idx = config.rs_idx
 
         self.dash_ns = config.dash_ns
@@ -167,43 +166,29 @@ class ChzzkAPIClient:
             base_url_elem = rep.find("mpd:BaseURL", namespaces=dash_ns)
             if base_url_elem is not None and base_url_elem.text:
                 resolution = int(rep.get("height", 0))
-                if not base_url_elem.text.endswith("/hls/"):
+                if not base_url_elem.text.endswith("/hls/"):  # 플랫폼 의존
                     representations.append((resolution, base_url_elem.text))
 
-        representations.sort(key=lambda x: x[0])
         return representations
 
-    async def _fetch_vod_representations(self, video_no: int) -> list[tuple[int, str]]:
-        vod_info = await self.fetch_vod_info(video_no)
-        manifest_text = await self._fetch_vod_manifest_text(vod_info.video_id, vod_info.in_key)
-        respresentations = self._parse_dash_representations(manifest_text)
+    async def _fetch_m3u8_url(self, m3u8_url: str) -> str:
+        async with self._http_client.get(m3u8_url, headers=self.default_headers) as response:
+            data = await response.text()
+            return data
 
-        return respresentations
+    async def fetch_vod_mp4_url(self, video_id: str, in_key: str):
+        manifest_text = await self._fetch_vod_manifest_text(video_id, in_key)
+        representations = self._parse_dash_representations(manifest_text)
+        representations.sort(key=lambda x: x[0])
+        target_rs_idx = max(0, min(self.rs_idx, len(representations) - 1))
+        return representations[target_rs_idx][1]
 
-    async def download_vod(self, video_no: int, dest_path: Path) -> Path:
-        try:
-            representations = await self._fetch_vod_representations(video_no)
-            if not representations:
-                logger.error("No available representations for this VOD.")
-                raise ValueError("No available representations.")
-
-            chunk_size = self.chunk_size
-            rs_idx_to_download = max(0, min(self.rs_idx, len(representations) - 1))
-            mp4_url = representations[rs_idx_to_download][1]
-
-            async with self._http_client.get(mp4_url, headers=self.default_headers) as response:
-                async with aiofiles.open(dest_path, "wb") as f:
-                    async for chunk in response.content.iter_chunked(chunk_size):
-                        await f.write(chunk)
-
-            logger.success(f"✅ Download complete: {dest_path}")
-            return dest_path
-
-        except Exception as e:
-            logger.error(f"❌ Download failed for VOD {video_no} at {dest_path}: {e}")
-            if dest_path.exists():
-                try:
-                    dest_path.unlink()
-                except Exception as delete_err:
-                    logger.warning(f"Failed to cleanup partial file {dest_path}: {delete_err}")
-            raise
+    async def fetch_vod_m3u8_url(self, m3u8_url: str):
+        m3u8_data = await self._fetch_m3u8_url(m3u8_url)
+        m3u8_master = m3u8.loads(m3u8_data)
+        representations = [
+            (playlist.stream_info.resolution[1], urljoin(m3u8_url, playlist.uri)) for playlist in m3u8_master.playlists
+        ]
+        representations.sort(key=lambda x: x[0])
+        target_rs_idx = max(0, min(self.rs_idx, len(representations) - 1))
+        return representations[target_rs_idx][1]

@@ -17,7 +17,6 @@ class ChzzkAPIConfig(BaseModel):
     page_size: int = ChzzkAPIConstant.PAGE_SIZE
     worker_num: int = ChzzkAPIConstant.WORKER_NUM
     last_end_ms_offset: int = ChzzkAPIConstant.LAST_END_TIME_OFFSET
-    chunk_size: int = ChzzkAPIConstant.CHUNK_SIZE
     rs_idx: int = ChzzkAPIConstant.RS_IDX
 
     dash_ns: dict = ChzzkAPIConstant.DASH_NS

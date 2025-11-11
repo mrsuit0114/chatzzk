@@ -95,7 +95,7 @@ class ChzzkVODInfo(BaseModel):  # video_no를 기준으로 스트리머를 추�
     def extract_m3u8_path(self) -> "ChzzkVODInfo":
         if self.live_rewind_playback_json:
             try:
-                json_dict = StrDictParser(self.live_rewind_playback_json)
+                json_dict = StrDictParser.parse_str_to_dict(self.live_rewind_playback_json)
                 media_list = json_dict.get("media")
                 if media_list and isinstance(media_list, list) and len(media_list) > 0:
                     first_media_item = media_list[0]
@@ -136,15 +136,17 @@ class ChzzkChannelVODs(BaseModel):
 class ChzzkVideoChatExtras(BaseModel):
     model_config = ConfigDict(validate_by_name=True, validate_by_alias=True, extra="ignore")
 
-    donation_type: str = Field(default=None, alias="donationType")
-    donation_id: str = Field(default=None, alias="donationId")
+    donation_type: str | None = Field(default=None, alias="donationType")
+    donation_id: str | None = Field(default=None, alias="donationId")
 
-    is_anonymous: bool = Field(
+    is_anonymous: bool | None = Field(
         default=None, alias="isAnonymous", description="Only present for donation events; indicates anonymity."
     )
-    nickname: str = Field(default=None, alias="nickname", description="Only present for donation envent not anonymous")
-    os_type: str = Field(default=None, alias="osType", description="Only present for general chat event")
-    pay_amount: int = Field(default=None, alias="payAmount", description="Only present for donation events")
+    nickname: str | None = Field(
+        default=None, alias="nickname", description="Only present for donation envent not anonymous"
+    )
+    os_type: str | None = Field(default=None, alias="osType", description="Only present for general chat event")
+    pay_amount: int | None = Field(default=None, alias="payAmount", description="Only present for donation events")
 
     @model_validator(mode="before")
     def parse_video_chat_extras(cls, values: str) -> dict[str, Any]:
@@ -154,11 +156,11 @@ class ChzzkVideoChatExtras(BaseModel):
 class ChzzkProfile(BaseModel):
     model_config = ConfigDict(validate_by_name=True, validate_by_alias=True, extra="ignore")
 
-    nickname: str = Field(default=None, alias="nickname")
-    subscription_tier: int | None = None
-    subscription_accumulative_month: int | None = None
-    user_id_hash: str = Field(default=None, alias="userIdHash")
-    user_role_code: str = Field(default=None, alias="userRoleCode")
+    nickname: str | None = Field(default=None, alias="nickname")
+    subscription_tier: int | None = Field(default=None)
+    subscription_accumulative_month: int | None = Field(default=None)
+    user_id_hash: str | None = Field(default=None, alias="userIdHash")
+    user_role_code: str | None = Field(default=None, alias="userRoleCode")
 
     @model_validator(mode="before")
     def parse_chzzk_profile(cls, values: str) -> dict[str, Any]:

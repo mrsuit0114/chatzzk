@@ -19,7 +19,7 @@ class ChzzkAPIConstant:
     VOD_PLAYBACK_URL = "https://apis.naver.com/neonplayer/vodplay/v2/playback/{video_id}?key={in_key}"
 
     PAGE_SIZE = 30
-    WORKER_NUM = 10
+    WORKER_NUM = 4
     LAST_END_TIME_OFFSET = 1000
     CHUNK_SIZE = 262144
     RS_IDX = 0  # lowest resolution idx

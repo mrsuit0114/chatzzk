@@ -33,7 +33,17 @@ class ASRHTTPConstant:
 
 @dataclass
 class AioHTTPConstant:
-    RETRY_ATTEMPTS = 3
-    RETRY_WAIT_MIN_S = 1.0
-    RESTRY_WAIT_MAX_S = 3.0
+    RETRY_ATTEMPTS = 5
+    RETRY_WAIT_MIN_S = 4.0
+    RETRY_WAIT_MAX_S = 10.0
+    MULTIPLIER = 1
     TIMEOUT_S = 10.0
+
+
+@dataclass
+class MediaProcessorConstant:
+    TARGET_SAMPLE_RATE = AudioDataConstant.SAMPLE_RATE
+    TARGET_CHANNELS = AudioDataConstant.CHANNELS
+    ACODEC = AudioDataConstant.ACODEC
+    WORKER_NUM = 16
+    CHUNK_SIZE = 8192

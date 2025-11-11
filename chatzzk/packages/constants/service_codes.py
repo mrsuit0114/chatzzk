@@ -22,8 +22,26 @@ class DBDefault:
 @dataclass
 class AudioDataConstant:
     SAMPLE_RATE = 16000
-    AUDIO_CHANNELS = 1
+    CHANNELS = 1
     AUDIO_DTYPE_STR = "float32"
+    ACODEC = "pcm_s32le"
+
+
+class FileFormat(str, Enum):
+    JSONL = "jsonl"
+    MP4 = "mp4"
+    WAV = "wav"
+
+
+@dataclass
+class FileKeyTemplate:
+    VIDEO = "{video_no}/video.mp4"
+    AUDIO = "{video_no}/auido.wav"
+    CHAT = "{video_no}/chat_entries.jsonl"
+    VAD_TIMESTAMP = "{video_no}/vad_timestamp.jsonl"
+    ASR = "{video_no}/asr_entries.jsonl"
+    SUMMARY = "{video_no}/summaries.jsonl"
+    META_SUMMARY = "{video_no}/meta_summaries.jsonl"
 
 
 class ResultObjectFileType(str, Enum):

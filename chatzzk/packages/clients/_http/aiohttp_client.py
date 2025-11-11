@@ -4,7 +4,7 @@ from typing import Any
 
 import aiohttp
 from loguru import logger
-from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, wait_random
+from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 from chatzzk.packages.schemas.config.clients.http import AioHTTPConfig
 
@@ -14,9 +14,12 @@ class AioHTTPClient:
         self._session = session
         self._timeout = aiohttp.ClientTimeout(total=config.timeout_s)
 
+        # 멀티 쓰레딩으로 요청할 때 서버 api limit을 고려할 것
         self._retryer = AsyncRetrying(
             stop=stop_after_attempt(config.retry_attempts),
-            wait=wait_random(min=config.retry_wait_min_s, max=config.retry_wait_max_s),
+            wait=wait_exponential(
+                min=config.retry_wait_min_s, max=config.retry_wait_max_s, multiplier=config.multiplier
+            ),
             retry=retry_if_exception_type((aiohttp.ClientError, asyncio.TimeoutError)),
             reraise=True,
             before_sleep=self._before_sleep_log,
