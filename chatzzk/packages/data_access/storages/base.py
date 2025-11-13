@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator, AsyncIterable
 
 
-class Storage(ABC):
+class PipelineStorage(ABC):
     @abstractmethod
     async def save_jsonl(self, key: str, data_iter: AsyncIterable[dict]) -> str: ...
 
@@ -26,3 +26,6 @@ class Storage(ABC):
     # @abstractmethod
     # async def exists(self, path: str) -> bool:
     #     ...
+
+
+# class ServiceStorage(ABC): ...

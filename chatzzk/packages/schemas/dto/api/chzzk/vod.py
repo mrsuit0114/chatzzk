@@ -11,3 +11,13 @@ class ChzzkVODRegisterRequestDTO(BaseModel):
 class ChzzkVODRegisterResponseDTO(BaseModel):
     video_no: int
     status: str
+
+
+class ChzzkDataCollectRequestDTO(BaseModel):
+    video_no: int
+
+
+class ChzzkDataCollectResponseDTO(BaseModel):
+    video_no: int
+    chat_result: str
+    audio_result: str

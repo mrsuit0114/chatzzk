@@ -9,8 +9,8 @@ from chatzzk.packages.clients.chzzk.chzzk_api_client import ChzzkAPIClient
 from chatzzk.packages.constants.service_codes import PlatformCode
 from chatzzk.packages.data_access.repositories.channel import ChannelRepository
 from chatzzk.packages.data_access.repositories.vod import VODRepository
-from chatzzk.packages.schemas.clients.chzzk import VODInfo, VODMeta
-from chatzzk.packages.schemas.config.discovery import DiscoveryServiceConfig
+from chatzzk.packages.schemas.api_models.chzzk import ChzzkVODInfo, ChzzkVODMeta
+from chatzzk.packages.schemas.config.services.vod_discovery import ChzzkVODDiscoveryServiceConfig
 from chatzzk.packages.schemas.dto.api.chzzk.vod import ChzzkVODRegisterRequestDTO, ChzzkVODRegisterResponseDTO
 from chatzzk.packages.schemas.dto.repo_params.chzzk.channel import ChzzkChannelFindParams
 from chatzzk.packages.schemas.dto.repo_params.chzzk.vod import ChzzkVODCreateParams
@@ -24,7 +24,7 @@ class ChzzkVODDiscoveryService(VODDiscoveryInterface):
         channel_repo: ChannelRepository,
         vod_repo: VODRepository,
         chzzk_api_client: ChzzkAPIClient,
-        config: DiscoveryServiceConfig,
+        config: ChzzkVODDiscoveryServiceConfig,
     ):
         self.db_session_factory = db_session_factory
         self.channel_repo = channel_repo
@@ -58,13 +58,9 @@ class ChzzkVODDiscoveryService(VODDiscoveryInterface):
             logger.warning(f"No detailed VOD info could be fetched for channel {dto.platform_channel_id}.")
             return []
 
-        async with self.db_session_factory() as session:
-            async with session.begin():  # 모든 VOD 저장을 하나의 트랜잭션으로 묶음
-                channel = await self.channel_repo.find_channel_by_id(session, channel_id)
-                if not channel:
-                    raise ValueError(f"Channel not found: {channel_id}")
-
-                for vod_info in vod_infos:
+        for vod_info in vod_infos:
+            async with self.db_session_factory() as session:
+                async with session.begin():
                     try:
                         # 레포지토리에 전달할 VOD 생성용 파라미터 객체 구성
                         vod_create_params = ChzzkVODCreateParams(
@@ -97,17 +93,22 @@ class ChzzkVODDiscoveryService(VODDiscoveryInterface):
                         )
                         responses.append(ChzzkVODRegisterResponseDTO(video_no=vod_info.video_no, status="FAILED"))
 
+        async with self.db_session_factory() as session:
+            async with session.begin():
+                channel = await self.channel_repo.find_channel_by_id(session, channel_id)
+                if not channel:
+                    raise ValueError(f"Channel not found: {channel_id}")
+
                 self.channel_repo.update_channel(session, channel, last_vod_crawled_at=vod_crawled_at)
 
         logger.info(f"Finished VOD discovery for channel {dto.platform_channel_id}. Processed {len(vod_infos)} VODs.")
         return responses
 
-    async def _fetch_vod_metas(self, platform_channel_id: str, collect_after_date_utc: datetime) -> list[VODMeta]:
+    async def _fetch_vod_metas(self, platform_channel_id: str, collect_after_date_utc: datetime) -> list[ChzzkVODMeta]:
         collect_after_timestamp_ms = int(collect_after_date_utc.timestamp() * 1000) if collect_after_date_utc else None
-        vod_meta_generator = self.api_client.fetch_channel_vods(platform_channel_id, collect_after_timestamp_ms)
-        return [vod_meta async for vod_meta in vod_meta_generator]
+        return await self.api_client.fetch_channel_vod_metas(platform_channel_id, collect_after_timestamp_ms)
 
-    def _filter_vod_metas(self, vod_metas: list[VODMeta]) -> list[VODMeta]:
+    def _filter_vod_metas(self, vod_metas: list[ChzzkVODMeta]) -> list[ChzzkVODMeta]:
         if not vod_metas:
             return []
 
@@ -116,7 +117,7 @@ class ChzzkVODDiscoveryService(VODDiscoveryInterface):
         filtered_vod_metas = [vod for vod in vod_metas if self.vod_filter.is_valid(vod, cur_timestamp_utc)]
         return filtered_vod_metas
 
-    async def _fetch_new_vod_infos(self, filtered_vod_metas: list[VODMeta]) -> list[VODInfo]:
+    async def _fetch_new_vod_infos(self, filtered_vod_metas: list[ChzzkVODMeta]) -> list[ChzzkVODInfo]:
         """
         필터링된 VOD 메타데이터 리스트에 대해 상세 정보를 수집합니다.
         """

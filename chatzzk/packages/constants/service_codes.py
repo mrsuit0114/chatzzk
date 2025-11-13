@@ -25,6 +25,7 @@ class AudioDataConstant:
     CHANNELS = 1
     AUDIO_DTYPE_STR = "float32"
     ACODEC = "pcm_s32le"
+    MAX_SPEECH_DURATION_S = 30
 
 
 class FileFormat(str, Enum):
@@ -34,14 +35,67 @@ class FileFormat(str, Enum):
 
 
 @dataclass
+class MLModelPath:
+    WHISPERX = "models/whisperx"
+
+
+@dataclass
 class FileKeyTemplate:
-    VIDEO = "{video_no}/video.mp4"
-    AUDIO = "{video_no}/auido.wav"
-    CHAT = "{video_no}/chat_entries.jsonl"
-    VAD_TIMESTAMP = "{video_no}/vad_timestamp.jsonl"
-    ASR = "{video_no}/asr_entries.jsonl"
-    SUMMARY = "{video_no}/summaries.jsonl"
-    META_SUMMARY = "{video_no}/meta_summaries.jsonl"
+    VIDEO = "{platform_code}/{video_no}/video.mp4"
+    AUDIO = "{platform_code}/{video_no}/auido.wav"
+    CHAT = "{platform_code}/{video_no}/chat_entries.jsonl"
+    VAD_TIMESTAMP = "{platform_code}/{video_no}/vad_timestamp.jsonl"
+    ASR = "{platform_code}/{video_no}/asr_entries.jsonl"
+    SUMMARY = "{platform_code}/{video_no}/summaries.jsonl"
+    META_SUMMARY = "{platform_code}/{video_no}/meta_summaries.jsonl"
+
+    TMP_DIR = "{platform_code}/{video_no}/tmp"
+
+    @classmethod
+    def get_video_key(cls, platform_code: PlatformCode, video_no: int) -> str:
+        return cls.VIDEO.format(platform_code=platform_code.value, video_no=video_no)
+
+    @classmethod
+    def get_audio_key(cls, platform_code: PlatformCode, video_no: int) -> str:
+        return cls.AUDIO.format(platform_code=platform_code.value, video_no=video_no)
+
+    @classmethod
+    def get_chat_key(cls, platform_code: PlatformCode, video_no: int) -> str:
+        return cls.CHAT.format(platform_code=platform_code.value, video_no=video_no)
+
+    @classmethod
+    def get_vad_timestamp_key(cls, platform_code: PlatformCode, video_no: int) -> str:
+        return cls.VAD_TIMESTAMP.format(platform_code=platform_code.value, video_no=video_no)
+
+    @classmethod
+    def get_asr_key(cls, platform_code: PlatformCode, video_no: int) -> str:
+        return cls.ASR.format(platform_code=platform_code.value, video_no=video_no)
+
+    @classmethod
+    def get_summary_key(cls, platform_code: PlatformCode, video_no: int) -> str:
+        return cls.SUMMARY.format(platform_code=platform_code.value, video_no=video_no)
+
+    @classmethod
+    def get_meta_summary_key(cls, platform_code: PlatformCode, video_no: int) -> str:
+        return cls.META_SUMMARY.format(platform_code=platform_code.value, video_no=video_no)
+
+    @classmethod
+    def get_tmp_dir(cls, platform_code: PlatformCode, video_no: int) -> str:
+        return cls.TMP_DIR.format(platform_code=platform_code.value, video_no=video_no)
+
+
+class VODProcessingStep(str, Enum):
+    CRAWL_CHATS = "crawl_chats"
+    DOWNLOAD_AUDIO = "download_audio"
+    PERFORM_VAD = "perform_vad"
+    PERFORM_ASR = "perform_asr"
+    GENERATE_SUMMARIES = "generate_summaries"
+    GENERATE_META_SUMMARIES = "generate_meta_summaries"
+
+
+class VODProcessingStepStatus(str, Enum):
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 
 class ResultObjectFileType(str, Enum):

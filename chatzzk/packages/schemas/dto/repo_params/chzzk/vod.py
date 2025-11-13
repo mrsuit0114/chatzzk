@@ -11,3 +11,7 @@ class ChzzkVODCreateParams(BaseModel):
     video_category_value: str
     publish_date: datetime
     live_open_date: datetime
+
+
+class ChzzkVODFindParams(BaseModel):
+    video_no: int | None = None

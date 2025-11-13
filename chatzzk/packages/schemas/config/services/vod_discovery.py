@@ -4,7 +4,7 @@ from chatzzk.packages.constants.chzzk import ChzzkVODFilterConstant
 from chatzzk.packages.schemas.api_models.chzzk import ChzzkVODMeta
 
 
-class VODFilterConfig(BaseModel):
+class ChzzkVODFilterConfig(BaseModel):
     """VOD 필터링 조건을 정의하고, 필터링 로직을 수행하는 모델"""
 
     min_duration_s: int = Field(
@@ -39,5 +39,9 @@ class VODFilterConfig(BaseModel):
         return True
 
 
+class ChzzkVODDiscoveryServiceConfig(BaseModel):
+    vod_filter: ChzzkVODFilterConfig = Field(default_factory=ChzzkVODFilterConfig)
+
+
 class VODDiscoveryServiceConfig(BaseModel):
-    vod_filter: VODFilterConfig = Field(default_factory=VODFilterConfig)
+    chzzk: ChzzkVODDiscoveryServiceConfig = Field(default_factory=ChzzkVODDiscoveryServiceConfig)

@@ -11,7 +11,7 @@ class ManagementContainer(containers.DeclarativeContainer):
     channel_repo = providers.Dependency()
     chzzk_api_client = providers.Dependency()
 
-    platform_management_service = providers.Factory(
+    platform_management = providers.Factory(
         PlatformManagementService, db_session_factory=db_session_factory, platform_repo=platform_repo
     )
 
@@ -23,7 +23,7 @@ class ManagementContainer(containers.DeclarativeContainer):
         chzzk_api_client=chzzk_api_client,
     )
 
-    channel_service_factory = providers.Aggregate(
+    channel_factory = providers.Aggregate(
         {
             PlatformCode.CHZZK: _chzzk_channel_management_service,
         }

@@ -13,6 +13,7 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from chatzzk.packages.constants.service_codes import DBDefault, PlatformCode, ResultObjectFileType, VODProcessStatus
@@ -84,7 +85,9 @@ class ChannelMetadata(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     channel_id: Mapped[int] = mapped_column(ForeignKey("channels.id"))
 
-    metadata_description: Mapped[dict] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
+    metadata_description: Mapped[dict] = mapped_column(
+        MutableDict.as_mutable(JSONB), server_default=text("'{}'::jsonb")
+    )
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -99,7 +102,9 @@ class ChannelLLMMetadata(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     channel_id: Mapped[int] = mapped_column(ForeignKey("channels.id"))
 
-    llm_metadata_description: Mapped[dict] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
+    llm_metadata_description: Mapped[dict] = mapped_column(
+        MutableDict.as_mutable(JSONB), server_default=text("'{}'::jsonb")
+    )
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -144,7 +149,7 @@ class VODProcessingStatusDetail(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     vod_id: Mapped[int] = mapped_column(ForeignKey("vods.id"))
 
-    status_details: Mapped[dict] = mapped_column(JSONB, server_default=text("'{}'::jsonb"))
+    status_details: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB), server_default=text("'{}'::jsonb"))
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -205,10 +210,10 @@ class ChzzkVODChatAnalytics(Base):
     chzzk_vod_id: Mapped[int] = mapped_column(ForeignKey("chzzk_vods.id"))
 
     total_chat_count: Mapped[int] = mapped_column(Integer)
-    chat_os_type_counts: Mapped[dict] = mapped_column(JSONB)
+    chat_os_type_counts: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB))
     chat_participant_count: Mapped[int] = mapped_column(Integer)
-    chat_participant_chat_counts: Mapped[dict] = mapped_column(JSONB)
-    chat_count_by_subscription: Mapped[dict] = mapped_column(JSONB)
+    chat_participant_chat_counts: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB))
+    chat_count_by_subscription: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB))
     hidden_chat_count: Mapped[int] = mapped_column(Integer)
     avg_chat_count_per_minute: Mapped[float] = mapped_column(Float)
     total_donation_count: Mapped[int] = mapped_column(Integer)
@@ -218,7 +223,7 @@ class ChzzkVODChatAnalytics(Base):
     anonymous_donation_count: Mapped[int] = mapped_column(Integer)
     avg_donation_amount: Mapped[float] = mapped_column(Float)
     avg_donation_count_per_minute: Mapped[float] = mapped_column(Float)
-    mission_stats: Mapped[dict] = mapped_column(JSONB)
+    mission_stats: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB))
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

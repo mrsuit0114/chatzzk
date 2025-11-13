@@ -4,10 +4,10 @@ from pathlib import Path
 import aiofiles
 import orjson
 
-from chatzzk.packages.data_access.storages.base import Storage
+from chatzzk.packages.data_access.storages.base import PipelineStorage
 
 
-class LocalFileSystemStorage(Storage):
+class LocalFileSystemStorage(PipelineStorage):
     """
     Local file system 기반 스토리지의 책임과 역할:
     - 직렬화 가능한 데이터(jsonl 등)의 저장 및 로딩 기능을 제공

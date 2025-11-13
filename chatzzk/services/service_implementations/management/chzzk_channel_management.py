@@ -6,7 +6,7 @@ from chatzzk.packages.clients.chzzk.chzzk_api_client import ChzzkAPIClient
 from chatzzk.packages.constants.service_codes import PlatformCode
 from chatzzk.packages.data_access.repositories.channel import ChannelRepository
 from chatzzk.packages.data_access.repositories.platform import PlatformRepository
-from chatzzk.packages.schemas.clients.chzzk import ChannelInfo
+from chatzzk.packages.schemas.api_models.chzzk import ChzzkChannelInfo
 from chatzzk.packages.schemas.dto.api.chzzk.channel import ChzzkChannelAddRequestDTO, ChzzkChannelAddResponseDTO
 from chatzzk.packages.schemas.dto.repo_params.chzzk.channel import ChzzkChannelCreateParams, ChzzkChannelFindParams
 from chatzzk.services.interfaces.channel_management import ChannelManagementInterface
@@ -29,7 +29,7 @@ class ChzzkChannelManagementService(ChannelManagementInterface):
     async def add_channel(self, dto: ChzzkChannelAddRequestDTO) -> ChzzkChannelAddResponseDTO:
         logger.info(f"Attempting to add new Chzzk channel: {dto.platform_channel_id}")
 
-        channel_info: ChannelInfo | None = await self.api_client.fetch_channel_info(dto.platform_channel_id)
+        channel_info: ChzzkChannelInfo | None = await self.api_client.fetch_channel_info(dto.platform_channel_id)
         if not channel_info:
             raise ValueError(f"Channel info for '{dto.platform_channel_id}' not found in Chzzk.")
 

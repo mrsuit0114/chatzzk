@@ -1,8 +1,17 @@
+import aiohttp
 from dependency_injector import containers, providers
 
-from chatzzk.packages.clients._http.client import BaseHTTPClient
+from chatzzk.packages.clients._http.aiohttp_client import AioHTTPClient
 from chatzzk.packages.clients.chzzk.chzzk_api_client import ChzzkAPIClient
-from chatzzk.packages.schemas.config.api import BaseHTTPConfig, ChzzkAPIConfig
+from chatzzk.packages.clients.media.media_processor import MediaProcessor
+from chatzzk.packages.schemas.config.clients.chzzk import ChzzkAPIConfig
+from chatzzk.packages.schemas.config.clients.http import AioHTTPConfig
+from chatzzk.packages.schemas.config.clients.media_processor import MediaProcessorConfig
+
+
+async def init_client_session():  # https://python-dependency-injector.ets-labs.org/providers/async.html 이를 의존하는 provider 역시 await으로 호출
+    session = aiohttp.ClientSession()
+    yield session
 
 
 class ClientsContainer(containers.DeclarativeContainer):
@@ -10,9 +19,11 @@ class ClientsContainer(containers.DeclarativeContainer):
 
     config = providers.Configuration()
 
-    _base_http_config = providers.Callable(
-        BaseHTTPConfig.model_validate,
-        config.base_http,
+    _session = providers.Resource(init_client_session)
+
+    _aiohttp_config = providers.Callable(
+        AioHTTPConfig.model_validate,
+        config.aiohttp,
     )
 
     _chzzk_api_config = providers.Callable(
@@ -20,15 +31,22 @@ class ClientsContainer(containers.DeclarativeContainer):
         config.chzzk_api,
     )
 
-    # 중첩된 pydantic model을 위처럼 따로 정의를 해줘야하고 callable로 정의하여 아래 factory에서 호출할 때 call하므로 인스턴스로 주입됨
-    # 채팅, discover 등 용도에 따라 구분해서 관리하는게 limiter 관리에 용이할 것
-    base_http_client = providers.Factory(
-        BaseHTTPClient,
-        config=_base_http_config,
+    _media_processor_config = providers.Callable(
+        MediaProcessorConfig.model_validate,
+        config.media_processor,
     )
 
-    chzzk_api_client = providers.Factory(
+    # 중첩된 pydantic model을 위처럼 따로 정의를 해줘야하고 callable로 정의하여 아래 factory에서 호출할 때 call하므로 인스턴스로 주입됨
+    aiohttp_client = providers.Singleton(AioHTTPClient, config=_aiohttp_config, session=_session)
+
+    chzzk_api_client = providers.Singleton(
         ChzzkAPIClient,
         config=_chzzk_api_config,
-        http_client=base_http_client,
+        http_client=aiohttp_client,
+    )
+
+    media_processor = providers.Singleton(
+        MediaProcessor,
+        config=_media_processor_config,
+        http_client=aiohttp_client,
     )

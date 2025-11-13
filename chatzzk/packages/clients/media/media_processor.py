@@ -16,7 +16,7 @@ from chatzzk.packages.schemas.config.clients.media_processor import MediaProcess
 
 
 class MediaProcessor:
-    def __init__(self, config: MediaProcessorConfig, http_client: AioHTTPClient):
+    def __init__(self, config: MediaProcessorConfig, http_client: AioHTTPClient | None = None):
         self._http_client = http_client
         self.target_channels = config.target_channels
         self.target_sample_rate = config.target_sample_rate
@@ -56,6 +56,10 @@ class MediaProcessor:
         tmp_dir = Path(tmp_dir)
         video_path = Path(video_path)
         output_wav_path = Path(output_wav_path)
+
+        if self._http_client is None:
+            logger.info("init self._http_client before using download_m3u8_and_extract_wav")
+            return
 
         async with self._http_client.get(m3u8_url) as response:
             content = await response.text()
@@ -98,7 +102,6 @@ class MediaProcessor:
                     content = await response.read()
                     async with aiofiles.open(segment_path, "wb") as f:
                         await f.write(content)
-                logger.info(f"✅ 세그먼트 {index} 저장: {segment_path}")
 
         tasks = [download_one(idx + 1, segment) for idx, segment in enumerate(segments)]
 
