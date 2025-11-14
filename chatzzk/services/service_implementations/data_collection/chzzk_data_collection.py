@@ -52,6 +52,13 @@ class ChzzkDataCollectionService(DataCollectionInterface):
         chat_done = detail.get(VODProcessingStep.CRAWL_CHATS, {}).get("status") == VODProcessingStepStatus.COMPLETED
         audio_done = detail.get(VODProcessingStep.DOWNLOAD_AUDIO, {}).get("status") == VODProcessingStepStatus.COMPLETED
 
+        if chat_done and audio_done:
+            return ChzzkDataCollectResponseDTO(
+                video_no=video_no,
+                chat_result=VODProcessingStepStatus.COMPLETED,
+                audio_result=VODProcessingStepStatus.COMPLETED,
+            )
+
         tasks = []
         if not chat_done:
             tasks.append((VODProcessingStep.CRAWL_CHATS, self._collect_chats(video_no)))
@@ -77,23 +84,23 @@ class ChzzkDataCollectionService(DataCollectionInterface):
                         "end_time": res["end_time"],
                     }
 
-        async with self.db_session_factory() as session:
-            async with session.begin():
-                vod_find_params = ChzzkVODFindParams(video_no=video_no)
-                unified_vod = await self.vod_repo.find_vod_with_platform_vod(
-                    session, self.platform_code, vod_find_params
-                )
-                vod = await self.vod_repo.find_vod_with_processing_detail_by_id(session, unified_vod.id)
-
-                for name, result in results.items():
-                    self.vod_repo.update_processing_detail(
-                        session,
-                        vod,
-                        step=name,
-                        status=result["status"],
-                        start_time=result["start_time"],
-                        end_time=result["end_time"],
+            async with self.db_session_factory() as session:
+                async with session.begin():
+                    vod_find_params = ChzzkVODFindParams(video_no=video_no)
+                    unified_vod = await self.vod_repo.find_vod_with_platform_vod(
+                        session, self.platform_code, vod_find_params
                     )
+                    vod = await self.vod_repo.find_vod_with_processing_detail_by_id(session, unified_vod.id)
+
+                    for name, result in results.items():
+                        self.vod_repo.update_processing_detail(
+                            session,
+                            vod,
+                            step=name,
+                            status=result["status"],
+                            start_time=result["start_time"],
+                            end_time=result["end_time"],
+                        )
 
         return ChzzkDataCollectResponseDTO(
             video_no=video_no,

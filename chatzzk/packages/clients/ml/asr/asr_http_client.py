@@ -4,15 +4,15 @@ import aiohttp
 import numpy as np
 from loguru import logger
 
-from chatzzk.packages.clients._http.client import BaseHTTPClient
+from chatzzk.packages.clients._http.aiohttp_client import AioHTTPClient
 from chatzzk.packages.clients.ml.asr.base import ASRClientInterface
 from chatzzk.packages.clients.ml.exceptions import ASRError
-from chatzzk.packages.schemas.clients.ml import ASRResponse
-from chatzzk.packages.schemas.config.ml import ASRHTTPConfig
+from chatzzk.packages.schemas.api_models.ml import ASRResponse
+from chatzzk.packages.schemas.config.clients.ml import ASRHTTPConfig
 
 
 class ASRHTTPClient(ASRClientInterface):
-    def __init__(self, config: ASRHTTPConfig, http_client: BaseHTTPClient):
+    def __init__(self, config: ASRHTTPConfig, http_client: AioHTTPClient):
         self.server_url = f"{config.asr_inference_server_url.rstrip('/')}/transcribe"
         self._http_client = http_client
         logger.info(f"ASRHTTPClient initialized for server: {self.server_url}")
@@ -28,9 +28,10 @@ class ASRHTTPClient(ASRClientInterface):
         form_data.add_field("dtype", "float32")
 
         try:
-            # response에 대해 점검 필요함. 아직 응답 스키마 정의 안됨
-            response = await self._http_client.post(self.server_url, data=form_data, timeout=90)
-            validated_response = ASRResponse.model_validate(response)
+            async with self._http_client.post(self.server_url, data=form_data) as response:
+                data = await response.json()
+                validated_response = ASRResponse.model_validate(data)
+
             return validated_response.text
         except aiohttp.ClientError as e:
             logger.error(f"ASR server request failed: {e}")

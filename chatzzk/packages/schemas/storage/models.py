@@ -17,7 +17,7 @@ class ChzzkChatEntry(BaseModel):
 
     user_id_hash: str
     content: str
-    player_message_time: int
+    timestamp_ms: int
 
     donation_type: str | None
     is_anonymous: bool | None
@@ -33,7 +33,7 @@ class ChzzkChatEntry(BaseModel):
         return cls(
             user_id_hash=chat.user_id_hash,
             content=chat.content,
-            player_message_time=chat.player_message_time,
+            timestamp_ms=chat.player_message_time,
             donation_type=chat.extras.donation_type,
             is_anonymous=chat.extras.is_anonymous,
             nickname=chat.extras.nickname,
@@ -45,13 +45,23 @@ class ChzzkChatEntry(BaseModel):
         )
 
 
-# class VADTimestampEntry(BaseModel):
-#     # asr에서 사용하는 목적이므로 샘플 기준
-#     start: int
-#     end: int
+class VADTimestampEntry(BaseModel):
+    start_sample: int
+    end_sample: int
 
-# class ASREntry(BaseModel):
-#     # 서비스에서 제공될 것이므로 시간단위
-#     start_s: float
-#     end_s: float
-#     text: str
+    @classmethod
+    def from_vad_timestamp(cls, timestamp: dict[str, int]) -> "VADTimestampEntry":
+        return cls(start_sample=timestamp["start"], end_sample=timestamp["end"])
+
+
+class ASREntry(BaseModel):
+    timestamp_ms: int
+    text: str
+    end_ms: int
+    start_ms: int
+
+    @classmethod
+    def from_asr_result(cls, start_sample: int, end_sample: int, transcription: str, sample_rate: int) -> "ASREntry":
+        start_ms = int(start_sample / sample_rate * 1000)
+        end_ms = int(end_sample / sample_rate * 1000)
+        return cls(timestamp_ms=(start_ms + end_ms) // 2, start_ms=start_ms, end_ms=end_ms, text=transcription)

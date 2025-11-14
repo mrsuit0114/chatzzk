@@ -6,14 +6,15 @@ import numpy as np
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from loguru import logger
 
-from chatzzk.packages.ml_clients.asr.base import ASRClientInterface
-from chatzzk.packages.ml_clients.asr.factory import create_asr_client
-from chatzzk.packages.schemas.asr import ASRResponse  # 응답 스키마
-from chatzzk.services.asr_inference_server.settings import settings
+from chatzzk.packages.clients.ml.asr.base import ASRClientInterface
+from chatzzk.packages.clients.ml.asr.factory import create_asr_client
+from chatzzk.packages.schemas.api_models.ml import ASRResponse
+from chatzzk.services.asr_inference_server.settings import InferenceServerSettings
 
 asr_client: ASRClientInterface = None
+settings = InferenceServerSettings()
+TARGET_SAMPLE_RATE = settings.target_sample_rate
 MAX_SPEECH_DURATION_S = settings.max_speech_duration_s
-SAMPLE_RATE = settings.sample_rate
 
 
 @asynccontextmanager
@@ -21,8 +22,7 @@ async def lifespan(app: FastAPI):
     global asr_client
     logger.info("🚀 ASR Inference Server is starting up...")
     try:
-        # 팩토리를 사용하여 설정에 맞는 ASR 클라이언트 생성
-        asr_client = create_asr_client(settings.asr_model_config, settings.models_base_dir)
+        asr_client = create_asr_client(settings.asr_model_config)
         logger.success("✅ ASR model initialized successfully.")
     except Exception as e:
         logger.opt(exception=True).critical(f"❌ Failed to initialize ASR model: {e}")
@@ -56,14 +56,14 @@ async def transcribe_chunk(
         audio_chunk_np = np.frombuffer(byte_data, dtype=np.dtype(dtype))
 
         # 입력 오디오의 길이를 검증 (예: 최대 30초)
-        if len(audio_chunk_np) > SAMPLE_RATE * MAX_SPEECH_DURATION_S:
+        if len(audio_chunk_np) > TARGET_SAMPLE_RATE * MAX_SPEECH_DURATION_S:
             raise HTTPException(
                 status_code=413, detail=f"Audio chunk exceeds max duration of {MAX_SPEECH_DURATION_S}s."
             )
 
         # 2. ASR 클라이언트를 사용하여 추론
         inference_start = time.time()
-        transcription_text = asr_client.transcribe(audio_chunk_np)
+        transcription_text = await asr_client.transcribe(audio_chunk_np)
         inference_time = time.time() - inference_start
         logger.info(
             f"Transcription successful. Text length: {len(transcription_text)}, inference time: {inference_time}"

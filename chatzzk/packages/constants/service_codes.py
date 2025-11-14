@@ -1,3 +1,5 @@
+# 나중에는 값을 yaml 파일로 옮기고 읽어오기만 해야할 듯 -> 빌드 컨텍스트에 포함되어 골치아픔
+
 from dataclasses import dataclass
 from enum import Enum
 
@@ -36,7 +38,8 @@ class FileFormat(str, Enum):
 
 @dataclass
 class MLModelPath:
-    WHISPERX = "models/whisperx"
+    MODEL_BASE = "models"
+    WHISPERX = f"{MODEL_BASE}/whisperx"
 
 
 @dataclass
@@ -52,35 +55,35 @@ class FileKeyTemplate:
     TMP_DIR = "{platform_code}/{video_no}/tmp"
 
     @classmethod
-    def get_video_key(cls, platform_code: PlatformCode, video_no: int) -> str:
+    def get_video_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
         return cls.VIDEO.format(platform_code=platform_code.value, video_no=video_no)
 
     @classmethod
-    def get_audio_key(cls, platform_code: PlatformCode, video_no: int) -> str:
+    def get_audio_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
         return cls.AUDIO.format(platform_code=platform_code.value, video_no=video_no)
 
     @classmethod
-    def get_chat_key(cls, platform_code: PlatformCode, video_no: int) -> str:
+    def get_chat_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
         return cls.CHAT.format(platform_code=platform_code.value, video_no=video_no)
 
     @classmethod
-    def get_vad_timestamp_key(cls, platform_code: PlatformCode, video_no: int) -> str:
+    def get_vad_timestamp_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
         return cls.VAD_TIMESTAMP.format(platform_code=platform_code.value, video_no=video_no)
 
     @classmethod
-    def get_asr_key(cls, platform_code: PlatformCode, video_no: int) -> str:
+    def get_asr_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
         return cls.ASR.format(platform_code=platform_code.value, video_no=video_no)
 
     @classmethod
-    def get_summary_key(cls, platform_code: PlatformCode, video_no: int) -> str:
+    def get_summary_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
         return cls.SUMMARY.format(platform_code=platform_code.value, video_no=video_no)
 
     @classmethod
-    def get_meta_summary_key(cls, platform_code: PlatformCode, video_no: int) -> str:
+    def get_meta_summary_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
         return cls.META_SUMMARY.format(platform_code=platform_code.value, video_no=video_no)
 
     @classmethod
-    def get_tmp_dir(cls, platform_code: PlatformCode, video_no: int) -> str:
+    def get_tmp_dir(cls, platform_code: PlatformCode, video_no: str | int) -> str:
         return cls.TMP_DIR.format(platform_code=platform_code.value, video_no=video_no)
 
 

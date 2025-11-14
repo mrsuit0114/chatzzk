@@ -33,14 +33,14 @@ class DataAccessContainer(containers.DeclarativeContainer):
     _channel_repo_logics = providers.Object({PlatformCode.CHZZK: ChzzkChannelLogic(_chzzk_channel_field_map)})
     _vod_repo_logics = providers.Object({PlatformCode.CHZZK: ChzzkVODLogic(_chzzk_vod_field_map)})
 
-    platform_repo = providers.Singleton(PlatformRepository)
-    channel_repo = providers.Singleton(
+    platform_repo = providers.ThreadSafeSingleton(PlatformRepository)
+    channel_repo = providers.ThreadSafeSingleton(
         ChannelRepository,
         channel_logic_factory=_channel_repo_logics,
     )
-    vod_repo = providers.Singleton(
+    vod_repo = providers.ThreadSafeSingleton(
         VODRepository,
         vod_logic_factory=_vod_repo_logics,
     )
 
-    pipeline_storage = providers.Singleton(LocalFileSystemStorage, base_dir=config.tmp_storage.base_dir)
+    pipeline_storage = providers.ThreadSafeSingleton(LocalFileSystemStorage, base_dir=config.tmp_storage.base_dir)

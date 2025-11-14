@@ -1,16 +1,12 @@
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from chatzzk.packages.constants.service_codes import MAX_SPEECH_DURAION_S, SAMPLE_RATE
-from chatzzk.packages.schemas.ml_configs import ASRConfig, WhisperXConfig
+from chatzzk.packages.constants.service_codes import AudioDataConstant
+from chatzzk.packages.schemas.config.clients.ml import ASRConfig, WhisperXConfig
 
 
 class InferenceServerSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_file="local.test.env", extra="ignore")
-    models_base_dir: str | None = Field("/app/models")
-    asr_model_config: ASRConfig = Field(default_factory=WhisperXConfig)
-    max_speech_duration_s: int = Field(MAX_SPEECH_DURAION_S)
-    sample_rate: int = Field(SAMPLE_RATE)
-
-
-settings = InferenceServerSettings()
+    model_config = SettingsConfigDict(env_file="server.test.env", extra="ignore")
+    asr_model_config: ASRConfig = Field(default_factory=WhisperXConfig, discriminator="asr_implementation")
+    max_speech_duration_s: int = AudioDataConstant.MAX_SPEECH_DURATION_S
+    target_sample_rate: int = AudioDataConstant.SAMPLE_RATE

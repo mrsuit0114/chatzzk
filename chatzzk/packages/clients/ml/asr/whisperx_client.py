@@ -1,5 +1,4 @@
 import asyncio
-from pathlib import Path
 
 import numpy as np
 import torch
@@ -8,26 +7,27 @@ from loguru import logger
 
 from chatzzk.packages.clients.ml.asr.base import ASRClientInterface
 from chatzzk.packages.clients.ml.exceptions import ASRError
-from chatzzk.packages.schemas.config.ml import WhisperXConfig
+from chatzzk.packages.schemas.config.clients.ml import WhisperXConfig
 
 
 class WhisperxClient(ASRClientInterface):
-    def __init__(self, config: WhisperXConfig, model_path: str | Path | None):
+    def __init__(self, config: WhisperXConfig):
         logger.info("Initializing WhisperX model...")
         self.device = config.device if torch.cuda.is_available() else "cpu"
         self.model_size = config.model_size
         self.compute_type = config.compute_type
         self.batch_size = config.batch_size
         self.language = config.language
+        self.model_path = config.model_path
+
         logger.info(f"Initializing WhisperX model '{self.model_size}' on device '{self.device}'...")
 
-        download_root_path = Path(model_path) if model_path else None
         try:
             self.model = whisperx.load_model(
                 self.model_size,
                 device=self.device,
                 compute_type=self.compute_type,
-                download_root=download_root_path,
+                download_root=self.model_path,
                 language=self.language,
             )
 

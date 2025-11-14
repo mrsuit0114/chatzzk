@@ -4,9 +4,15 @@ from dependency_injector import containers, providers
 from chatzzk.packages.clients._http.aiohttp_client import AioHTTPClient
 from chatzzk.packages.clients.chzzk.chzzk_api_client import ChzzkAPIClient
 from chatzzk.packages.clients.media.media_processor import MediaProcessor
+from chatzzk.packages.clients.ml.asr.factory import create_asr_client
+from chatzzk.packages.clients.ml.vad.factory import create_vad_client
 from chatzzk.packages.schemas.config.clients.chzzk import ChzzkAPIConfig
 from chatzzk.packages.schemas.config.clients.http import AioHTTPConfig
 from chatzzk.packages.schemas.config.clients.media_processor import MediaProcessorConfig
+from chatzzk.packages.schemas.config.clients.ml import (
+    validate_asr_config,
+    validate_vad_config,
+)
 
 
 async def init_client_session():  # https://python-dependency-injector.ets-labs.org/providers/async.html 이를 의존하는 provider 역시 await으로 호출
@@ -36,17 +42,27 @@ class ClientsContainer(containers.DeclarativeContainer):
         config.media_processor,
     )
 
-    # 중첩된 pydantic model을 위처럼 따로 정의를 해줘야하고 callable로 정의하여 아래 factory에서 호출할 때 call하므로 인스턴스로 주입됨
-    aiohttp_client = providers.Singleton(AioHTTPClient, config=_aiohttp_config, session=_session)
+    _vad_config = providers.Callable(validate_vad_config, config.vad)
 
-    chzzk_api_client = providers.Singleton(
+    _asr_config = providers.Callable(validate_asr_config, config.asr)
+
+    # 중첩된 pydantic model을 위처럼 따로 정의를 해줘야하고 callable로 정의하여 아래 factory에서 호출할 때 call하므로 인스턴스로 주입됨
+    aiohttp_client = providers.ThreadSafeSingleton(AioHTTPClient, config=_aiohttp_config, session=_session)
+
+    chzzk_api_client = providers.ThreadSafeSingleton(
         ChzzkAPIClient,
         config=_chzzk_api_config,
         http_client=aiohttp_client,
     )
 
-    media_processor = providers.Singleton(
+    media_processor = providers.ThreadSafeSingleton(
         MediaProcessor,
         config=_media_processor_config,
         http_client=aiohttp_client,
+    )
+
+    vad_client_factory = providers.ThreadSafeSingleton(create_vad_client, model_config=_vad_config)
+
+    asr_client_factory = providers.ThreadSafeSingleton(
+        create_asr_client, model_config=_asr_config, http_client=aiohttp_client
     )

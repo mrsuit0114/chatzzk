@@ -1,6 +1,6 @@
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, TypeAdapter
 
 from chatzzk.packages.constants.client import ASRHTTPConstant, SileroVADConstant, WhisperXConstant
 
@@ -18,6 +18,11 @@ class SileroVADConfig(BaseModel):
 
 
 VADConfig = Annotated[SileroVADConfig, Field(discriminator="vad_implementation")]
+VADConfigAdapter = TypeAdapter(VADConfig)
+
+
+def validate_vad_config(raw: dict):
+    return VADConfigAdapter.validate_python(raw)
 
 
 class WhisperXConfig(BaseModel):
@@ -36,4 +41,11 @@ class ASRHTTPConfig(BaseModel):
 
 
 ASRConfig = Annotated[WhisperXConfig | ASRHTTPConfig, Field(discriminator="asr_implementation")]
+ASRConfigAdapter = TypeAdapter(ASRConfig)
+
+
+def validate_asr_config(raw: dict):
+    return ASRConfigAdapter.validate_python(raw)
+
+
 # UNEXPECTED_ASR_RESULTS: list[str] = ["뉴스", "고맙습니다", "감사합니다", "였습니다"]

@@ -9,8 +9,7 @@ from loguru import logger
 
 from chatzzk.packages.clients.ml.exceptions import VADError
 from chatzzk.packages.clients.ml.vad.base import VADClientInterface
-from chatzzk.packages.constants.service_codes import MAX_SPEECH_DURATION_S, MIN_SILENCE_DURATION_MS
-from chatzzk.packages.schemas.config.ml import SileroVADConfig
+from chatzzk.packages.schemas.config.clients.ml import SileroVADConfig
 
 # --- 멀티프로세싱을 위한 최상위 레벨 함수 정의 ---
 
@@ -28,8 +27,8 @@ def init_vad_worker():
 def process_vad_chunk(
     audio_chunk_np: np.ndarray,
     threshold: float,
-    min_silence_duration_ms: int = MIN_SILENCE_DURATION_MS,
-    max_speech_duration_s: int = MAX_SPEECH_DURATION_S,
+    min_silence_duration_ms: int,
+    max_speech_duration_s: int,
 ) -> list[tuple[int, int]]:
     """자식 프로세스에서 단일 오디오 조각을 처리하는 실제 작업 함수"""
     global vad_model
@@ -56,13 +55,13 @@ def process_vad_chunk(
 class SileroVADClient(VADClientInterface):
     def __init__(self, config: SileroVADConfig):
         self.config = config
-        self.executor = ProcessPoolExecutor(max_workers=config.max_workers, initializer=init_vad_worker)
-        logger.info(f"SileroVADClient initialized with ProcessPoolExecutor(max_workers={config.max_workers}).")
+        self.executor = ProcessPoolExecutor(max_workers=config.worker_num, initializer=init_vad_worker)
+        logger.info(f"SileroVADClient initialized with ProcessPoolExecutor(worker_num={config.worker_num}).")
 
     def _split_audio(self, audio_np: np.ndarray) -> tuple[list[np.ndarray], list[int]]:
         total_len = len(audio_np)
-        chunk_size = total_len // self.config.max_workers
-        split_idxs = [i * chunk_size for i in range(self.config.max_workers)]
+        chunk_size = total_len // self.config.worker_num
+        split_idxs = [i * chunk_size for i in range(self.config.worker_num)]
         # split_idxs의 각 값에 대해, 해당 값보다 작거나 같은 self.config.sample_chunk_size의 배수 중 가장 큰 값을 구함
         chunk_start_by_chunk_samples = []
         for idx in split_idxs:
@@ -74,9 +73,9 @@ class SileroVADClient(VADClientInterface):
                 )
 
         chunks = []
-        for i in range(self.config.max_workers):
+        for i in range(self.config.worker_num):
             start = chunk_start_by_chunk_samples[i]
-            if i < self.config.max_workers - 1:
+            if i < self.config.worker_num - 1:
                 end = chunk_start_by_chunk_samples[i + 1] + self.config.overlap_num * self.config.sample_chunk_size
                 end = min(end, total_len)
             else:
@@ -89,25 +88,29 @@ class SileroVADClient(VADClientInterface):
         self, chunk_results: list[list[dict[str, int]]], chunk_starts: list[int], min_silence_samples: int
     ):
         # chunk_timestamps: _split_audio에서 구한 chunks에 대해 timestamps의 리스트 list[list[dict[str, int]]]
-        combined_timestamps = []
+        combined_timestamps: list[dict[str, int]] = []
 
         for i, chunk_timestamps in enumerate(chunk_results):
             if not chunk_timestamps:
                 continue
 
             chunk_start = chunk_starts[i]
-            chunk_segments = [(ts["start"] + chunk_start, ts["end"] + chunk_start) for ts in chunk_timestamps]
+            # 각 chunk의 결과를 dict로 변환하여 offset 적용
+            chunk_segments = [
+                {"start": ts["start"] + chunk_start, "end": ts["end"] + chunk_start} for ts in chunk_timestamps
+            ]
 
             if not combined_timestamps:
                 # 첫 chunk는 그대로 추가
                 combined_timestamps.extend(chunk_segments)
                 continue
 
-            prev_start, prev_end = combined_timestamps[-1]
-            cur_start, cur_end = chunk_segments[0]
+            prev = combined_timestamps[-1]
+            cur = chunk_segments[0]
 
-            if cur_start - prev_end <= min_silence_samples:
-                combined_timestamps[-1] = (prev_start, cur_end)
+            if cur["start"] - prev["end"] <= min_silence_samples:
+                # 이전 segment와 병합
+                combined_timestamps[-1] = {"start": prev["start"], "end": cur["end"]}
                 combined_timestamps.extend(chunk_segments[1:])
             else:
                 combined_timestamps.extend(chunk_segments)

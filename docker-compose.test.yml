@@ -39,17 +39,36 @@ services:
     # restart: always
     ports:
       - 8081:8080
-  test-redis:
-    image: redis
-    container_name: chatzzk-test-redis
+  # test-redis:
+  #   image: redis
+  #   container_name: chatzzk-test-redis
+  #   ports:
+  #     - "6380:6379"
+  #   healthcheck:
+  #     test: [ "CMD", "redis-cli", "ping" ]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
+
+  asr_inference_server:
+    build:
+      context: ./chatzzk
+      dockerfile: services/asr_inference_server/Dockerfile
+    env_file:
+      - server.test.env
     ports:
-      - "6380:6379"
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - 8000:8000
+    volumes:
+      - test-models:/app/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
 
 volumes:
   test-db-data:
   test-minio-data:
+  test-models:
