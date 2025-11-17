@@ -39,7 +39,9 @@ class ChzzkVODDiscoveryService(VODDiscoveryInterface):
 
         async with self.db_session_factory() as session:
             channel_find_params = ChzzkChannelFindParams(platform_channel_id=dto.platform_channel_id)
-            channel = await self.channel_repo.find_platform_channel(session, self.platform_code, channel_find_params)
+            channel = await self.channel_repo.find_channel_with_platform_channel(
+                session, self.platform_code, channel_find_params
+            )
             if not channel:
                 raise ValueError(f"Channel '{dto.platform_channel_id}' not found in DB. Please add it first.")
             channel_id = channel.id

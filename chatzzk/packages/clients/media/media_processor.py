@@ -25,7 +25,7 @@ class MediaProcessor:
         self.chunk_size = config.chunk_size
 
     # mp4 url, m3u8 url에 따른 다운로드, load_audio
-    def extract_wav_from_mp4_url(self, mp4_url: str, output_wav_path: str | Path) -> None:
+    async def extract_wav_from_mp4_url(self, mp4_url: str, output_wav_path: str | Path) -> None:
         """
         Downloads an mp4 from the given URL and extracts audio as a WAV file to output_wav_path.
         """
@@ -41,7 +41,9 @@ class MediaProcessor:
                 )
                 .overwrite_output()
             )
-            ffmpeg.run(stream, capture_stderr=True)
+            loop = asyncio.get_running_loop()
+            await loop.run_in_executor(None, lambda: ffmpeg.run(stream, capture_stderr=True))
+
             logger.success(f"✅ WAV audio extracted from '{mp4_url}' to '{output_wav_path}'")
         except ffmpeg.Error as e:
             logger.error(f"❌ ffmpeg error extracting wav from '{mp4_url}': {e.stderr.decode('utf8', errors='ignore')}")
@@ -155,7 +157,9 @@ class MediaProcessor:
             .output(str(wav_path), acodec=self.acodec, ar=self.target_sample_rate, ac=self.target_channels, vn=None)
             .overwrite_output()
         )
-        ffmpeg.run(stream, capture_stderr=True)
+
+        loop = asyncio.get_running_loop()
+        await loop.run_in_executor(None, lambda: ffmpeg.run(stream, capture_stderr=True))
 
         try:
             if cleanup:

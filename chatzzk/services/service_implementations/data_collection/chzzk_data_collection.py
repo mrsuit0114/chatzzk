@@ -153,7 +153,7 @@ class ChzzkDataCollectionService(DataCollectionInterface):
 
             if vod_info.in_key:
                 mp4_url = await self.chzzk_api_client.fetch_vod_mp4_url(vod_info.video_id, vod_info.in_key)
-                self.media_processor.extract_wav_from_mp4_url(mp4_url, output_wav_path)
+                await self.media_processor.extract_wav_from_mp4_url(mp4_url, output_wav_path)
             else:
                 video_key = FileKeyTemplate.get_video_key(self.platform_code, video_no)
                 tmp_dir_key = FileKeyTemplate.get_tmp_dir(self.platform_code, video_no)

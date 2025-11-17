@@ -61,7 +61,9 @@ class ChzzkChannelManagementService(ChannelManagementInterface):
                 logger.warning(f"Chzzk channel '{dto.platform_channel_id}' already exists. Retrieving existing entry.")
 
                 params = ChzzkChannelFindParams(platform_channel_id=dto.platform_channel_id)
-                existing_channel = await self.channel_repo.find_platform_channel(session, self.platform_code, params)
+                existing_channel = await self.channel_repo.find_channel_with_platform_channel(
+                    session, self.platform_code, params
+                )
 
                 if existing_channel:
                     chzzk_channel = existing_channel.chzzk_channel

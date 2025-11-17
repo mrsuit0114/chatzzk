@@ -32,7 +32,9 @@ class ChzzkChannelLogic(ChannelLogicBase):
 
         return channel
 
-    async def find_platform_channel(self, session: AsyncSession, params: ChzzkChannelFindParams) -> Channel | None:
+    async def find_channel_with_platform_channel(
+        self, session: AsyncSession, params: ChzzkChannelFindParams
+    ) -> Channel | None:
         filters = []
 
         # DTO에서 None이 아닌 값만 가져오기

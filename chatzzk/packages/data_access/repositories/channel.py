@@ -29,11 +29,11 @@ class ChannelRepository:
         logic_module = self._get_logic(platform_code)
         return logic_module.create_platform_channel(session, params)
 
-    async def find_platform_channel(
+    async def find_channel_with_platform_channel(
         self, session: AsyncSession, platform_code: PlatformCode, params: ChannelFindParams
     ) -> Channel:
         logic_module = self._get_logic(platform_code)
-        return await logic_module.find_platform_channel(session, params)
+        return await logic_module.find_channel_with_platform_channel(session, params)
 
     async def find_channel_by_id(self, session: AsyncSession, channel_id: int) -> Channel:
         stmt = select(Channel).where(Channel.id == channel_id)
