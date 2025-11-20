@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from chatzzk.packages.schemas.dto.api.core.channel import ChannelAddRequestDTO, ChannelAddResponseDTO
+from chatzzk_schemas.dto.api.core.channel import ChannelAddRequestDTO, ChannelAddResponseDTO
 
 
 # [추상화된 기능]Interface

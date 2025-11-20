@@ -6,9 +6,9 @@ import numpy as np
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from loguru import logger
 
-from chatzzk.packages.clients.ml.asr.base import ASRClientInterface
-from chatzzk.packages.clients.ml.asr.factory import create_asr_client
-from chatzzk.packages.schemas.api_models.ml import ASRResponse
+from chatzzk_clients.ml.asr.base import ASRClientInterface
+from chatzzk_clients.ml.asr.factory import create_asr_client
+from chatzzk_schemas.api_models.ml import ASRResponse
 from chatzzk.services.asr_inference_server.settings import InferenceServerSettings
 
 asr_client: ASRClientInterface = None

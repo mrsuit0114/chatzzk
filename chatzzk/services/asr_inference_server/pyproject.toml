@@ -1,0 +1,27 @@
+[project]
+name = "asr-inference-server"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.121.2",
+    "python-multipart>=0.0.20",
+    "uvicorn>=0.38.0",
+    "chatzzk-schemas",
+    "chatzzk-clients[numpy]",
+]
+
+[project.optional-dependencies]
+whisperx = [
+    "chatzzk-clients[whisperx]",
+]
+
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+include = [
+    "main.py",
+    "settings.py",
+]

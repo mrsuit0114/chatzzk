@@ -2,8 +2,8 @@ from loguru import logger
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from chatzzk.packages.data_access.repositories.platform import PlatformRepository
-from chatzzk.packages.schemas.dto.api.core.platform import PlatformAddRequestDTO, PlatformAddResponseDTO
+from chatzzk_data_access.repositories.platform import PlatformRepository
+from chatzzk_schemas.dto.api.core.platform import PlatformAddRequestDTO, PlatformAddResponseDTO
 from chatzzk.services.interfaces.platform_management import PlatformManagementInterface
 
 

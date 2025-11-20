@@ -2,13 +2,13 @@ from loguru import logger
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from chatzzk.packages.clients.chzzk.chzzk_api_client import ChzzkAPIClient
-from chatzzk.packages.constants.service_codes import PlatformCode
-from chatzzk.packages.data_access.repositories.channel import ChannelRepository
-from chatzzk.packages.data_access.repositories.platform import PlatformRepository
-from chatzzk.packages.schemas.api_models.chzzk import ChzzkChannelInfo
-from chatzzk.packages.schemas.dto.api.chzzk.channel import ChzzkChannelAddRequestDTO, ChzzkChannelAddResponseDTO
-from chatzzk.packages.schemas.dto.repo_params.chzzk.channel import ChzzkChannelCreateParams, ChzzkChannelFindParams
+from chatzzk_clients.chzzk.chzzk_api_client import ChzzkAPIClient
+from chatzzk_constants.service_codes import PlatformCode
+from chatzzk_data_access.repositories.channel import ChannelRepository
+from chatzzk_data_access.repositories.platform import PlatformRepository
+from chatzzk_schemas.api_models.chzzk import ChzzkChannelInfo
+from chatzzk_schemas.dto.api.chzzk.channel import ChzzkChannelAddRequestDTO, ChzzkChannelAddResponseDTO
+from chatzzk_schemas.dto.repo_params.chzzk.channel import ChzzkChannelCreateParams, ChzzkChannelFindParams
 from chatzzk.services.interfaces.channel_management import ChannelManagementInterface
 
 

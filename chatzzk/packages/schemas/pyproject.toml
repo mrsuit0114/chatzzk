@@ -1,0 +1,27 @@
+[project]
+name = "chatzzk-schemas"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.11"
+dependencies = [
+    "loguru>=0.7.3",
+    "pydantic>=2.12.4",
+    "pydantic-settings>=2.12.0",
+    "chatzzk-constants",
+]
+
+[project.optional-dependencies]
+orm = [
+    "sqlalchemy>=2.0.44",
+]
+
+dev = [
+    "chatzzk_schemas[orm]"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/chatzzk_schemas"]
+
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"

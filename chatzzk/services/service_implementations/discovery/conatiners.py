@@ -1,7 +1,7 @@
 from dependency_injector import containers, providers
 
-from chatzzk.packages.constants.service_codes import PlatformCode
-from chatzzk.packages.schemas.config.services.vod_discovery import ChzzkVODDiscoveryServiceConfig
+from chatzzk_constants.service_codes import PlatformCode
+from chatzzk_schemas.config.services.vod_discovery import ChzzkVODDiscoveryServiceConfig
 from chatzzk.services.service_implementations.discovery.chzzk_vod_discovery import ChzzkVODDiscoveryService
 
 

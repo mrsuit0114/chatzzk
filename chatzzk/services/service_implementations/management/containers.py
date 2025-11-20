@@ -1,6 +1,6 @@
 from dependency_injector import containers, providers
 
-from chatzzk.packages.constants.service_codes import PlatformCode
+from chatzzk_constants.service_codes import PlatformCode
 from chatzzk.services.service_implementations.management.chzzk_channel_management import ChzzkChannelManagementService
 from chatzzk.services.service_implementations.management.platform_management import PlatformManagementService
 

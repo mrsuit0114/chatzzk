@@ -1,6 +1,6 @@
 from dependency_injector import containers, providers
 
-from chatzzk.packages.constants.service_codes import PlatformCode
+from chatzzk_constants.service_codes import PlatformCode
 from chatzzk.services.service_implementations.data_collection.chzzk_data_collection import ChzzkDataCollectionService
 
 

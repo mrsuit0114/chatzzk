@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from chatzzk.packages.schemas.dto.api.core.vod import VODRegisterRequestDTO, VODRegisterResponseDTO
+from chatzzk_schemas.dto.api.core.vod import VODRegisterRequestDTO, VODRegisterResponseDTO
 
 
 class VODDiscoveryInterface(Protocol):

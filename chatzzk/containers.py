@@ -1,7 +1,7 @@
 from dependency_injector import containers, providers
 
-from chatzzk.packages.clients.containers import ClientsContainer
-from chatzzk.packages.data_access.containers import DataAccessContainer
+from chatzzk.services.service_implementations.di_containers.client_containers import ClientContainer
+from chatzzk.services.service_implementations.di_containers.data_access_containers import DataAccessContainer
 from chatzzk.services.service_implementations.data_collection.containers import DataCollectionContainer
 from chatzzk.services.service_implementations.discovery.conatiners import DiscoveryContainer
 from chatzzk.services.service_implementations.management.containers import ManagementContainer
@@ -19,7 +19,7 @@ class AppContainer(containers.DeclarativeContainer):
     data_access_package = providers.Container(DataAccessContainer, config=config.data_access)
 
     clients_package = providers.Container(
-        ClientsContainer,
+        ClientContainer,
         config=config.clients,
     )
 

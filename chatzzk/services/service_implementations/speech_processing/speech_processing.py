@@ -3,20 +3,20 @@ from datetime import UTC, datetime
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from chatzzk.packages.clients.media.media_processor import MediaProcessor
-from chatzzk.packages.clients.ml.asr.base import ASRClientInterface
-from chatzzk.packages.clients.ml.vad.base import VADClientInterface
-from chatzzk.packages.constants.service_codes import FileKeyTemplate, VODProcessingStep, VODProcessingStepStatus
-from chatzzk.packages.data_access.repositories.vod import VODRepository
-from chatzzk.packages.data_access.storages.base import PipelineStorage
-from chatzzk.packages.schemas.dto.api.core.vod import (
+from chatzzk_clients.media.media_processor import MediaProcessor
+from chatzzk_clients.ml.asr.base import ASRClientInterface
+from chatzzk_clients.ml.vad.base import VADClientInterface
+from chatzzk_constants.service_codes import FileKeyTemplate, VODProcessingStep, VODProcessingStepStatus
+from chatzzk_data_access.repositories.vod import VODRepository
+from chatzzk_data_access.storages.base import PipelineStorage
+from chatzzk_schemas.dto.api.core.vod import (
     ASRPerformRequestDTO,
     ASRPerformResponseDTO,
     VADPerformRequestDTO,
     VADPerformResponseDTO,
 )
-from chatzzk.packages.schemas.dto.repo_params.core.vod import get_vod_find_params
-from chatzzk.packages.schemas.storage.models import ASREntry, VADTimestampEntry
+from chatzzk_schemas.dto.repo_params.core.vod import get_vod_find_params
+from chatzzk_schemas.storage.models import ASREntry, VADTimestampEntry
 from chatzzk.services.interfaces.speech_processing import SpeechProcessingInterface
 
 

@@ -4,19 +4,19 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from chatzzk.packages.clients.chzzk.chzzk_api_client import ChzzkAPIClient
-from chatzzk.packages.clients.media.media_processor import MediaProcessor
-from chatzzk.packages.constants.service_codes import (
+from chatzzk_clients.chzzk.chzzk_api_client import ChzzkAPIClient
+from chatzzk_clients.media.media_processor import MediaProcessor
+from chatzzk_constants.service_codes import (
     FileKeyTemplate,
     PlatformCode,
     VODProcessingStep,
     VODProcessingStepStatus,
 )
-from chatzzk.packages.data_access.repositories.vod import VODRepository
-from chatzzk.packages.data_access.storages.base import PipelineStorage
-from chatzzk.packages.schemas.dto.api.chzzk.vod import ChzzkDataCollectRequestDTO, ChzzkDataCollectResponseDTO
-from chatzzk.packages.schemas.dto.repo_params.chzzk.vod import ChzzkVODFindParams
-from chatzzk.packages.schemas.storage.models import ChzzkChatEntry
+from chatzzk_data_access.repositories.vod import VODRepository
+from chatzzk_data_access.storages.base import PipelineStorage
+from chatzzk_schemas.dto.api.chzzk.vod import ChzzkDataCollectRequestDTO, ChzzkDataCollectResponseDTO
+from chatzzk_schemas.dto.repo_params.chzzk.vod import ChzzkVODFindParams
+from chatzzk_schemas.storage.models import ChzzkChatEntry
 from chatzzk.services.interfaces.data_collection import DataCollectionInterface
 
 

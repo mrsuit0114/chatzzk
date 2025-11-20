@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from chatzzk.packages.schemas.dto.api.core.vod import DataCollectRequestDTO, DataCollectResponseDTO
+from chatzzk_schemas.dto.api.core.vod import DataCollectRequestDTO, DataCollectResponseDTO
 
 
 class DataCollectionInterface(Protocol):
