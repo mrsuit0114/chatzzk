@@ -35,6 +35,16 @@ services:
               count: all
               capabilities: [ gpu ]
 
+  llm-proxy-server:
+    image: llm-proxy-server
+    ports:
+      - "4000:4000"
+    environment:
+      - GEMINI_API_KEY=AIzaSyBhHpg1tm3n1t9QFuIce4Z5C_srJ901kdc
+      - GEMINI_API_KEY_PAID=AIzaSyCAA7f7MiqIhUmvG_tYPaGypaLzBIVo454
+      - LANGFUSE_PUBLIC_KEY=pk-lf-dc84fc6b-d660-4a82-845d-130e213752b2
+      - LANGFUSE_SECRET_KEY=sk-lf-90b7fb4d-f5bf-498a-bf16-c3fa02a992a0
+
 volumes:
   test-db-data:
   test-minio-data:

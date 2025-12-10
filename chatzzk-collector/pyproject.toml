@@ -1,5 +1,5 @@
 [project]
-name = "chatzzk"
+name = "chatzzk-collector"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -7,23 +7,16 @@ requires-python = ">=3.11"
 dependencies = []
 
 [project.optional-dependencies]
-all-dev = [
-    "chatzzk-schemas[dev]",
-    "chatzzk-constants",
-    "chatzzk-data-access[dev]",
-    "chatzzk-clients[dev]",
-]
 
 db-migration = [
+    "chatzzk-schemas[orm]",
     "alembic>=1.17.2",
     "alembic-postgresql-enum>=1.8.0",
     "psycopg2-binary>=2.9.11",
 ]
 
 dev = [
-    "dependency-injector>=4.48.2",
-    "chatzzk[all-dev]",
-    "chatzzk[db-migration]",
+    "chatzzk-collector[db-migration]",
     "pre-commit>=4.4.0",
     "ruff>=0.14.5",
 ]
@@ -31,13 +24,10 @@ dev = [
 [tool.uv.sources]
 "chatzzk-schemas" = { workspace = true }
 "chatzzk-constants" = { workspace = true }
-"chatzzk-data-access" = { workspace = true }
-"chatzzk-clients" = { workspace = true }
 
 [tool.uv.workspace]
 members = [
-    "chatzzk/packages/*",
-    "chatzzk/services/asr_inference_server",
+    "packages/*",
 ]
 
 [tool.ruff]

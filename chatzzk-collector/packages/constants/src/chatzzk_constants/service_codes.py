@@ -10,15 +10,24 @@ class PlatformCode(str, Enum):
     SOOP = "sooplive"
 
 
+class VODProcessingStatus(str, Enum):  # TODO: prefect 참고하여 수정 필요
+    PENDING = "PENDING"  # 모든 처리를 기다리는 초기 상태
+    PROCESSING = "PROCESSING"  # 하나 이상의 파이프라인 단계가 진행 중인 상태
+    COMPLETED = "COMPLETED"  # 모든 파이프라인 단계가 성공적으로 완료된 상태
+    FAILED = "FAILED"  # 하나 이상의 필수 파이프라인 단계가 실패한 상태
+
+
 # -------------- db init value -------------------------
 @dataclass
 class DBDefault:
-    DEFAULT_STRING_MAX_LEN_SHORT = 64
-    DEFAULT_STRING_MAX_LEN_MEDIUM = 255
-    DEFAULT_STRING_MAX_LEN_LONG = 1024
+    IS_ACTIVE = "true"
 
-    # Channel
-    IS_ACTIVE_DEFAULT = "true"
+    VOD_PROCESSING_STATUS = VODProcessingStatus.PENDING.value
+
+    class Len:
+        ID = 256
+        NAME = 256
+        URL = 512
 
 
 @dataclass
@@ -144,48 +153,3 @@ class VODProcessingStep(str, Enum):
 class VODProcessingStepStatus(str, Enum):
     COMPLETED = "completed"
     FAILED = "failed"
-
-
-class ResultObjectFileType(str, Enum):
-    CHAT_ENTRIES = "CHAT_ENTRIES"
-    ASR_ENTRIES = "ASR_ENTRIES"
-    SUMMARIES = "SUMMARIES"
-    META_SUMMARIES = "META_SUMMARIES"
-
-
-class VODProcessStatus(str, Enum):  # TODO: prefect 참고하여 수정 필요
-    PENDING = "PENDING"  # 모든 처리를 기다리는 초기 상태
-    PROCESSING = "PROCESSING"  # 하나 이상의 파이프라인 단계가 진행 중인 상태
-    COMPLETED = "COMPLETED"  # 모든 파이프라인 단계가 성공적으로 완료된 상태
-    FAILED = "FAILED"  # 하나 이상의 필수 파이프라인 단계가 실패한 상태
-
-
-# class StepStatus(str, Enum):  # TODO: prefect 작업할 떄 수정 필요
-#     COMPLETED = "COMPLETED"  # 단계가 성공적으로 완료된 상태
-#     FAILED = "FAILED"  # 단계가 실패한 상태
-
-
-# # -----------storage-----------------
-# @dataclass
-# class StorageObject:
-#     """스토리지의 오브젝트 이름/경로 템플릿을 정의합니다."""
-
-#     # 기본 파일명 상수
-#     VIDEO_FILE_NAME = "video.mp4"
-#     AUDIO_FILE_NAME = "audio.wav"
-#     TIMESTAMPS_FILE_NAME = "timestamps.json"
-#     CHAT_ENTRIES_FILE_NAME = "chat_entries.jsonl"
-#     ASR_ENTRIES_FILE_NAME = "asr_entries.jsonl"
-#     SUMMARY_ENTRIES_FILE_NAME = "summary_entries.jsonl"
-#     META_SUMMARY_ENTRIES_FILE_NAME = "meta_summary_entries.jsonl"
-
-#     # 임시 스토리지에 저장될 파일들 (재시작 시 이어받기 위함)
-#     TEMP_VIDEO = "temp/{video_no}/" + VIDEO_FILE_NAME
-#     TEMP_AUDIO = "temp/{video_no}/" + AUDIO_FILE_NAME
-#     TEMP_TIMESTAMPS = "temp/{video_no}/" + TIMESTAMPS_FILE_NAME
-
-#     # 영구 스토리지에 저장될 파일들 (웹 서버 접근용)
-#     CHAT_ENTRIES = "contexts/{video_no}/" + CHAT_ENTRIES_FILE_NAME
-#     ASR_ENTRIES = "contexts/{video_no}/" + ASR_ENTRIES_FILE_NAME
-#     SUMMARY_ENTRIES = "summaries/{video_no}/" + SUMMARY_ENTRIES_FILE_NAME
-#     META_SUMMARY_ENTRIES = "meta_summaries/{video_no}/" + META_SUMMARY_ENTRIES_FILE_NAME
