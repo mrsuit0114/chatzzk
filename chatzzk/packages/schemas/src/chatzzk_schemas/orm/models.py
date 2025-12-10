@@ -62,7 +62,7 @@ class VOD(Base):
     __tablename__ = "vods"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    channel_id: Mapped[int] = mapped_column(ForeignKey("channels.id"))
+    channel_id: Mapped[int] = mapped_column(ForeignKey("channels.id", ondelete="CASCADE", name="vods_channel_id_fkey"))
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
@@ -83,7 +83,9 @@ class ChannelMetadata(Base):
     __tablename__ = "channel_metadatas"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    channel_id: Mapped[int] = mapped_column(ForeignKey("channels.id"))
+    channel_id: Mapped[int] = mapped_column(
+        ForeignKey("channels.id", ondelete="CASCADE", name="channel_metadatas_channel_id_fkey")
+    )
 
     metadata_description: Mapped[dict] = mapped_column(
         MutableDict.as_mutable(JSONB), server_default=text("'{}'::jsonb")
@@ -100,7 +102,9 @@ class ChannelLLMMetadata(Base):
     __tablename__ = "channel_llm_metadatas"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    channel_id: Mapped[int] = mapped_column(ForeignKey("channels.id"))
+    channel_id: Mapped[int] = mapped_column(
+        ForeignKey("channels.id", ondelete="CASCADE", name="channel_llm_metadatas_channel_id_fkey")
+    )
 
     llm_metadata_description: Mapped[dict] = mapped_column(
         MutableDict.as_mutable(JSONB), server_default=text("'{}'::jsonb")
@@ -117,7 +121,9 @@ class ResultObjectKey(Base):
     __tablename__ = "result_object_keys"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    vod_id: Mapped[int] = mapped_column(ForeignKey("vods.id"))
+    vod_id: Mapped[int] = mapped_column(
+        ForeignKey("vods.id", ondelete="CASCADE", name="result_object_keys_vod_id_fkey")
+    )
 
     file_type: Mapped[ResultObjectFileType] = mapped_column(Enum(ResultObjectFileType))
     object_key: Mapped[str] = mapped_column(String(DBDefault.DEFAULT_STRING_MAX_LEN_MEDIUM))
@@ -131,7 +137,9 @@ class VODOverallProcessingStatus(Base):
     __tablename__ = "vod_overall_processing_statuses"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    vod_id: Mapped[int] = mapped_column(ForeignKey("vods.id"))
+    vod_id: Mapped[int] = mapped_column(
+        ForeignKey("vods.id", ondelete="CASCADE", name="vod_overall_processing_statuses_vod_id_fkey")
+    )
 
     status: Mapped[VODProcessStatus] = mapped_column(Enum(VODProcessStatus), server_default=VODProcessStatus.PENDING)
 
@@ -147,7 +155,9 @@ class VODProcessingStatusDetail(Base):
     __tablename__ = "vod_processing_status_details"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    vod_id: Mapped[int] = mapped_column(ForeignKey("vods.id"))
+    vod_id: Mapped[int] = mapped_column(
+        ForeignKey("vods.id", ondelete="CASCADE", name="vod_processing_status_details_vod_id_fkey")
+    )
 
     status_details: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB), server_default=text("'{}'::jsonb"))
 
@@ -163,7 +173,9 @@ class ChzzkChannel(Base):
     __tablename__ = "chzzk_channels"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    channel_id: Mapped[int] = mapped_column(ForeignKey("channels.id"))
+    channel_id: Mapped[int] = mapped_column(
+        ForeignKey("channels.id", ondelete="CASCADE", name="chzzk_channels_channel_id_fkey")
+    )
 
     platform_channel_id: Mapped[str] = mapped_column(String(100), unique=True)
     channel_name: Mapped[str] = mapped_column(String(100))
@@ -181,7 +193,7 @@ class ChzzkVOD(Base):
     __tablename__ = "chzzk_vods"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    vod_id: Mapped[int] = mapped_column(ForeignKey("vods.id"))
+    vod_id: Mapped[int] = mapped_column(ForeignKey("vods.id", ondelete="CASCADE", name="chzzk_vods_vod_id_fkey"))
 
     video_no: Mapped[int] = mapped_column(Integer, unique=True)
     video_title: Mapped[str] = mapped_column(String(100))
@@ -207,7 +219,9 @@ class ChzzkVODChatAnalytics(Base):
     __tablename__ = "chzzk_vod_chat_analytics"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    chzzk_vod_id: Mapped[int] = mapped_column(ForeignKey("chzzk_vods.id"))
+    chzzk_vod_id: Mapped[int] = mapped_column(
+        ForeignKey("chzzk_vods.id", ondelete="CASCADE", name="chzzk_vod_chat_analytics_chzzk_vod_id_fkey")
+    )
 
     total_chat_count: Mapped[int] = mapped_column(Integer)
     chat_os_type_counts: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB))
@@ -236,7 +250,9 @@ class ChzzkVODASRAnalytics(Base):
     __tablename__ = "chzzk_vod_asr_analytics"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    chzzk_vod_id: Mapped[int] = mapped_column(ForeignKey("chzzk_vods.id"))
+    chzzk_vod_id: Mapped[int] = mapped_column(
+        ForeignKey("chzzk_vods.id", ondelete="CASCADE", name="chzzk_vod_asr_analytics_chzzk_vod_id_fkey")
+    )
 
     total_speech_time_ms: Mapped[int] = mapped_column(BigInteger)
     avg_speech_time_per_minute: Mapped[float] = mapped_column(Float)
