@@ -83,7 +83,7 @@ class SpeechProcessingService(SpeechProcessingInterface):
                 unified_vod = await self.vod_repo.find_vod_with_platform_vod(session, platform_code, vod_find_params)
                 vod = await self.vod_repo.find_vod_with_processing_detail_by_id(session, unified_vod.id)
 
-                self.vod_repo.update_processing_detail(
+                await self.vod_repo.update_processing_detail(
                     session,
                     vod,
                     step=VODProcessingStep.PERFORM_VAD,
@@ -132,7 +132,11 @@ class SpeechProcessingService(SpeechProcessingInterface):
 
             async def asr_results_generator():
                 for start, end, transcription in asr_results:
-                    entry = ASREntry.from_asr_result(start, end, transcription, sr)
+                    start_ms = int(start / sr * 1000)
+                    end_ms = int(end / sr * 1000)
+                    entry = ASREntry(
+                        timestamp=(start_ms + end_ms) // 2, start=start_ms, end=end_ms, content=transcription
+                    )
                     yield entry.model_dump()
 
             await self.tmp_storage.save_jsonl(asr_key, asr_results_generator())
@@ -149,7 +153,7 @@ class SpeechProcessingService(SpeechProcessingInterface):
                 unified_vod = await self.vod_repo.find_vod_with_platform_vod(session, platform_code, vod_find_params)
                 vod = await self.vod_repo.find_vod_with_processing_detail_by_id(session, unified_vod.id)
 
-                self.vod_repo.update_processing_detail(
+                await self.vod_repo.update_processing_detail(
                     session,
                     vod,
                     step=VODProcessingStep.PERFORM_ASR,

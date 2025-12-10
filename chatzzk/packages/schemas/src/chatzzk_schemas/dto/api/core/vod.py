@@ -17,9 +17,13 @@ DataCollectRequestDTO: TypeAlias = ChzzkDataCollectRequestDTO
 DataCollectResponseDTO: TypeAlias = ChzzkDataCollectResponseDTO
 
 
-class VADPerformRequestDTO(BaseModel):
+class _CommonRequestDTO(BaseModel):
     platform_code: PlatformCode
     video_no: str | int
+
+
+class VADPerformRequestDTO(_CommonRequestDTO):
+    pass
 
 
 class VADPerformResponseDTO(BaseModel):
@@ -27,11 +31,28 @@ class VADPerformResponseDTO(BaseModel):
     vad_result: str
 
 
-class ASRPerformRequestDTO(BaseModel):
-    platform_code: PlatformCode
-    video_no: str | int
+class ASRPerformRequestDTO(_CommonRequestDTO):
+    pass
 
 
 class ASRPerformResponseDTO(BaseModel):
     asr_key: str
     asr_result: str
+
+
+class SummaryGenerateRequestDTO(_CommonRequestDTO):
+    pass
+
+
+class SummaryGenerateResponseDTO(BaseModel):
+    summary_raw_key: str
+    summary_raw_result: str
+
+
+class MetaSummaryGenerateRequestDTO(_CommonRequestDTO):
+    pass
+
+
+class MetaSummaryGenerateResponseDTO(BaseModel):
+    meta_summary_key: str
+    meta_summary_result: str

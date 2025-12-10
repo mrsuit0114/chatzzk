@@ -1,6 +1,8 @@
 import json
 from datetime import UTC, datetime, timedelta, timezone
 from typing import Annotated, Any
+from chatzzk_schemas.storage.models import ChzzkChatEntry
+from chatzzk_constants.service_codes import EntryType
 
 from loguru import logger  # Add logger for warnings in validators
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, model_validator
@@ -189,6 +191,22 @@ class ChzzkVideoChat(BaseModel):
     extras: ChzzkVideoChatExtras = Field(alias="extras")
     profile: ChzzkProfile = Field(alias="profile")
     player_message_time: int = Field(alias="playerMessageTime")
+
+    def to_chat_entry(self) -> ChzzkChatEntry:
+        return ChzzkChatEntry(
+            user_id_hash=self.user_id_hash,
+            content=self.content,
+            timestamp=self.player_message_time,
+            donation_type=self.extras.donation_type,
+            is_anonymous=self.extras.is_anonymous,
+            nickname=self.profile.nickname,
+            os_type=self.extras.os_type,
+            pay_amount=self.extras.pay_amount,
+            subscription_tier=self.profile.subscription_tier,
+            subscription_accumulative_month=self.profile.subscription_accumulative_month,
+            user_role_code=self.profile.user_role_code,
+            entry_type=EntryType.DONATION if self.extras.pay_amount else EntryType.CHAT,
+        )
 
 
 class ChzzkVODChats(BaseModel):

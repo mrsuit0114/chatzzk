@@ -6,6 +6,7 @@ from chatzzk.services.service_implementations.data_collection.containers import 
 from chatzzk.services.service_implementations.discovery.conatiners import DiscoveryContainer
 from chatzzk.services.service_implementations.management.containers import ManagementContainer
 from chatzzk.services.service_implementations.speech_processing.containers import SpeechProcessingContainer
+from chatzzk.services.service_implementations.llm_generation.containers import LLMGenerationContainer
 
 
 class AppContainer(containers.DeclarativeContainer):
@@ -59,4 +60,15 @@ class AppContainer(containers.DeclarativeContainer):
         db_session_factory=data_access_package.db_session_factory,
         vad_client=clients_package.vad_client_factory,
         asr_client=clients_package.asr_client_factory,
+    )
+
+    llm_generation_service_package = providers.Container(
+        LLMGenerationContainer,
+        db_session_factory=data_access_package.db_session_factory,
+        tmp_storage=data_access_package.pipeline_storage,
+        vod_repo=data_access_package.vod_repo,
+        channel_repo=data_access_package.channel_repo,
+        platform_repo=data_access_package.platform_repo,
+        prompt_builder=clients_package.prompt_builder,
+        llm_client=clients_package.llm_client,
     )

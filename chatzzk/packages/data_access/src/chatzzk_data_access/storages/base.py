@@ -7,6 +7,9 @@ class PipelineStorage(ABC):
     async def save_jsonl(self, key: str, data_iter: AsyncIterable[dict]) -> str: ...
 
     @abstractmethod
+    async def append_jsonl(self, key: str, data_iter: AsyncIterable[dict]) -> str: ...
+
+    @abstractmethod
     async def load_jsonl(self, key: str) -> AsyncGenerator[dict, None]: ...
 
     @abstractmethod

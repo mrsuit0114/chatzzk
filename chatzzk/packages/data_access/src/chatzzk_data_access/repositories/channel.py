@@ -5,6 +5,7 @@ from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import joinedload
 
 from chatzzk_constants.service_codes import PlatformCode
 from chatzzk_data_access.repositories.logics.channel_base import ChannelLogicBase
@@ -37,6 +38,13 @@ class ChannelRepository:
 
     async def find_channel_by_id(self, session: AsyncSession, channel_id: int) -> Channel:
         stmt = select(Channel).where(Channel.id == channel_id)
+
+        result = await session.execute(stmt)
+
+        return result.scalar_one_or_none()
+
+    async def find_channel_with_channel_metadata(self, session: AsyncSession, channel_id: int) -> Channel:
+        stmt = select(Channel).options(joinedload(Channel.channel_metadata)).where(Channel.id == channel_id)
 
         result = await session.execute(stmt)
 

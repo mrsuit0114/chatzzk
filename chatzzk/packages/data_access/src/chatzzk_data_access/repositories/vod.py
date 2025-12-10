@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
@@ -36,7 +36,7 @@ class VODRepository:
         result = await session.execute(stmt)
         return result.scalars().first()
 
-    def update_processing_detail(
+    async def update_processing_detail(
         self,
         session: AsyncSession,
         vod: VOD,
@@ -46,14 +46,25 @@ class VODRepository:
         start_time: datetime,
         end_time: datetime,
     ) -> VODProcessingStatusDetail:
-        vod_processing_status_detail = vod.vod_processing_status_detail
-        status_details = vod_processing_status_detail.status_details
-        status_details[step] = {
-            "status": status,
-            "start_time": start_time.isoformat() if isinstance(start_time, datetime) else start_time,
-            "end_time": end_time.isoformat() if isinstance(end_time, datetime) else end_time,
+        patch_data = {
+            step: {
+                "status": status,
+                "start_time": start_time.isoformat() if isinstance(start_time, datetime) else start_time,
+                "end_time": end_time.isoformat() if isinstance(end_time, datetime) else end_time,
+            }
         }
-        vod_processing_status_detail.status_details = status_details
-        session.add(vod_processing_status_detail)
 
-        return vod_processing_status_detail
+        stmt = (
+            update(VODProcessingStatusDetail)
+            .where(VODProcessingStatusDetail.vod_id == vod.id)
+            .values(status_details=VODProcessingStatusDetail.status_details + patch_data)
+            .returning(VODProcessingStatusDetail)
+        )
+
+        result = await session.execute(stmt)
+        updated_detail = result.scalars().one()
+
+        # Refresh the relationship on the VOD object to keep it in sync
+        await session.refresh(vod, ["vod_processing_status_detail"])
+
+        return updated_detail

@@ -19,12 +19,15 @@ class ChzzkAPIConstant:
     VOD_PLAYBACK_URL = "https://apis.naver.com/neonplayer/vodplay/v2/playback/{video_id}?key={in_key}"
 
     PAGE_SIZE = 30
-    WORKER_NUM = 4
+    WORKER_NUM = 2
     LAST_END_TIME_OFFSET = 1000
     CHUNK_SIZE = 262144
     RS_IDX = 0  # lowest resolution idx
 
     DASH_NS = {"mpd": "urn:mpeg:dash:schema:mpd:2011"}
+
+    RATE_LIMIT_MAX_RATE = 2
+    RATE_LIMIT_TIME_PERIOD = 0.1
 
 
 @dataclass
@@ -54,6 +57,7 @@ class UserRoleCode(str, Enum):
     STREAMING_CHAT_MANAGER = "streaming_chat_manager"
     STREAMING_CHANNEL_OWNER = "streaming_channel_owner"
     STREAMING_CHANNEL_MANAGER = "streaming_channel_manager"
+    STREAMER = "streamer"  # channel_owner와 별개로 존재함, owner가 streamer 본인이 아닌가 채팅에서는 streamer로 확인
 
 
 @dataclass

@@ -13,6 +13,7 @@ dependencies = [
 [project.optional-dependencies]
 http-core = [
     "aiohttp>=3.13.2",
+    "aiolimiter>=1.2.1",
     "tenacity>=9.1.2",
 ]
 numpy = [
@@ -35,13 +36,21 @@ whisperx = [
     "whisperx>=3.4.3",
 ]
 
+llm-generation = [
+    "chatzzk_clients[http-core]",
+    "langfuse>=3.10.1",
+    "litellm>=1.80.5",
+]
+
 dev = [
     "chatzzk_clients[http-core]",
     "chatzzk_clients[numpy]",
     "chatzzk_clients[silero-vad]",
     "chatzzk_clients[ml-backend]",
     "chatzzk_clients[media-tools]",
+    "chatzzk_clients[llm-generation]",
 ]
+
 
 [tool.uv]
 conflicts = [

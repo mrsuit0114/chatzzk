@@ -30,16 +30,56 @@ class AudioDataConstant:
     MAX_SPEECH_DURATION_S = 30
 
 
-class FileFormat(str, Enum):
-    JSONL = "jsonl"
-    MP4 = "mp4"
-    WAV = "wav"
+@dataclass
+class MLModelPath:
+    MODEL_BASE: str = "models"
+    WHISPERX: str = f"{MODEL_BASE}/whisperx"
+
+
+class EntryType(str, Enum):
+    CHAT = "CHAT"
+    DONATION = "DONATION"
+    ASR = "ASR"
+
+
+class ASRHallucinationFilter(str, Enum):
+    NEWS = "뉴스"
+    THANK_YOU_1 = "고맙습니다"
+    THANK_YOU_2 = "감사합니다"
+    WAS = "였습니다"
+    MBC = "MBC"
+
+    @classmethod
+    def get_keywords(cls) -> list[str]:
+        return [member.value for member in cls]
+
+
+class LLMTask(str, Enum):
+    SUMMARIZE = "summarize"
+    META_SUMMARIZE = "meta_summarize"
 
 
 @dataclass
-class MLModelPath:
-    MODEL_BASE = "models"
-    WHISPERX = f"{MODEL_BASE}/whisperx"
+class LLMPromptPath:
+    SUMMARIZE: str = "stream/segment-analyzer"
+    META_SUMMARIZE: str = "stream/context-integrator"
+
+
+class StreamAtmosphere(str, Enum):
+    SADNESS = "슬픔"
+    NEUTRAL = "중립"
+    HILARIOUS = "폭소"
+    ANGER = "분노"
+    ADMIRATION = "감탄"
+    ANTICIPATION = "기대"
+
+
+@dataclass
+class StreamContextWindowSize:
+    # entries의 timestamp에 대한 window size, 단위는 ms
+    # CHUNK: int = 30 * 1000  채팅과 도네이션 이벤트를 기준으로 탐색할 때 길지도 짧지도 않아야 함
+    SUMMARY: int = 300 * 1000
+    META_SUMMARY: int = 3600 * 1000
 
 
 @dataclass
@@ -49,6 +89,7 @@ class FileKeyTemplate:
     CHAT = "{platform_code}/{video_no}/chat_entries.jsonl"
     VAD_TIMESTAMP = "{platform_code}/{video_no}/vad_timestamp.jsonl"
     ASR = "{platform_code}/{video_no}/asr_entries.jsonl"
+    SUMMARY_RAW = "{platform_code}/{video_no}/summary_raw.jsonl"
     SUMMARY = "{platform_code}/{video_no}/summaries.jsonl"
     META_SUMMARY = "{platform_code}/{video_no}/meta_summaries.jsonl"
 
@@ -75,6 +116,10 @@ class FileKeyTemplate:
         return cls.ASR.format(platform_code=platform_code.value, video_no=video_no)
 
     @classmethod
+    def get_summary_raw_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
+        return cls.SUMMARY_RAW.format(platform_code=platform_code.value, video_no=video_no)
+
+    @classmethod
     def get_summary_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
         return cls.SUMMARY.format(platform_code=platform_code.value, video_no=video_no)
 
@@ -92,8 +137,8 @@ class VODProcessingStep(str, Enum):
     DOWNLOAD_AUDIO = "download_audio"
     PERFORM_VAD = "perform_vad"
     PERFORM_ASR = "perform_asr"
-    GENERATE_SUMMARIES = "generate_summaries"
-    GENERATE_META_SUMMARIES = "generate_meta_summaries"
+    GENERATE_SUMMARY = "generate_summary"
+    GENERATE_META_SUMMARY = "generate_meta_summary"
 
 
 class VODProcessingStepStatus(str, Enum):
@@ -113,30 +158,6 @@ class VODProcessStatus(str, Enum):  # TODO: prefect 참고하여 수정 필요
     PROCESSING = "PROCESSING"  # 하나 이상의 파이프라인 단계가 진행 중인 상태
     COMPLETED = "COMPLETED"  # 모든 파이프라인 단계가 성공적으로 완료된 상태
     FAILED = "FAILED"  # 하나 이상의 필수 파이프라인 단계가 실패한 상태
-
-
-# class LocalTempPath:
-#     VIDEO_FILE = "{video_no}/video.mp4"
-#     AUDIO_FILE = "{video_no}/audio.wav"
-#     TIMESTAMPS_FILE = "{video_no}/timestamps.json"
-
-
-# class Atmosphere(str, Enum):
-#     """요약된 window의 분위기를 표현합니다."""
-
-
-# class PipelineStep(str, Enum):
-#     """
-#     파이프라인의 세부 단계를 정의합니다.
-#     """
-
-#     CRAWL_CHAT = "crawl_chat"
-#     DOWNLOAD_VIDEO = "download_video"
-#     EXTRACT_WAV = "extract_wav"
-#     PERFORM_VAD = "perform_vad"
-#     PERFORM_ASR = "perform_asr"
-#     GENERATE_SUMMARIES = "generate_summaries"
-#     GENERATE_META_SUMMARIES = "generate_meta_summaries"
 
 
 # class StepStatus(str, Enum):  # TODO: prefect 작업할 떄 수정 필요

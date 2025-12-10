@@ -5,6 +5,7 @@ from urllib.parse import urljoin
 
 import m3u8
 import pydantic
+from aiolimiter import AsyncLimiter
 from loguru import logger
 
 from chatzzk_clients._http.aiohttp_client import AioHTTPClient
@@ -44,7 +45,8 @@ class ChzzkAPIClient:
         self.dash_ns = config.dash_ns
 
         self._proxy: str | None = config.proxy
-        # self._vod_manifest_headers: dict[str, str] | None = config.vod_manifest_headers
+
+        self._limiter = AsyncLimiter(config.rate_limit_max_rate, config.rate_limit_time_period)
 
     async def fetch_channel_info(self, platform_channel_id: str) -> ChzzkChannelInfo:
         url = self.channel_info_url.format(channel_id=platform_channel_id)
@@ -102,15 +104,16 @@ class ChzzkAPIClient:
 
     async def _fetch_vod_chat_segment(self, video_no: int, player_message_time_ms: int) -> ChzzkVODChats:
         url = self.vod_chats_url.format(video_no=video_no, player_message_time=player_message_time_ms)
-        async with self._http_client.get(url, headers=self.default_headers) as response:
-            data = await response.json()
-            content = data.get("content")
+        async with self._limiter:
+            async with self._http_client.get(url, headers=self.default_headers) as response:
+                data = await response.json()
+                content = data.get("content")
 
-            try:
-                return ChzzkVODChats.model_validate(content)
-            except pydantic.ValidationError as e:
-                logger.error(f"Failed to validate vod info for {video_no}: {e}")
-                raise
+                try:
+                    return ChzzkVODChats.model_validate(content)
+                except pydantic.ValidationError as e:
+                    logger.error(f"Failed to validate vod info for {video_no}: {e}")
+                    raise
 
     async def _fetch_vod_chat_range(self, video_no: int, start_time_ms: int, end_time_ms: int) -> deque[ChzzkVideoChat]:
         player_message_time_ms = start_time_ms

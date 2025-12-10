@@ -47,6 +47,17 @@ class LocalFileSystemStorage(PipelineStorage):
         await self._write_jsonl(path, data_iter)
         return str(path)
 
+    async def append_jsonl(self, key: str, data_iter: AsyncIterable[dict]) -> str:
+        path = self.get_or_create_path(key)
+        await self._append_jsonl(path, data_iter)
+        return str(path)
+
+    async def _append_jsonl(self, path: Path, items: AsyncIterable[dict]) -> None:
+        async with aiofiles.open(path, "a", encoding="utf-8") as f:
+            async for obj in items:
+                line = orjson.dumps(obj, option=orjson.OPT_APPEND_NEWLINE).decode("utf-8")
+                await f.write(line)
+
     async def load_jsonl(self, key: str) -> AsyncGenerator[dict, None]:
         path = self.get_path(key)
         if not Path(path).is_file():

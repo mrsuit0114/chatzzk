@@ -1,8 +1,8 @@
-import asyncio
 from datetime import UTC, datetime
-from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from loguru import logger
+
 
 from chatzzk_clients.chzzk.chzzk_api_client import ChzzkAPIClient
 from chatzzk_clients.media.media_processor import MediaProcessor
@@ -16,7 +16,6 @@ from chatzzk_data_access.repositories.vod import VODRepository
 from chatzzk_data_access.storages.base import PipelineStorage
 from chatzzk_schemas.dto.api.chzzk.vod import ChzzkDataCollectRequestDTO, ChzzkDataCollectResponseDTO
 from chatzzk_schemas.dto.repo_params.chzzk.vod import ChzzkVODFindParams
-from chatzzk_schemas.storage.models import ChzzkChatEntry
 from chatzzk.services.interfaces.data_collection import DataCollectionInterface
 
 
@@ -59,58 +58,84 @@ class ChzzkDataCollectionService(DataCollectionInterface):
                 audio_result=VODProcessingStepStatus.COMPLETED,
             )
 
-        tasks = []
-        if not chat_done:
-            tasks.append((VODProcessingStep.CRAWL_CHATS, self._collect_chats(video_no)))
+        # Sequential execution: Audio first, then Chat
+        audio_status = VODProcessingStepStatus.COMPLETED if audio_done else VODProcessingStepStatus.PENDING
+        chat_status = VODProcessingStepStatus.COMPLETED if chat_done else VODProcessingStepStatus.PENDING
+
         if not audio_done:
-            tasks.append((VODProcessingStep.DOWNLOAD_AUDIO, self._collect_audio(video_no)))
+            try:
+                res = await self._collect_audio(video_no)
+                await self._update_vod_status(
+                    video_no,
+                    VODProcessingStep.DOWNLOAD_AUDIO,
+                    VODProcessingStepStatus.COMPLETED,
+                    res["start_time"],
+                    res["end_time"],
+                )
+                audio_status = VODProcessingStepStatus.COMPLETED
+            except Exception as e:
+                logger.exception(f"[{VODProcessingStep.DOWNLOAD_AUDIO}] step failed during execution: {e}")
+                await self._update_vod_status(
+                    video_no,
+                    VODProcessingStep.DOWNLOAD_AUDIO,
+                    VODProcessingStepStatus.FAILED,
+                    getattr(e, "start_time", None),
+                    getattr(e, "end_time", None),
+                )
+                audio_status = VODProcessingStepStatus.FAILED
 
-        results: dict[str, dict[str, Any]] = {}
-
-        if tasks:
-            step_names, coros = zip(*tasks, strict=False)
-            gather_results = await asyncio.gather(*coros, return_exceptions=True)
-            for name, res in zip(step_names, gather_results, strict=False):
-                if isinstance(res, Exception):
-                    results[name] = {
-                        "status": VODProcessingStepStatus.FAILED,
-                        "start_time": getattr(res, "start_time", None),
-                        "end_time": getattr(res, "end_time", None),
-                    }
-                else:
-                    results[name] = {
-                        "status": VODProcessingStepStatus.COMPLETED,
-                        "start_time": res["start_time"],
-                        "end_time": res["end_time"],
-                    }
-
-            async with self.db_session_factory() as session:
-                async with session.begin():
-                    vod_find_params = ChzzkVODFindParams(video_no=video_no)
-                    unified_vod = await self.vod_repo.find_vod_with_platform_vod(
-                        session, self.platform_code, vod_find_params
-                    )
-                    vod = await self.vod_repo.find_vod_with_processing_detail_by_id(session, unified_vod.id)
-
-                    for name, result in results.items():
-                        self.vod_repo.update_processing_detail(
-                            session,
-                            vod,
-                            step=name,
-                            status=result["status"],
-                            start_time=result["start_time"],
-                            end_time=result["end_time"],
-                        )
+        if not chat_done:
+            try:
+                res = await self._collect_chats(video_no)
+                await self._update_vod_status(
+                    video_no,
+                    VODProcessingStep.CRAWL_CHATS,
+                    VODProcessingStepStatus.COMPLETED,
+                    res["start_time"],
+                    res["end_time"],
+                )
+                chat_status = VODProcessingStepStatus.COMPLETED
+            except Exception as e:
+                logger.exception(f"[{VODProcessingStep.CRAWL_CHATS}] step failed during execution: {e}")
+                await self._update_vod_status(
+                    video_no,
+                    VODProcessingStep.CRAWL_CHATS,
+                    VODProcessingStepStatus.FAILED,
+                    getattr(e, "start_time", None),
+                    getattr(e, "end_time", None),
+                )
+                chat_status = VODProcessingStepStatus.FAILED
 
         return ChzzkDataCollectResponseDTO(
             video_no=video_no,
-            chat_result=results.get(VODProcessingStep.CRAWL_CHATS, {"status": VODProcessingStepStatus.COMPLETED}).get(
-                "status"
-            ),
-            audio_result=results.get(
-                VODProcessingStep.DOWNLOAD_AUDIO, {"status": VODProcessingStepStatus.COMPLETED}
-            ).get("status"),
+            chat_result=chat_status,
+            audio_result=audio_status,
         )
+
+    async def _update_vod_status(
+        self,
+        video_no: int,
+        step: VODProcessingStep,
+        status: VODProcessingStepStatus,
+        start_time: datetime | None,
+        end_time: datetime | None,
+    ):
+        async with self.db_session_factory() as session:
+            async with session.begin():
+                vod_find_params = ChzzkVODFindParams(video_no=video_no)
+                unified_vod = await self.vod_repo.find_vod_with_platform_vod(
+                    session, self.platform_code, vod_find_params
+                )
+                vod = await self.vod_repo.find_vod_with_processing_detail_by_id(session, unified_vod.id)
+
+                await self.vod_repo.update_processing_detail(
+                    session,
+                    vod,
+                    step=step,
+                    status=status,
+                    start_time=start_time,
+                    end_time=end_time,
+                )
 
     async def _collect_chats(self, video_no: int):
         start_time = datetime.now(UTC)
@@ -127,8 +152,8 @@ class ChzzkDataCollectionService(DataCollectionInterface):
 
             async def chat_entries_generator():
                 for chat in video_chats:
-                    entry = ChzzkChatEntry.from_video_chat(chat)
-                    yield entry.model_dump()
+                    entry = chat.to_chat_entry()
+                    yield entry.model_dump(exclude_none=True)
 
             chat_key = FileKeyTemplate.get_chat_key(self.platform_code, video_no)
             await self.tmp_storage.save_jsonl(chat_key, chat_entries_generator())

@@ -21,4 +21,7 @@ class ChzzkAPIConfig(BaseModel):
 
     dash_ns: dict = ChzzkAPIConstant.DASH_NS
 
+    rate_limit_max_rate: int = ChzzkAPIConstant.RATE_LIMIT_MAX_RATE
+    rate_limit_time_period: float = ChzzkAPIConstant.RATE_LIMIT_TIME_PERIOD
+
     proxy: str | None = None

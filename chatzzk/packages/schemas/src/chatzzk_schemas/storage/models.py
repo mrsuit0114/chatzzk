@@ -1,48 +1,59 @@
-# 저장할 때의 포멧의 스키마를 정의함 -> api_models는 좀 더 폭 넓게 받아오고 저장과 사용은 필요한 데이터에 대해서만 정의
-# 공통으로 다룰 수 있는 데이터 - summary, meta_summary, asr_entries.jsonl,
-# 추후에 바뀔지 모르므로 우선 하나의 파일에서만 관리
+# 스토리지에 저장하는 포멧을 정의 -> 읽을 때도 같은 포멧으로 읽음
 
+import re
 
-from pydantic import BaseModel
+from typing import Annotated, Literal
+from pydantic import BaseModel, Field, TypeAdapter, ConfigDict
 
 from chatzzk_constants.chzzk import OsType, UserRoleCode
-from chatzzk_schemas.api_models.chzzk import ChzzkVideoChat
+from chatzzk_constants.service_codes import StreamAtmosphere, EntryType, ASRHallucinationFilter, PlatformCode
+
+_HALLUCINATION_KEYWORDS = ASRHallucinationFilter.get_keywords()
 
 
-class ChzzkChatEntry(BaseModel):
+class _StreamEntry(BaseModel):
+    content: str
+    timestamp: int
+    entry_type: Literal["CHAT", "DONATION"]
+
+
+class ChzzkChatEntry(_StreamEntry):
     """
     ChzzkVideoChat을 입력받음
     중복된 필드 없이 저장할 필요가 있는 필드만 구성
     """
 
     user_id_hash: str
-    content: str
-    timestamp_ms: int
-
-    donation_type: str | None
-    is_anonymous: bool | None
-    nickname: str | None
-    os_type: OsType | None
-    pay_amount: int | None
-    subscription_tier: int | None
-    subscription_accumulative_month: int | None
-    user_role_code: UserRoleCode | None
+    donation_type: str | None = Field(default=None)
+    is_anonymous: bool | None = Field(default=None)
+    nickname: str | None = Field(default=None)
+    os_type: OsType | None = Field(default=None)
+    pay_amount: int | None = Field(default=None)
+    subscription_tier: int | None = Field(default=None)
+    subscription_accumulative_month: int | None = Field(default=None)
+    user_role_code: UserRoleCode | None = Field(default=None)
 
     @classmethod
-    def from_video_chat(cls, chat: ChzzkVideoChat) -> "ChzzkChatEntry":
-        return cls(
-            user_id_hash=chat.user_id_hash,
-            content=chat.content,
-            timestamp_ms=chat.player_message_time,
-            donation_type=chat.extras.donation_type,
-            is_anonymous=chat.extras.is_anonymous,
-            nickname=chat.extras.nickname,
-            os_type=chat.extras.os_type,
-            pay_amount=chat.extras.pay_amount,
-            subscription_tier=chat.profile.subscription_tier,
-            subscription_accumulative_month=chat.profile.subscription_accumulative_month,
-            user_role_code=chat.profile.user_role_code,
-        )
+    def _sanitize_content(cls, content: str) -> str:
+        content = re.sub(r"\{:[^}]*:\}", "", content)  # 이모지 제거
+        content = re.sub(r"(\S)\1{2,}", r"\1\1", content)  # 글자 반복 축소
+        content = re.sub(r"\s+", " ", content)  # 연속된 공백(2개 이상)을 1개로 통일
+        return content.strip()
+
+    def to_prompt_str(self) -> str | None:
+        if not self.content:
+            return None
+
+        sanitized_content = self._sanitize_content(self.content)
+        if not sanitized_content:
+            return None
+
+        # 일반 유저가 아닌 경우에만 sender 정보(닉네임)를 포함
+        if self.user_role_code and self.user_role_code != UserRoleCode.COMMON_USER:
+            nickname = self.nickname or "알수없음"
+            return f"[{self.entry_type}] ({nickname}) {sanitized_content}"
+
+        return f"[{self.entry_type}] {sanitized_content}"
 
 
 class VADTimestampEntry(BaseModel):
@@ -54,14 +65,67 @@ class VADTimestampEntry(BaseModel):
         return cls(start_sample=timestamp["start"], end_sample=timestamp["end"])
 
 
-class ASREntry(BaseModel):
-    timestamp_ms: int
-    text: str
-    end_ms: int
-    start_ms: int
+class ASREntry(_StreamEntry):
+    end: int
+    start: int
+    entry_type: Literal["ASR"] = EntryType.ASR
+
+    def to_prompt_str(self) -> str | None:
+        if not self.content:
+            return None
+
+        # 할루시네이션 필터링
+        for keyword in _HALLUCINATION_KEYWORDS:
+            if keyword in self.content:
+                return None
+
+        return f"[{self.entry_type}] {self.content}"
+
+
+class ScoreDetail(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    expresiveness: int
+    coherence: int
+    significance: int
+    participation: int = 0  # raw에서는 없기 때문에
+
+
+class SummaryRawEntry(BaseModel):
+    # start, end는 ms 단위
+    start: int
+    end: int
+    summary: str
+    keywords: list[str]
+    atmosphere: StreamAtmosphere
+    scores: ScoreDetail
 
     @classmethod
-    def from_asr_result(cls, start_sample: int, end_sample: int, transcription: str, sample_rate: int) -> "ASREntry":
-        start_ms = int(start_sample / sample_rate * 1000)
-        end_ms = int(end_sample / sample_rate * 1000)
-        return cls(timestamp_ms=(start_ms + end_ms) // 2, start_ms=start_ms, end_ms=end_ms, text=transcription)
+    def from_summary_raw_result(
+        cls, start: int, end: int, summary: str, keywords: list[str], atmosphere: StreamAtmosphere, scores: ScoreDetail
+    ) -> "SummaryRawEntry":
+        return cls(start=start, end=end, summary=summary, keywords=keywords, atmosphere=atmosphere, scores=scores)
+
+
+class SummaryEntry(BaseModel):
+    summary: str
+    keywords: list[str]
+    atmosphere: StreamAtmosphere
+    scores: ScoreDetail
+    scores_avg: float
+
+
+ChzzkStreamEntry = Annotated[ChzzkChatEntry | ASREntry, Field(discriminator="entry_type")]
+
+StreamEntry = ChzzkStreamEntry  # | YoutubeStreamEntry
+
+
+ChzzkStreamEntryAdapter = TypeAdapter(ChzzkStreamEntry)
+
+
+def get_stream_entry_adapter(platform_code: PlatformCode) -> TypeAdapter[StreamEntry]:
+    if platform_code == PlatformCode.CHZZK:
+        return ChzzkStreamEntryAdapter
+    # elif platform_code == PlatformCode.YOUTUBE:
+    #     return YoutubeStreamEntryAdapter
+    else:
+        raise ValueError(f"Unsupported platform code: {platform_code}")
