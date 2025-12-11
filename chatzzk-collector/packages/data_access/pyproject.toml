@@ -3,7 +3,10 @@ name = "chatzzk-data-access"
 version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "chatzzk_data_access[storage]",
+    "chatzzk_data_access[repository]",
+]
 
 [project.optional-dependencies]
 storage = [
@@ -14,11 +17,6 @@ repository = [
     "asyncpg>=0.30.0",
     "psycopg2-binary>=2.9.11",
     "sqlalchemy>=2.0.44",
-]
-
-dev = [
-    "chatzzk_data_access[storage]",
-    "chatzzk_data_access[repository]",
 ]
 
 [tool.hatch.build.targets.wheel]

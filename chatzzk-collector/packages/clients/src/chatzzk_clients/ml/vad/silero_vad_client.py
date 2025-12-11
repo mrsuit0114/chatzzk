@@ -117,7 +117,7 @@ class SileroVADClient(VADClientInterface):
 
         return combined_timestamps
 
-    async def detect_speech(self, audio_np: np.ndarray) -> list[tuple[int, int]]:
+    async def detect_speech(self, audio_np: np.ndarray) -> list[dict[str, int]]:
         audio_chunks, chunk_start_by_chunk_samples = self._split_audio(audio_np)
 
         loop = asyncio.get_running_loop()

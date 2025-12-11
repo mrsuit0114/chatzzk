@@ -3,11 +3,12 @@ from pydantic import BaseModel, Field
 from chatzzk_schemas.config.clients.chzzk import ChzzkAPIConfig
 from chatzzk_schemas.config.clients.http import AioHTTPConfig
 from chatzzk_schemas.config.clients.media_processor import MediaProcessorConfig
-from chatzzk_schemas.config.clients.ml import ASRConfig, VADConfig
+from chatzzk_schemas.config.clients.ml import ASRConfig, VADConfig, AudioLoaderConfig
 from chatzzk_schemas.config.clients.llm import LangfuseConfig, LiteLLMProxyConfig
 
 
 class ClientsConfig(BaseModel):
+    audio_loader: AudioLoaderConfig = Field(default_factory=AudioLoaderConfig)
     asr: ASRConfig
     vad: VADConfig
     aiohttp: AioHTTPConfig = Field(

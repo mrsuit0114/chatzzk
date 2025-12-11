@@ -8,9 +8,19 @@ dependencies = [
     "chatzzk-constants",
     "loguru>=0.7.3",
     "pydantic>=2.12.4",
+    "chatzzk_clients[no-asr-inference]",
 ]
 
 [project.optional-dependencies]
+no-asr-inference = [
+    "chatzzk_clients[http-core]",
+    "chatzzk_clients[numpy]",
+    "chatzzk_clients[silero-vad]",
+    "chatzzk_clients[ml-backend]",
+    "chatzzk_clients[media-tools]",
+    "chatzzk_clients[llm-generation]",
+]
+
 http-core = [
     "aiohttp>=3.13.2",
     "aiolimiter>=1.2.1",
@@ -42,22 +52,13 @@ llm-generation = [
     "litellm>=1.80.5",
 ]
 
-dev = [
-    "chatzzk_clients[http-core]",
-    "chatzzk_clients[numpy]",
-    "chatzzk_clients[silero-vad]",
-    "chatzzk_clients[ml-backend]",
-    "chatzzk_clients[media-tools]",
-    "chatzzk_clients[llm-generation]",
-]
-
 
 [tool.uv]
 conflicts = [
     [
         { extra = "ml-backend" },
         { extra = "whisperx" },
-        { extra = "dev" },
+        { extra = "no-asr-inference" },
     ],
 ]
 

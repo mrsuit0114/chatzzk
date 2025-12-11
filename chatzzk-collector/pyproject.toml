@@ -4,7 +4,16 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "chatzzk-clients[no-asr-inference]",
+    "chatzzk-collector[db-migration]",
+    "chatzzk-data-access",
+    "chatzzk-schemas",
+    "chatzzk-constants",
+    "loguru>=0.7.3",
+    "pydantic>=2.12.4",
+    "dependency-injector>=4.48.2",
+]
 
 [project.optional-dependencies]
 
@@ -16,10 +25,6 @@ db-migration = [
 ]
 
 dev = [
-    "dependency-injector>=4.48.2",
-    "chatzzk-collector[db-migration]",
-    "chatzzk-data-access[dev]",
-    "chatzzk-clients[dev]",
     "pre-commit>=4.4.0",
     "ruff>=0.14.5",
 ]

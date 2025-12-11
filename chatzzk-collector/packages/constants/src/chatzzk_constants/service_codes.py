@@ -99,7 +99,7 @@ class StreamContextWindowSize:
 @dataclass
 class FileKeyTemplate:
     VIDEO = "{platform_code}/{video_no}/video.mp4"
-    AUDIO = "{platform_code}/{video_no}/auido.wav"
+    AUDIO = "{platform_code}/{video_no}/audio.wav"
     CHAT = "{platform_code}/{video_no}/chat_entries.jsonl"
     VAD_TIMESTAMP = "{platform_code}/{video_no}/vad_timestamp.jsonl"
     ASR = "{platform_code}/{video_no}/asr_entries.jsonl"

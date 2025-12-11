@@ -3,6 +3,13 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, Field, TypeAdapter
 
 from chatzzk_constants.client import ASRHTTPConstant, SileroVADConstant, WhisperXConstant
+from chatzzk_constants.service_codes import AudioDataConstant
+
+
+class AudioLoaderConfig(BaseModel):
+    target_sample_rate: int = AudioDataConstant.SAMPLE_RATE
+    target_channels: int = AudioDataConstant.CHANNELS
+    target_dtype: Literal["float32", "float16"] = AudioDataConstant.AUDIO_DTYPE_STR
 
 
 class SileroVADConfig(BaseModel):
@@ -46,6 +53,3 @@ ASRConfigAdapter = TypeAdapter(ASRConfig)
 
 def validate_asr_config(raw: dict):
     return ASRConfigAdapter.validate_python(raw)
-
-
-# UNEXPECTED_ASR_RESULTS: list[str] = ["뉴스", "고맙습니다", "감사합니다", "였습니다"]

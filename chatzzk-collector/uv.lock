@@ -2,13 +2,12 @@ version = 1
 revision = 3
 requires-python = ">=3.11"
 resolution-markers = [
-    "python_full_version >= '3.13'",
-    "python_full_version == '3.12.*'",
+    "python_full_version >= '3.12'",
     "python_full_version < '3.12'",
 ]
 conflicts = [[
-    { package = "chatzzk-clients", extra = "dev" },
     { package = "chatzzk-clients", extra = "ml-backend" },
+    { package = "chatzzk-clients", extra = "no-asr-inference" },
     { package = "chatzzk-clients", extra = "whisperx" },
 ]]
 
@@ -156,7 +155,7 @@ version = "1.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "frozenlist" },
-    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/61/62/06741b579156360248d1ec624842ad0edf697050bbaf7c3e46394e106ad1/aiosignal-1.4.0.tar.gz", hash = "sha256:f47eecd9468083c2029cc99945502cb7708b082c232f9aca65da147157b251c7", size = 25007, upload-time = "2025-07-03T22:54:43.528Z" }
 wheels = [
@@ -211,7 +210,7 @@ version = "4.12.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "idna" },
-    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/16/ce/8a777047513153587e5434fd752e89334ac33e379aa3497db860eeb60377/anyio-4.12.0.tar.gz", hash = "sha256:73c693b567b0c55130c104d0b43a9baf3aa6a31fc6110116509f27bf75e21ec0", size = 228266, upload-time = "2025-11-28T23:37:38.911Z" }
 wheels = [
@@ -514,27 +513,25 @@ name = "chatzzk-clients"
 version = "0.1.0"
 source = { editable = "packages/clients" }
 dependencies = [
+    { name = "aiofiles", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "aiohttp", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "aiolimiter", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
     { name = "chatzzk-constants" },
     { name = "chatzzk-schemas" },
+    { name = "ffmpeg-python", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "langfuse", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "litellm", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
     { name = "loguru" },
+    { name = "m3u8", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "numpy", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
     { name = "pydantic" },
+    { name = "silero-vad", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "tenacity", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "torch", version = "2.9.1", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "torchcodec", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
 ]
 
 [package.optional-dependencies]
-dev = [
-    { name = "aiofiles" },
-    { name = "aiohttp" },
-    { name = "aiolimiter" },
-    { name = "ffmpeg-python" },
-    { name = "langfuse" },
-    { name = "litellm" },
-    { name = "m3u8" },
-    { name = "numpy" },
-    { name = "silero-vad" },
-    { name = "tenacity" },
-    { name = "torch", version = "2.9.1", source = { registry = "https://pypi.org/simple" } },
-    { name = "torchcodec" },
-]
 http-core = [
     { name = "aiohttp" },
     { name = "aiolimiter" },
@@ -556,6 +553,20 @@ ml-backend = [
     { name = "torch", version = "2.9.1", source = { registry = "https://pypi.org/simple" } },
     { name = "torchcodec" },
 ]
+no-asr-inference = [
+    { name = "aiofiles" },
+    { name = "aiohttp" },
+    { name = "aiolimiter" },
+    { name = "ffmpeg-python" },
+    { name = "langfuse" },
+    { name = "litellm" },
+    { name = "m3u8" },
+    { name = "numpy" },
+    { name = "silero-vad" },
+    { name = "tenacity" },
+    { name = "torch", version = "2.9.1", source = { registry = "https://pypi.org/simple" } },
+    { name = "torchcodec" },
+]
 numpy = [
     { name = "numpy" },
 ]
@@ -572,13 +583,14 @@ requires-dist = [
     { name = "aiofiles", marker = "extra == 'media-tools'", specifier = ">=25.1.0" },
     { name = "aiohttp", marker = "extra == 'http-core'", specifier = ">=3.13.2" },
     { name = "aiolimiter", marker = "extra == 'http-core'", specifier = ">=1.2.1" },
-    { name = "chatzzk-clients", extras = ["http-core"], marker = "extra == 'dev'", editable = "packages/clients" },
     { name = "chatzzk-clients", extras = ["http-core"], marker = "extra == 'llm-generation'", editable = "packages/clients" },
-    { name = "chatzzk-clients", extras = ["llm-generation"], marker = "extra == 'dev'", editable = "packages/clients" },
-    { name = "chatzzk-clients", extras = ["media-tools"], marker = "extra == 'dev'", editable = "packages/clients" },
-    { name = "chatzzk-clients", extras = ["ml-backend"], marker = "extra == 'dev'", editable = "packages/clients" },
-    { name = "chatzzk-clients", extras = ["numpy"], marker = "extra == 'dev'", editable = "packages/clients" },
-    { name = "chatzzk-clients", extras = ["silero-vad"], marker = "extra == 'dev'", editable = "packages/clients" },
+    { name = "chatzzk-clients", extras = ["http-core"], marker = "extra == 'no-asr-inference'", editable = "packages/clients" },
+    { name = "chatzzk-clients", extras = ["llm-generation"], marker = "extra == 'no-asr-inference'", editable = "packages/clients" },
+    { name = "chatzzk-clients", extras = ["media-tools"], marker = "extra == 'no-asr-inference'", editable = "packages/clients" },
+    { name = "chatzzk-clients", extras = ["ml-backend"], marker = "extra == 'no-asr-inference'", editable = "packages/clients" },
+    { name = "chatzzk-clients", extras = ["no-asr-inference"], editable = "packages/clients" },
+    { name = "chatzzk-clients", extras = ["numpy"], marker = "extra == 'no-asr-inference'", editable = "packages/clients" },
+    { name = "chatzzk-clients", extras = ["silero-vad"], marker = "extra == 'no-asr-inference'", editable = "packages/clients" },
     { name = "chatzzk-constants", editable = "packages/constants" },
     { name = "chatzzk-schemas", editable = "packages/schemas" },
     { name = "ffmpeg-python", marker = "extra == 'media-tools'", specifier = ">=0.2.0" },
@@ -595,12 +607,25 @@ requires-dist = [
     { name = "torchcodec", marker = "extra == 'ml-backend'", specifier = ">=0.8.1" },
     { name = "whisperx", marker = "extra == 'whisperx'", specifier = ">=3.4.3" },
 ]
-provides-extras = ["http-core", "numpy", "silero-vad", "ml-backend", "media-tools", "whisperx", "llm-generation", "dev"]
+provides-extras = ["no-asr-inference", "http-core", "numpy", "silero-vad", "ml-backend", "media-tools", "whisperx", "llm-generation"]
 
 [[package]]
 name = "chatzzk-collector"
 version = "0.1.0"
 source = { virtual = "." }
+dependencies = [
+    { name = "alembic" },
+    { name = "alembic-postgresql-enum" },
+    { name = "chatzzk-clients" },
+    { name = "chatzzk-clients", extra = ["no-asr-inference"], marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "chatzzk-constants" },
+    { name = "chatzzk-data-access" },
+    { name = "chatzzk-schemas" },
+    { name = "dependency-injector" },
+    { name = "loguru" },
+    { name = "psycopg2-binary" },
+    { name = "pydantic" },
+]
 
 [package.optional-dependencies]
 db-migration = [
@@ -610,14 +635,7 @@ db-migration = [
     { name = "psycopg2-binary" },
 ]
 dev = [
-    { name = "alembic" },
-    { name = "alembic-postgresql-enum" },
-    { name = "chatzzk-clients", extra = ["dev"], marker = "extra == 'extra-15-chatzzk-clients-dev' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "chatzzk-data-access", extra = ["dev"] },
-    { name = "chatzzk-schemas" },
-    { name = "dependency-injector" },
     { name = "pre-commit" },
-    { name = "psycopg2-binary" },
     { name = "ruff" },
 ]
 
@@ -625,13 +643,17 @@ dev = [
 requires-dist = [
     { name = "alembic", marker = "extra == 'db-migration'", specifier = ">=1.17.2" },
     { name = "alembic-postgresql-enum", marker = "extra == 'db-migration'", specifier = ">=1.8.0" },
-    { name = "chatzzk-clients", extras = ["dev"], marker = "extra == 'dev'", editable = "packages/clients" },
-    { name = "chatzzk-collector", extras = ["db-migration"], marker = "extra == 'dev'" },
-    { name = "chatzzk-data-access", extras = ["dev"], marker = "extra == 'dev'", editable = "packages/data_access" },
+    { name = "chatzzk-clients", extras = ["no-asr-inference"], editable = "packages/clients" },
+    { name = "chatzzk-collector", extras = ["db-migration"] },
+    { name = "chatzzk-constants", editable = "packages/constants" },
+    { name = "chatzzk-data-access", editable = "packages/data_access" },
+    { name = "chatzzk-schemas", editable = "packages/schemas" },
     { name = "chatzzk-schemas", extras = ["orm"], marker = "extra == 'db-migration'", editable = "packages/schemas" },
-    { name = "dependency-injector", marker = "extra == 'dev'", specifier = ">=4.48.2" },
+    { name = "dependency-injector", specifier = ">=4.48.2" },
+    { name = "loguru", specifier = ">=0.7.3" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.4.0" },
     { name = "psycopg2-binary", marker = "extra == 'db-migration'", specifier = ">=2.9.11" },
+    { name = "pydantic", specifier = ">=2.12.4" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.14.5" },
 ]
 provides-extras = ["db-migration", "dev"]
@@ -645,15 +667,15 @@ source = { editable = "packages/constants" }
 name = "chatzzk-data-access"
 version = "0.1.0"
 source = { editable = "packages/data_access" }
-
-[package.optional-dependencies]
-dev = [
+dependencies = [
     { name = "aiofiles" },
     { name = "asyncpg" },
     { name = "orjson" },
     { name = "psycopg2-binary" },
     { name = "sqlalchemy" },
 ]
+
+[package.optional-dependencies]
 repository = [
     { name = "asyncpg" },
     { name = "psycopg2-binary" },
@@ -668,13 +690,13 @@ storage = [
 requires-dist = [
     { name = "aiofiles", marker = "extra == 'storage'", specifier = ">=25.1.0" },
     { name = "asyncpg", marker = "extra == 'repository'", specifier = ">=0.30.0" },
-    { name = "chatzzk-data-access", extras = ["repository"], marker = "extra == 'dev'", editable = "packages/data_access" },
-    { name = "chatzzk-data-access", extras = ["storage"], marker = "extra == 'dev'", editable = "packages/data_access" },
+    { name = "chatzzk-data-access", extras = ["repository"], editable = "packages/data_access" },
+    { name = "chatzzk-data-access", extras = ["storage"], editable = "packages/data_access" },
     { name = "orjson", marker = "extra == 'storage'", specifier = ">=3.11.4" },
     { name = "psycopg2-binary", marker = "extra == 'repository'", specifier = ">=2.9.11" },
     { name = "sqlalchemy", marker = "extra == 'repository'", specifier = ">=2.0.44" },
 ]
-provides-extras = ["storage", "repository", "dev"]
+provides-extras = ["storage", "repository"]
 
 [[package]]
 name = "chatzzk-schemas"
@@ -700,7 +722,7 @@ name = "click"
 version = "8.3.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/3d/fa/656b739db8587d7b5dfa22e22ed02566950fbfbcdc20311993483657a5c0/click-8.3.1.tar.gz", hash = "sha256:12ff4785d337a1bb490bb7e9c2b1ee5da3112e94a8622f26a6c77f5d2fc6842a", size = 295065, upload-time = "2025-11-15T20:45:42.706Z" }
 wheels = [
@@ -856,7 +878,7 @@ name = "dependency-injector"
 version = "4.48.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/9d/14/4f7b2d24d3ad50ac399262636cdf4b66b9318bfd0e9de5c61669625dc77c/dependency_injector-4.48.3.tar.gz", hash = "sha256:106e43a6a9959b2c49926edc45bdf07fdc377bc5fa1fd59012741590df30b20c", size = 1129251, upload-time = "2025-12-04T18:43:55.751Z" }
 wheels = [
@@ -1348,7 +1370,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "filelock" },
     { name = "fsspec" },
-    { name = "hf-xet", marker = "platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'arm64' or platform_machine == 'x86_64' or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "hf-xet", marker = "platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'arm64' or platform_machine == 'x86_64' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
     { name = "packaging" },
     { name = "pyyaml" },
     { name = "requests" },
@@ -1365,7 +1387,7 @@ name = "humanfriendly"
 version = "10.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pyreadline3", marker = "sys_platform == 'win32' or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "pyreadline3", marker = "sys_platform == 'win32' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/cc/3f/2c29224acb2e2df4d2046e4c73ee2662023c58ff5b113c4c1adac0886c43/humanfriendly-10.0.tar.gz", hash = "sha256:6b0b831ce8f15f7300721aa49829fc4e83921a9a301cc7f606be6686a2288ddc", size = 360702, upload-time = "2021-09-17T21:40:43.31Z" }
 wheels = [
@@ -1673,7 +1695,7 @@ name = "lightning"
 version = "2.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "fsspec", extra = ["http"], marker = "(extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "fsspec", extra = ["http"], marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
     { name = "lightning-utilities" },
     { name = "packaging" },
     { name = "pytorch-lightning" },
@@ -1731,8 +1753,8 @@ name = "loguru"
 version = "0.7.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "win32-setctime", marker = "sys_platform == 'win32' or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "win32-setctime", marker = "sys_platform == 'win32' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/3a/05/a1dae3dffd1116099471c643b8924f5aa6524411dc6c63fdae648c4f1aca/loguru-0.7.3.tar.gz", hash = "sha256:19480589e77d47b8d85b2c827ad95d49bf31b0dcde16593892eb51dd18706eb6", size = 63559, upload-time = "2024-12-06T11:20:56.608Z" }
 wheels = [
@@ -2287,8 +2309,7 @@ name = "nvidia-nccl-cu12"
 version = "2.27.3"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13'",
-    "python_full_version == '3.12.*'",
+    "python_full_version >= '3.12'",
     "python_full_version < '3.12'",
 ]
 wheels = [
@@ -2301,8 +2322,7 @@ name = "nvidia-nccl-cu12"
 version = "2.27.5"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13'",
-    "python_full_version == '3.12.*'",
+    "python_full_version >= '3.12'",
     "python_full_version < '3.12'",
 ]
 wheels = [
@@ -3209,7 +3229,7 @@ name = "pytorch-lightning"
 version = "2.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "fsspec", extra = ["http"], marker = "(extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "fsspec", extra = ["http"], marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
     { name = "lightning-utilities" },
     { name = "packaging" },
     { name = "pyyaml" },
@@ -3309,7 +3329,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
     { name = "rpds-py" },
-    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/22/f5/df4e9027acead3ecc63e50fe1e36aca1523e1719559c499951bb4b53188f/referencing-0.37.0.tar.gz", hash = "sha256:44aefc3142c5b842538163acb373e24cce6632bd54bdb01b21ad5863489f50d8", size = 78036, upload-time = "2025-10-13T15:30:48.871Z" }
 wheels = [
@@ -3863,10 +3883,10 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "onnxruntime" },
     { name = "packaging" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "torch", version = "2.9.1", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'extra-15-chatzzk-clients-dev' or extra == 'extra-15-chatzzk-clients-ml-backend' or extra != 'extra-15-chatzzk-clients-whisperx'" },
-    { name = "torchaudio", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "torchaudio", version = "2.9.1", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'extra-15-chatzzk-clients-dev' or extra == 'extra-15-chatzzk-clients-ml-backend' or extra != 'extra-15-chatzzk-clients-whisperx'" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "torch", version = "2.9.1", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'extra-15-chatzzk-clients-ml-backend' or extra == 'extra-15-chatzzk-clients-no-asr-inference' or extra != 'extra-15-chatzzk-clients-whisperx'" },
+    { name = "torchaudio", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "torchaudio", version = "2.9.1", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'extra-15-chatzzk-clients-ml-backend' or extra == 'extra-15-chatzzk-clients-no-asr-inference' or extra != 'extra-15-chatzzk-clients-whisperx'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/00/4d/0a03f56a4946114c8fa25bd66cafe75bd5807fb73c3bfad2a7603597c4d1/silero_vad-6.2.0.tar.gz", hash = "sha256:27f90e994bc57fdf3d0d1a25f70f65d81854c11974a4f911f7e61792e7a893fd", size = 14569087, upload-time = "2025-11-06T08:39:09.333Z" }
 wheels = [
@@ -3945,7 +3965,7 @@ name = "sqlalchemy"
 version = "2.0.45"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "greenlet", marker = "platform_machine == 'AMD64' or platform_machine == 'WIN32' or platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'ppc64le' or platform_machine == 'win32' or platform_machine == 'x86_64' or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "greenlet", marker = "platform_machine == 'AMD64' or platform_machine == 'WIN32' or platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'ppc64le' or platform_machine == 'win32' or platform_machine == 'x86_64' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
     { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/be/f9/5e4491e5ccf42f5d9cfc663741d261b3e6e1683ae7812114e7636409fcc6/sqlalchemy-2.0.45.tar.gz", hash = "sha256:1632a4bda8d2d25703fdad6363058d882541bdaaee0e5e3ddfa0cd3229efce88", size = 9869912, upload-time = "2025-12-09T21:05:16.737Z" }
@@ -4119,33 +4139,32 @@ name = "torch"
 version = "2.8.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13'",
-    "python_full_version == '3.12.*'",
+    "python_full_version >= '3.12'",
     "python_full_version < '3.12'",
 ]
 dependencies = [
-    { name = "filelock", marker = "(extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "fsspec", marker = "(extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "jinja2", marker = "(extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "networkx", marker = "(extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cublas-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cuda-cupti-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cuda-nvrtc-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cuda-runtime-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cudnn-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cufft-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cufile-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-curand-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cusolver-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cusparse-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cusparselt-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-nccl-cu12", version = "2.27.3", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-nvjitlink-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-nvtx-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "setuptools", marker = "(python_full_version >= '3.12' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "sympy", marker = "(extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "triton", version = "3.4.0", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "typing-extensions", marker = "(extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "filelock", marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "fsspec", marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "jinja2", marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "networkx", marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cublas-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cuda-cupti-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cuda-nvrtc-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cuda-runtime-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cudnn-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cufft-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cufile-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-curand-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cusolver-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cusparse-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cusparselt-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-nccl-cu12", version = "2.27.3", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-nvjitlink-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-nvtx-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "setuptools", marker = "(python_full_version >= '3.12' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "sympy", marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "triton", version = "3.4.0", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "typing-extensions", marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8f/c4/3e7a3887eba14e815e614db70b3b529112d1513d9dae6f4d43e373360b7f/torch-2.8.0-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:220a06fd7af8b653c35d359dfe1aaf32f65aa85befa342629f716acb134b9710", size = 102073391, upload-time = "2025-08-06T14:53:20.937Z" },
@@ -4171,34 +4190,33 @@ name = "torch"
 version = "2.9.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13'",
-    "python_full_version == '3.12.*'",
+    "python_full_version >= '3.12'",
     "python_full_version < '3.12'",
 ]
 dependencies = [
-    { name = "filelock", marker = "extra == 'extra-15-chatzzk-clients-dev' or extra == 'extra-15-chatzzk-clients-ml-backend' or extra != 'extra-15-chatzzk-clients-whisperx'" },
-    { name = "fsspec", marker = "extra == 'extra-15-chatzzk-clients-dev' or extra == 'extra-15-chatzzk-clients-ml-backend' or extra != 'extra-15-chatzzk-clients-whisperx'" },
-    { name = "jinja2", marker = "extra == 'extra-15-chatzzk-clients-dev' or extra == 'extra-15-chatzzk-clients-ml-backend' or extra != 'extra-15-chatzzk-clients-whisperx'" },
-    { name = "networkx", marker = "extra == 'extra-15-chatzzk-clients-dev' or extra == 'extra-15-chatzzk-clients-ml-backend' or extra != 'extra-15-chatzzk-clients-whisperx'" },
-    { name = "nvidia-cublas-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-dev') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cuda-cupti-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-dev') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cuda-nvrtc-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-dev') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cuda-runtime-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-dev') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cudnn-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-dev') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cufft-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-dev') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cufile-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-dev') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-curand-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-dev') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cusolver-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-dev') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cusparse-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-dev') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-cusparselt-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-dev') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-nccl-cu12", version = "2.27.5", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-dev') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-nvjitlink-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-dev') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-nvshmem-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-dev') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "nvidia-nvtx-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-dev') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "setuptools", marker = "(python_full_version >= '3.12' and extra == 'extra-15-chatzzk-clients-dev') or (python_full_version >= '3.12' and extra == 'extra-15-chatzzk-clients-ml-backend') or (python_full_version >= '3.12' and extra != 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "sympy", marker = "extra == 'extra-15-chatzzk-clients-dev' or extra == 'extra-15-chatzzk-clients-ml-backend' or extra != 'extra-15-chatzzk-clients-whisperx'" },
-    { name = "triton", version = "3.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-dev') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "typing-extensions", marker = "extra == 'extra-15-chatzzk-clients-dev' or extra == 'extra-15-chatzzk-clients-ml-backend' or extra != 'extra-15-chatzzk-clients-whisperx'" },
+    { name = "filelock" },
+    { name = "fsspec" },
+    { name = "jinja2" },
+    { name = "networkx" },
+    { name = "nvidia-cublas-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cuda-cupti-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cuda-nvrtc-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cuda-runtime-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cudnn-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cufft-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cufile-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-curand-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cusolver-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cusparse-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-cusparselt-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-nccl-cu12", version = "2.27.5", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-nvjitlink-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-nvshmem-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "nvidia-nvtx-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "setuptools", marker = "(python_full_version >= '3.12' and extra == 'extra-15-chatzzk-clients-ml-backend') or (python_full_version >= '3.12' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (python_full_version >= '3.12' and extra != 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "sympy" },
+    { name = "triton", version = "3.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "typing-extensions" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/15/db/c064112ac0089af3d2f7a2b5bfbabf4aa407a78b74f87889e524b91c5402/torch-2.9.1-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:62b3fd888277946918cba4478cf849303da5359f0fb4e3bfb86b0533ba2eaf8d", size = 104220430, upload-time = "2025-11-12T15:20:31.705Z" },
@@ -4262,12 +4280,11 @@ name = "torchaudio"
 version = "2.8.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13'",
-    "python_full_version == '3.12.*'",
+    "python_full_version >= '3.12'",
     "python_full_version < '3.12'",
 ]
 dependencies = [
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/dd/bf/6b01ef3defb8d0a772c863588711e9b2b011c27d6b37c1b9d15a359c8442/torchaudio-2.8.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:c9276857d241c6de257af765c0f51fc011af38cb725401495121b280913007cf", size = 1859094, upload-time = "2025-08-06T14:58:35.078Z" },
@@ -4293,12 +4310,11 @@ name = "torchaudio"
 version = "2.9.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13'",
-    "python_full_version == '3.12.*'",
+    "python_full_version >= '3.12'",
     "python_full_version < '3.12'",
 ]
 dependencies = [
-    { name = "torch", version = "2.9.1", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'extra-15-chatzzk-clients-dev' or extra == 'extra-15-chatzzk-clients-ml-backend' or extra != 'extra-15-chatzzk-clients-whisperx'" },
+    { name = "torch", version = "2.9.1", source = { registry = "https://pypi.org/simple" } },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/3f/6b/34e489fcb4adc4b571a166f2670cc7f156cbe3337867a892fade0a1a5224/torchaudio-2.9.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:6e3f5943135701168d30196e2befd46290180cdbb9ee508b167730d51f43208f", size = 807349, upload-time = "2025-11-12T15:25:57.843Z" },
@@ -4366,7 +4382,7 @@ name = "tqdm"
 version = "4.67.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "colorama", marker = "sys_platform == 'win32' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/a8/4b/29b4ef32e036bb34e4ab51796dd745cdba7ed47ad142a9f4a1eb8e0c744d/tqdm-4.67.1.tar.gz", hash = "sha256:f8aef9c52c08c13a65f30ea34f4e5aac3fd1a34959879d7e59e63027286627f2", size = 169737, upload-time = "2024-11-24T20:12:22.481Z" }
 wheels = [
@@ -4399,12 +4415,11 @@ name = "triton"
 version = "3.4.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13'",
-    "python_full_version == '3.12.*'",
+    "python_full_version >= '3.12'",
     "python_full_version < '3.12'",
 ]
 dependencies = [
-    { name = "setuptools", marker = "(extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "setuptools", marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7d/39/43325b3b651d50187e591eefa22e236b2981afcebaefd4f2fc0ea99df191/triton-3.4.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:7b70f5e6a41e52e48cfc087436c8a28c17ff98db369447bcaff3b887a3ab4467", size = 155531138, upload-time = "2025-07-30T19:58:29.908Z" },
@@ -4418,8 +4433,7 @@ name = "triton"
 version = "3.5.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.13'",
-    "python_full_version == '3.12.*'",
+    "python_full_version >= '3.12'",
     "python_full_version < '3.12'",
 ]
 wheels = [

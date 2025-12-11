@@ -7,7 +7,7 @@ from loguru import logger
 from chatzzk_clients._http.aiohttp_client import AioHTTPClient
 from chatzzk_clients.ml.asr.base import ASRClientInterface
 from chatzzk_clients.ml.exceptions import ASRError
-from chatzzk_schemas.api_models.ml import ASRResponse
+from chatzzk_schemas.external.ml import ASRResponse
 from chatzzk_schemas.config.clients.ml import ASRHTTPConfig
 
 
