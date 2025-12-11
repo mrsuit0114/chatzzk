@@ -95,7 +95,7 @@ class StreamSegmentAnalysisResponse(BaseModel):
     scores: ScoreDetail
 
     def to_summary_raw_entry(self, start: int, end: int) -> SummaryRawEntry:
-        return SummaryRawEntry.from_summary_raw_result(
+        return SummaryRawEntry(
             start=start,
             end=end,
             summary=self.summary,

@@ -16,7 +16,10 @@ db-migration = [
 ]
 
 dev = [
+    "dependency-injector>=4.48.2",
     "chatzzk-collector[db-migration]",
+    "chatzzk-data-access[dev]",
+    "chatzzk-clients[dev]",
     "pre-commit>=4.4.0",
     "ruff>=0.14.5",
 ]
@@ -24,6 +27,8 @@ dev = [
 [tool.uv.sources]
 "chatzzk-schemas" = { workspace = true }
 "chatzzk-constants" = { workspace = true }
+"chatzzk-data-access" = { workspace = true }
+"chatzzk-clients" = { workspace = true }
 
 [tool.uv.workspace]
 members = [

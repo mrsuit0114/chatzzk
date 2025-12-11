@@ -2,6 +2,7 @@ import asyncio
 import xml.etree.ElementTree as ET
 from collections import deque
 from urllib.parse import urljoin
+from typing import Type, TypeVar
 
 import m3u8
 import pydantic
@@ -9,7 +10,7 @@ from aiolimiter import AsyncLimiter
 from loguru import logger
 
 from chatzzk_clients._http.aiohttp_client import AioHTTPClient
-from chatzzk_schemas.api_models.chzzk import (
+from chatzzk_schemas.external.chzzk import (
     ChzzkChannelInfo,
     ChzzkChannelVODs,
     ChzzkVideoChat,
@@ -18,6 +19,8 @@ from chatzzk_schemas.api_models.chzzk import (
     ChzzkVODMeta,
 )
 from chatzzk_schemas.config.clients.chzzk import ChzzkAPIConfig
+
+T = TypeVar("T", bound=pydantic.BaseModel)
 
 
 class ChzzkAPIClient:
@@ -48,17 +51,23 @@ class ChzzkAPIClient:
 
         self._limiter = AsyncLimiter(config.rate_limit_max_rate, config.rate_limit_time_period)
 
-    async def fetch_channel_info(self, platform_channel_id: str) -> ChzzkChannelInfo:
-        url = self.channel_info_url.format(channel_id=platform_channel_id)
-        async with self._http_client.get(url, headers=self.default_headers) as response:
+    async def _fetch_content(self, url: str, model: Type[T], headers: dict | None = None) -> T:
+        if headers is None:
+            headers = self.default_headers
+
+        async with self._http_client.get(url, headers=headers) as response:
             data = await response.json()
             content = data.get("content")
 
             try:
-                return ChzzkChannelInfo.model_validate(content)
+                return model.model_validate(content)
             except pydantic.ValidationError as e:
-                logger.error(f"Failed to validate channel info for {platform_channel_id}: {e}")
+                logger.error(f"Failed to validate response from {url}: {e}")
                 raise
+
+    async def fetch_channel_info(self, platform_channel_id: str) -> ChzzkChannelInfo:
+        url = self.channel_info_url.format(channel_id=platform_channel_id)
+        return await self._fetch_content(url, ChzzkChannelInfo)
 
     async def fetch_channel_vod_metas(
         self, platform_channel_id: str, collect_after_timestamp_ms: int
@@ -68,15 +77,7 @@ class ChzzkAPIClient:
 
         while True:
             url = self.channel_vods_url.format(channel_id=platform_channel_id, page_idx=page, page_size=self.page_size)
-            async with self._http_client.get(url, headers=self.default_headers) as response:
-                data = await response.json()
-                content = data.get("content")
-
-            try:
-                response_data = ChzzkChannelVODs.model_validate(content)
-            except pydantic.ValidationError as e:
-                logger.error(f"Failed to validate VOD list for channel {platform_channel_id}: {e}")
-                raise
+            response_data = await self._fetch_content(url, ChzzkChannelVODs)
 
             for vod_meta in response_data.data:
                 if vod_meta.publish_date_at < collect_after_timestamp_ms:
@@ -92,28 +93,12 @@ class ChzzkAPIClient:
 
     async def fetch_vod_info(self, video_no: int) -> ChzzkVODInfo:
         url = self.vod_info_url.format(video_no=video_no)
-        async with self._http_client.get(url, headers=self.default_headers) as response:
-            data = await response.json()
-            content = data.get("content")
-
-        try:
-            return ChzzkVODInfo.model_validate(content)
-        except pydantic.ValidationError as e:
-            logger.error(f"Failed to validate vod info for {video_no}: {e}")
-            raise
+        return await self._fetch_content(url, ChzzkVODInfo)
 
     async def _fetch_vod_chat_segment(self, video_no: int, player_message_time_ms: int) -> ChzzkVODChats:
         url = self.vod_chats_url.format(video_no=video_no, player_message_time=player_message_time_ms)
         async with self._limiter:
-            async with self._http_client.get(url, headers=self.default_headers) as response:
-                data = await response.json()
-                content = data.get("content")
-
-                try:
-                    return ChzzkVODChats.model_validate(content)
-                except pydantic.ValidationError as e:
-                    logger.error(f"Failed to validate vod info for {video_no}: {e}")
-                    raise
+            return await self._fetch_content(url, ChzzkVODChats)
 
     async def _fetch_vod_chat_range(self, video_no: int, start_time_ms: int, end_time_ms: int) -> deque[ChzzkVideoChat]:
         player_message_time_ms = start_time_ms
@@ -162,7 +147,11 @@ class ChzzkAPIClient:
 
     def _parse_dash_representations(self, manifest_text: str) -> list[tuple[int, str]]:
         dash_ns = self.dash_ns
-        root = ET.fromstring(manifest_text)
+        try:
+            root = ET.fromstring(manifest_text)
+        except ET.ParseError as e:
+            logger.error(f"Failed to parse DASH manifest: {e}")
+            raise
 
         representations = []
         for rep in root.findall(".//mpd:Representation", namespaces=dash_ns):

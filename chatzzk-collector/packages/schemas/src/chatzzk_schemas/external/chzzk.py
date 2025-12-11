@@ -1,7 +1,7 @@
 import json
 from datetime import UTC, datetime, timedelta, timezone
 from typing import Annotated, Any
-from chatzzk_schemas.storage.models import ChzzkChatEntry
+from chatzzk_schemas.internal.models import ChzzkChatEntry
 from chatzzk_constants.service_codes import EntryType
 
 from loguru import logger  # Add logger for warnings in validators
@@ -82,9 +82,9 @@ class ChzzkVODInfo(BaseModel):  # video_no를 기준으로 스트리머를 추�
     publish_date: Annotated[datetime, BeforeValidator(to_utc_date)] = Field(alias="publishDate")
     duration: int = Field(alias="duration")
     publish_date_at: Annotated[int, BeforeValidator(normalize_timestamp_to_utc)] = Field(alias="publishDateAt")
-    category_type: str | None = Field(alias="categoryType")
-    video_category: str | None = Field(alias="videoCategory")
-    video_category_value: str | None = Field(alias="videoCategoryValue")
+    category_type: str | None = Field(alias="categoryType", default=None)
+    video_category: str | None = Field(alias="videoCategory", default=None)
+    video_category_value: str | None = Field(alias="videoCategoryValue", default=None)
     exposure: bool = Field(alias="exposure")
     adult: bool = Field(alias="adult")
     channel_meta: ChzzkChannelMeta = Field(alias="channel")
@@ -112,15 +112,14 @@ class ChzzkVODInfo(BaseModel):  # video_no를 기준으로 스트리머를 추�
 class ChzzkVODMeta(BaseModel):  # api요청을 최소화하기 위해 video_no를 필터링할 조건 후보는 파싱해서 보유할 것
     model_config = ConfigDict(validate_by_name=True, validate_by_alias=True, extra="ignore")
 
-    video_no: int = Field(
-        alias="videoNo"
-    )  # VODMeta는 직접 db에 저장되는 데이터가 아니기 때문에 성능을 위해 int로 관리함
+    video_title: str = Field(alias="videoTitle")
+    video_no: int = Field(alias="videoNo")
     publish_date_at: Annotated[int, BeforeValidator(normalize_timestamp_to_utc)] = Field(alias="publishDateAt")
     duration_s: int = Field(alias="duration")
     read_count: int = Field(alias="readCount")
-    category_type: str = Field(alias="categoryType")
-    video_category: str = Field(alias="videoCategory")
-    video_category_value: str = Field(alias="videoCategoryValue")
+    category_type: str | None = Field(alias="categoryType", default=None)
+    video_category: str | None = Field(alias="videoCategory", default=None)
+    video_category_value: str | None = Field(alias="videoCategoryValue", default=None)
     adult: bool = Field(alias="adult")
     live_pv: int = Field(alias="livePv")
 

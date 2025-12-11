@@ -10,15 +10,6 @@ dependencies = [
     "chatzzk-constants",
 ]
 
-[project.optional-dependencies]
-orm = [
-    "sqlalchemy>=2.0.44",
-]
-
-dev = [
-    "chatzzk_schemas[orm]"
-]
-
 [tool.hatch.build.targets.wheel]
 packages = ["src/chatzzk_schemas"]
 

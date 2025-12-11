@@ -17,6 +17,11 @@ class VODProcessingStatus(str, Enum):  # TODO: prefect 참고하여 수정 필�
     FAILED = "FAILED"  # 하나 이상의 필수 파이프라인 단계가 실패한 상태
 
 
+class VODProcessingStepStatus(str, Enum):
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
 # -------------- db init value -------------------------
 @dataclass
 class DBDefault:
@@ -148,8 +153,3 @@ class VODProcessingStep(str, Enum):
     PERFORM_ASR = "perform_asr"
     GENERATE_SUMMARY = "generate_summary"
     GENERATE_META_SUMMARY = "generate_meta_summary"
-
-
-class VODProcessingStepStatus(str, Enum):
-    COMPLETED = "completed"
-    FAILED = "failed"

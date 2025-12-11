@@ -5,7 +5,7 @@ import re
 from typing import Annotated, Literal
 from pydantic import BaseModel, Field, TypeAdapter, ConfigDict
 
-from chatzzk_constants.chzzk import OsType, UserRoleCode
+from chatzzk_constants.chzzk import UserRoleCode
 from chatzzk_constants.service_codes import StreamAtmosphere, EntryType, ASRHallucinationFilter, PlatformCode
 
 _HALLUCINATION_KEYWORDS = ASRHallucinationFilter.get_keywords()
@@ -14,24 +14,15 @@ _HALLUCINATION_KEYWORDS = ASRHallucinationFilter.get_keywords()
 class _StreamEntry(BaseModel):
     content: str
     timestamp: int
-    entry_type: Literal["CHAT", "DONATION"]
+    entry_type: str
 
 
 class ChzzkChatEntry(_StreamEntry):
-    """
-    ChzzkVideoChat을 입력받음
-    중복된 필드 없이 저장할 필요가 있는 필드만 구성
-    """
+    model_config = ConfigDict(validate_by_name=True, validate_by_alias=True, extra="ignore")
 
-    user_id_hash: str
-    donation_type: str | None = Field(default=None)
-    is_anonymous: bool | None = Field(default=None)
     nickname: str | None = Field(default=None)
-    os_type: OsType | None = Field(default=None)
-    pay_amount: int | None = Field(default=None)
-    subscription_tier: int | None = Field(default=None)
-    subscription_accumulative_month: int | None = Field(default=None)
     user_role_code: UserRoleCode | None = Field(default=None)
+    entry_type: Literal["CHAT", "DONATION"]
 
     @classmethod
     def _sanitize_content(cls, content: str) -> str:
@@ -68,6 +59,7 @@ class VADTimestampEntry(BaseModel):
 class ASREntry(_StreamEntry):
     end: int
     start: int
+
     entry_type: Literal["ASR"] = EntryType.ASR
 
     def to_prompt_str(self) -> str | None:
@@ -99,12 +91,6 @@ class SummaryRawEntry(BaseModel):
     atmosphere: StreamAtmosphere
     scores: ScoreDetail
 
-    @classmethod
-    def from_summary_raw_result(
-        cls, start: int, end: int, summary: str, keywords: list[str], atmosphere: StreamAtmosphere, scores: ScoreDetail
-    ) -> "SummaryRawEntry":
-        return cls(start=start, end=end, summary=summary, keywords=keywords, atmosphere=atmosphere, scores=scores)
-
 
 class SummaryEntry(BaseModel):
     summary: str
@@ -117,7 +103,6 @@ class SummaryEntry(BaseModel):
 ChzzkStreamEntry = Annotated[ChzzkChatEntry | ASREntry, Field(discriminator="entry_type")]
 
 StreamEntry = ChzzkStreamEntry  # | YoutubeStreamEntry
-
 
 ChzzkStreamEntryAdapter = TypeAdapter(ChzzkStreamEntry)
 

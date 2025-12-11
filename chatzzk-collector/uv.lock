@@ -2,15 +2,9 @@ version = 1
 revision = 3
 requires-python = ">=3.11"
 resolution-markers = [
-    "python_full_version >= '3.13' and extra != 'extra-15-chatzzk-clients-dev' and extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx'",
-    "python_full_version == '3.12.*' and extra != 'extra-15-chatzzk-clients-dev' and extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx'",
-    "python_full_version < '3.12' and extra != 'extra-15-chatzzk-clients-dev' and extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx'",
-    "python_full_version >= '3.12' and extra != 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra != 'extra-15-chatzzk-clients-whisperx'",
-    "python_full_version < '3.12' and extra != 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra != 'extra-15-chatzzk-clients-whisperx'",
-    "python_full_version >= '3.12' and extra == 'extra-15-chatzzk-clients-dev' and extra != 'extra-15-chatzzk-clients-ml-backend' and extra != 'extra-15-chatzzk-clients-whisperx'",
-    "python_full_version < '3.12' and extra == 'extra-15-chatzzk-clients-dev' and extra != 'extra-15-chatzzk-clients-ml-backend' and extra != 'extra-15-chatzzk-clients-whisperx'",
-    "python_full_version >= '3.12' and extra != 'extra-15-chatzzk-clients-dev' and extra != 'extra-15-chatzzk-clients-ml-backend' and extra != 'extra-15-chatzzk-clients-whisperx'",
-    "python_full_version < '3.12' and extra != 'extra-15-chatzzk-clients-dev' and extra != 'extra-15-chatzzk-clients-ml-backend' and extra != 'extra-15-chatzzk-clients-whisperx'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.12.*'",
+    "python_full_version < '3.12'",
 ]
 conflicts = [[
     { package = "chatzzk-clients", extra = "dev" },
@@ -578,13 +572,13 @@ requires-dist = [
     { name = "aiofiles", marker = "extra == 'media-tools'", specifier = ">=25.1.0" },
     { name = "aiohttp", marker = "extra == 'http-core'", specifier = ">=3.13.2" },
     { name = "aiolimiter", marker = "extra == 'http-core'", specifier = ">=1.2.1" },
-    { name = "chatzzk-clients", extras = ["http-core"], marker = "extra == 'dev'" },
-    { name = "chatzzk-clients", extras = ["http-core"], marker = "extra == 'llm-generation'" },
-    { name = "chatzzk-clients", extras = ["llm-generation"], marker = "extra == 'dev'" },
-    { name = "chatzzk-clients", extras = ["media-tools"], marker = "extra == 'dev'" },
-    { name = "chatzzk-clients", extras = ["ml-backend"], marker = "extra == 'dev'" },
-    { name = "chatzzk-clients", extras = ["numpy"], marker = "extra == 'dev'" },
-    { name = "chatzzk-clients", extras = ["silero-vad"], marker = "extra == 'dev'" },
+    { name = "chatzzk-clients", extras = ["http-core"], marker = "extra == 'dev'", editable = "packages/clients" },
+    { name = "chatzzk-clients", extras = ["http-core"], marker = "extra == 'llm-generation'", editable = "packages/clients" },
+    { name = "chatzzk-clients", extras = ["llm-generation"], marker = "extra == 'dev'", editable = "packages/clients" },
+    { name = "chatzzk-clients", extras = ["media-tools"], marker = "extra == 'dev'", editable = "packages/clients" },
+    { name = "chatzzk-clients", extras = ["ml-backend"], marker = "extra == 'dev'", editable = "packages/clients" },
+    { name = "chatzzk-clients", extras = ["numpy"], marker = "extra == 'dev'", editable = "packages/clients" },
+    { name = "chatzzk-clients", extras = ["silero-vad"], marker = "extra == 'dev'", editable = "packages/clients" },
     { name = "chatzzk-constants", editable = "packages/constants" },
     { name = "chatzzk-schemas", editable = "packages/schemas" },
     { name = "ffmpeg-python", marker = "extra == 'media-tools'", specifier = ">=0.2.0" },
@@ -612,13 +606,16 @@ source = { virtual = "." }
 db-migration = [
     { name = "alembic" },
     { name = "alembic-postgresql-enum" },
-    { name = "chatzzk-schemas", extra = ["orm"] },
+    { name = "chatzzk-schemas" },
     { name = "psycopg2-binary" },
 ]
 dev = [
     { name = "alembic" },
     { name = "alembic-postgresql-enum" },
-    { name = "chatzzk-schemas", extra = ["orm"] },
+    { name = "chatzzk-clients", extra = ["dev"], marker = "extra == 'extra-15-chatzzk-clients-dev' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "chatzzk-data-access", extra = ["dev"] },
+    { name = "chatzzk-schemas" },
+    { name = "dependency-injector" },
     { name = "pre-commit" },
     { name = "psycopg2-binary" },
     { name = "ruff" },
@@ -628,8 +625,11 @@ dev = [
 requires-dist = [
     { name = "alembic", marker = "extra == 'db-migration'", specifier = ">=1.17.2" },
     { name = "alembic-postgresql-enum", marker = "extra == 'db-migration'", specifier = ">=1.8.0" },
+    { name = "chatzzk-clients", extras = ["dev"], marker = "extra == 'dev'", editable = "packages/clients" },
     { name = "chatzzk-collector", extras = ["db-migration"], marker = "extra == 'dev'" },
+    { name = "chatzzk-data-access", extras = ["dev"], marker = "extra == 'dev'", editable = "packages/data_access" },
     { name = "chatzzk-schemas", extras = ["orm"], marker = "extra == 'db-migration'", editable = "packages/schemas" },
+    { name = "dependency-injector", marker = "extra == 'dev'", specifier = ">=4.48.2" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.4.0" },
     { name = "psycopg2-binary", marker = "extra == 'db-migration'", specifier = ">=2.9.11" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.14.5" },
@@ -668,8 +668,8 @@ storage = [
 requires-dist = [
     { name = "aiofiles", marker = "extra == 'storage'", specifier = ">=25.1.0" },
     { name = "asyncpg", marker = "extra == 'repository'", specifier = ">=0.30.0" },
-    { name = "chatzzk-data-access", extras = ["repository"], marker = "extra == 'dev'" },
-    { name = "chatzzk-data-access", extras = ["storage"], marker = "extra == 'dev'" },
+    { name = "chatzzk-data-access", extras = ["repository"], marker = "extra == 'dev'", editable = "packages/data_access" },
+    { name = "chatzzk-data-access", extras = ["storage"], marker = "extra == 'dev'", editable = "packages/data_access" },
     { name = "orjson", marker = "extra == 'storage'", specifier = ">=3.11.4" },
     { name = "psycopg2-binary", marker = "extra == 'repository'", specifier = ">=2.9.11" },
     { name = "sqlalchemy", marker = "extra == 'repository'", specifier = ">=2.0.44" },
@@ -687,24 +687,13 @@ dependencies = [
     { name = "pydantic-settings" },
 ]
 
-[package.optional-dependencies]
-dev = [
-    { name = "sqlalchemy" },
-]
-orm = [
-    { name = "sqlalchemy" },
-]
-
 [package.metadata]
 requires-dist = [
     { name = "chatzzk-constants", editable = "packages/constants" },
-    { name = "chatzzk-schemas", extras = ["orm"], marker = "extra == 'dev'", editable = "packages/schemas" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pydantic", specifier = ">=2.12.4" },
     { name = "pydantic-settings", specifier = ">=2.12.0" },
-    { name = "sqlalchemy", marker = "extra == 'orm'", specifier = ">=2.0.44" },
 ]
-provides-extras = ["orm", "dev"]
 
 [[package]]
 name = "click"
@@ -860,6 +849,28 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/a9/95/a3dbbb5028f35eafb79008e7522a75244477d2838f38cbb722248dabc2a8/cycler-0.12.1.tar.gz", hash = "sha256:88bb128f02ba341da8ef447245a9e138fae777f6a23943da4540077d3601eb1c", size = 7615, upload-time = "2023-10-07T05:32:18.335Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e7/05/c19819d5e3d95294a6f5947fb9b9629efb316b96de511b418c53d245aae6/cycler-0.12.1-py3-none-any.whl", hash = "sha256:85cef7cff222d8644161529808465972e51340599459b8ac3ccbac5a854e0d30", size = 8321, upload-time = "2023-10-07T05:32:16.783Z" },
+]
+
+[[package]]
+name = "dependency-injector"
+version = "4.48.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions", marker = "python_full_version < '3.13' or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-ml-backend') or (extra == 'extra-15-chatzzk-clients-dev' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9d/14/4f7b2d24d3ad50ac399262636cdf4b66b9318bfd0e9de5c61669625dc77c/dependency_injector-4.48.3.tar.gz", hash = "sha256:106e43a6a9959b2c49926edc45bdf07fdc377bc5fa1fd59012741590df30b20c", size = 1129251, upload-time = "2025-12-04T18:43:55.751Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b8/d1/bebb2921e1cfdeba992e57c62bcd871f4703fde852b1d64ceb0dd65540ee/dependency_injector-4.48.3-cp310-abi3-macosx_11_0_arm64.whl", hash = "sha256:37d5b962d9ba67f6536557dec3c83136cefd7a747bbe8ba53b158e34e050bae5", size = 1746065, upload-time = "2025-12-04T18:43:06.655Z" },
+    { url = "https://files.pythonhosted.org/packages/c3/da/068f23d12b55cda6e2d5e7783d1b602aa40f0889f35cf182ecfa1b12f7b8/dependency_injector-4.48.3-cp310-abi3-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:54aa2b8b8ff057555ab03ee98035eb41120d30f8ec220cf43aa3b117f6b9b1b1", size = 1829780, upload-time = "2025-12-04T18:43:08.497Z" },
+    { url = "https://files.pythonhosted.org/packages/e4/7f/7d5f16a87d6cc4111be41c8593ae6b98ebcdf0dc797c6e08e303ce6155b7/dependency_injector-4.48.3-cp310-abi3-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:6a1f8d5b7dcf24773c27ddb9beab043753d8e251804f2398468944b93c767a35", size = 1741838, upload-time = "2025-12-04T18:43:10.072Z" },
+    { url = "https://files.pythonhosted.org/packages/ea/1d/251c79858c9ebf53c6d8b51c9a653c794db0392070ab5a8f3f4a298a8b26/dependency_injector-4.48.3-cp310-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:7ed11a944f5c84a5ad3f15bc9154f07affae2902967b4e47c74504d4595ed92f", size = 1726565, upload-time = "2025-12-04T18:43:11.892Z" },
+    { url = "https://files.pythonhosted.org/packages/45/92/023bd0b72baf170368323412a911fe31fd1c5cccbd4d399744bdec21cecd/dependency_injector-4.48.3-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:00c7ad5b5b5f9b1616c363770eed8c629a42dd0155b398c4458c949b8c0b9ae0", size = 1820764, upload-time = "2025-12-04T18:43:13.765Z" },
+    { url = "https://files.pythonhosted.org/packages/ef/ae/0f6c65c6f67be9a7bcc18546ad08610b1cb294cef0da3d16502a1b336246/dependency_injector-4.48.3-cp310-abi3-win32.whl", hash = "sha256:2870a3b84ddb2e4b13731b7250b7714f0d4a07f6147a181b3ecbceed061b74f2", size = 1527160, upload-time = "2025-12-04T18:43:15.534Z" },
+    { url = "https://files.pythonhosted.org/packages/ae/74/51e8d051d55ae3b88fb0d94356cc9998e070a8b0cf6c93ef8456b8d05c01/dependency_injector-4.48.3-cp310-abi3-win_amd64.whl", hash = "sha256:d0e6244b3674a48ee2c5b0af29bf20d2b0b5baef806dd1739af9aab9d20f08de", size = 1655409, upload-time = "2025-12-04T18:43:16.901Z" },
+    { url = "https://files.pythonhosted.org/packages/34/86/c70e6a1d6c42d03c950f6ddc69e5793e65ac1d048268977c1b7d05c8bf4a/dependency_injector-4.48.3-pp311-pypy311_pp73-macosx_11_0_arm64.whl", hash = "sha256:adb2a57deeb9d02b6981c1ba10a9a3b60fc2743ac2f7010f02abd579572368fe", size = 1724165, upload-time = "2025-12-04T18:43:49.121Z" },
+    { url = "https://files.pythonhosted.org/packages/5e/5c/5b556613377eaf76f5e733305dff2f96c70e50fab422eb899a2b3146ee22/dependency_injector-4.48.3-pp311-pypy311_pp73-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl", hash = "sha256:8f74f415de9e5683d2cf919e0e384aae09cb3c1c042a5c4a63e8759fd4467395", size = 1799052, upload-time = "2025-12-04T18:43:50.768Z" },
+    { url = "https://files.pythonhosted.org/packages/cd/84/f8e6cf184512d022f4643ff00d5c56dae34abc6694642369fe26e59f4e96/dependency_injector-4.48.3-pp311-pypy311_pp73-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:d2b390b65fde7694f61cc58084f3ed084e0739142fff192e68d54adde7f5a85e", size = 1719290, upload-time = "2025-12-04T18:43:52.534Z" },
+    { url = "https://files.pythonhosted.org/packages/09/db/586f8a097eb6acd05836eb00cdeed027e1cad660c682bf9980586e35912e/dependency_injector-4.48.3-pp311-pypy311_pp73-win_amd64.whl", hash = "sha256:6e85aa3c0e70741cdff3e3f9cfe157663e10ab5e2cc88b129f93694bf7401ccc", size = 1632480, upload-time = "2025-12-04T18:43:54.22Z" },
 ]
 
 [[package]]
@@ -2290,7 +2301,8 @@ name = "nvidia-nccl-cu12"
 version = "2.27.5"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.12'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.12.*'",
     "python_full_version < '3.12'",
 ]
 wheels = [
@@ -3938,6 +3950,7 @@ dependencies = [
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/be/f9/5e4491e5ccf42f5d9cfc663741d261b3e6e1683ae7812114e7636409fcc6/sqlalchemy-2.0.45.tar.gz", hash = "sha256:1632a4bda8d2d25703fdad6363058d882541bdaaee0e5e3ddfa0cd3229efce88", size = 9869912, upload-time = "2025-12-09T21:05:16.737Z" }
 wheels = [
+    { url = "https://files.pythonhosted.org/packages/a2/1c/769552a9d840065137272ebe86ffbb0bc92b0f1e0a68ee5266a225f8cd7b/sqlalchemy-2.0.45-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:2e90a344c644a4fa871eb01809c32096487928bd2038bf10f3e4515cb688cc56", size = 2153860, upload-time = "2025-12-10T20:03:23.843Z" },
     { url = "https://files.pythonhosted.org/packages/f3/f8/9be54ff620e5b796ca7b44670ef58bc678095d51b0e89d6e3102ea468216/sqlalchemy-2.0.45-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:b8c8b41b97fba5f62349aa285654230296829672fc9939cd7f35aab246d1c08b", size = 3309379, upload-time = "2025-12-09T22:06:07.461Z" },
     { url = "https://files.pythonhosted.org/packages/f6/2b/60ce3ee7a5ae172bfcd419ce23259bb874d2cddd44f67c5df3760a1e22f9/sqlalchemy-2.0.45-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:12c694ed6468333a090d2f60950e4250b928f457e4962389553d6ba5fe9951ac", size = 3309948, upload-time = "2025-12-09T22:09:57.643Z" },
     { url = "https://files.pythonhosted.org/packages/a3/42/bac8d393f5db550e4e466d03d16daaafd2bad1f74e48c12673fb499a7fc1/sqlalchemy-2.0.45-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:f7d27a1d977a1cfef38a0e2e1ca86f09c4212666ce34e6ae542f3ed0a33bc606", size = 3261239, upload-time = "2025-12-09T22:06:08.879Z" },
@@ -4158,7 +4171,8 @@ name = "torch"
 version = "2.9.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.12'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.12.*'",
     "python_full_version < '3.12'",
 ]
 dependencies = [
@@ -4279,7 +4293,8 @@ name = "torchaudio"
 version = "2.9.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.12'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.12.*'",
     "python_full_version < '3.12'",
 ]
 dependencies = [
@@ -4403,7 +4418,8 @@ name = "triton"
 version = "3.5.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.12'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.12.*'",
     "python_full_version < '3.12'",
 ]
 wheels = [
