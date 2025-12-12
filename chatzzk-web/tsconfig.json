@@ -19,7 +19,10 @@
 		"baseUrl": ".",
 		"paths": {
 			"@/*": [
-				"./src/*"
+				"./src/react-app/*"
+			],
+			"@worker/*": [
+				"./src/worker/*"
 			]
 		}
 	}
