@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 // 2. 기능별 페이지(Routes) 가져오기
 // (export const UserPage = ... 로 정의했다고 가정)
 import UserPage from "@/features/users/routes/UserPage";
+import MainPage from "@/features/main/routes/MainPage";
 
 export const AppRoutes = () => {
     return (
@@ -14,7 +15,7 @@ export const AppRoutes = () => {
         */}
 
                 {/* 기본 경로(/)로 오면 /users로 리다이렉트 */}
-                <Route path="/" element={<Navigate to="/users" replace />} />
+                <Route path="/" element={<MainPage />} />
 
                 {/* ✨ /users 경로에 UserPage 연결 */}
                 <Route path="/users" element={<UserPage />} />
