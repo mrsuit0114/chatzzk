@@ -1,7 +1,7 @@
 from loguru import logger
 
 from chatzzk_clients.ml.asr.base import ASRClientInterface
-from chatzzk_schemas.config.clients.ml import ASRConfig, ASRHTTPConfig, WhisperXConfig
+from chatzzk_core.schemas.config.clients.ml import ASRConfig, ASRHTTPConfig, WhisperXConfig
 
 
 def create_asr_client(model_config: ASRConfig, *, http_client=None) -> ASRClientInterface:

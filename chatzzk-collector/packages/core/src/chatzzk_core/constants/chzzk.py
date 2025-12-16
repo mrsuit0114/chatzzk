@@ -10,7 +10,7 @@ class ChzzkAPIConstant:
     VOD_MANIFEST_HEADERS = {"Accept": "application/dash+xml"}
 
     CHANNEL_INFO_URL = "https://api.chzzk.naver.com/service/v1/channels/{channel_id}"
-    CHANNEL_VODS_URL = "https://api.chzzk.naver.com/service/v1/channels/{channel_id}/videos?sortType=LATEST&pagingType=PAGE&page={page_idx}&size={page_size}"
+    VOD_METAS_URL = "https://api.chzzk.naver.com/service/v1/channels/{channel_id}/videos?sortType=LATEST&pagingType=PAGE&page={page_idx}&size={page_size}"
 
     VOD_INFO_URL = "https://api.chzzk.naver.com/service/v2/videos/{video_no}"
     VOD_CHATS_URL = (
@@ -19,7 +19,6 @@ class ChzzkAPIConstant:
     VOD_PLAYBACK_URL = "https://apis.naver.com/neonplayer/vodplay/v2/playback/{video_id}?key={in_key}"
 
     PAGE_SIZE = 30
-    WORKER_NUM = 2
     LAST_END_TIME_OFFSET = 1000
     CHUNK_SIZE = 262144
     RS_IDX = 0  # lowest resolution idx
@@ -63,6 +62,6 @@ class UserRoleCode(str, Enum):
 @dataclass
 class ChzzkVODFilterConstant:
     MIN_DURATION_S = 1800
-    MIN_PUBLISH_DATE_AT_AGE_MS = 30 * 60 * 1000
+    MIN_PUBLISH_DATE_AT_AGE = 30 * 60 * 1000
     ALLOW_AUDLT = False
     LIVE_PV = 0

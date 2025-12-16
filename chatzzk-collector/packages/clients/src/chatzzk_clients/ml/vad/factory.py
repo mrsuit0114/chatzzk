@@ -1,7 +1,7 @@
 from loguru import logger
 
 from chatzzk_clients.ml.vad.base import VADClientInterface
-from chatzzk_schemas.config.clients.ml import SileroVADConfig, VADConfig
+from chatzzk_core.schemas.config.clients.ml import SileroVADConfig, VADConfig
 
 
 def create_vad_client(model_config: VADConfig) -> VADClientInterface:

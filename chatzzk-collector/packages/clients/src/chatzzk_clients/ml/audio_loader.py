@@ -1,9 +1,10 @@
-from torchcodec.decoders import AudioDecoder
-import numpy as np
-from loguru import logger
 from pathlib import Path
 
-from chatzzk_schemas.config.clients.ml import AudioLoaderConfig
+import numpy as np
+from loguru import logger
+from torchcodec.decoders import AudioDecoder
+
+from chatzzk_core.schemas.config.clients.ml import AudioLoaderConfig
 
 
 class AudioLoader:

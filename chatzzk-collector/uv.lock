@@ -2,7 +2,8 @@ version = 1
 revision = 3
 requires-python = ">=3.11"
 resolution-markers = [
-    "python_full_version >= '3.12'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.12.*'",
     "python_full_version < '3.12'",
 ]
 conflicts = [[
@@ -15,9 +16,8 @@ conflicts = [[
 members = [
     "chatzzk-clients",
     "chatzzk-collector",
-    "chatzzk-constants",
+    "chatzzk-core",
     "chatzzk-data-access",
-    "chatzzk-schemas",
 ]
 
 [[package]]
@@ -516,8 +516,7 @@ dependencies = [
     { name = "aiofiles", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
     { name = "aiohttp", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
     { name = "aiolimiter", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "chatzzk-constants" },
-    { name = "chatzzk-schemas" },
+    { name = "chatzzk-core" },
     { name = "ffmpeg-python", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
     { name = "langfuse", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
     { name = "litellm", marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
@@ -591,8 +590,7 @@ requires-dist = [
     { name = "chatzzk-clients", extras = ["no-asr-inference"], editable = "packages/clients" },
     { name = "chatzzk-clients", extras = ["numpy"], marker = "extra == 'no-asr-inference'", editable = "packages/clients" },
     { name = "chatzzk-clients", extras = ["silero-vad"], marker = "extra == 'no-asr-inference'", editable = "packages/clients" },
-    { name = "chatzzk-constants", editable = "packages/constants" },
-    { name = "chatzzk-schemas", editable = "packages/schemas" },
+    { name = "chatzzk-core", editable = "packages/core" },
     { name = "ffmpeg-python", marker = "extra == 'media-tools'", specifier = ">=0.2.0" },
     { name = "langfuse", marker = "extra == 'llm-generation'", specifier = ">=3.10.1" },
     { name = "litellm", marker = "extra == 'llm-generation'", specifier = ">=1.80.5" },
@@ -618,9 +616,8 @@ dependencies = [
     { name = "alembic-postgresql-enum" },
     { name = "chatzzk-clients" },
     { name = "chatzzk-clients", extra = ["no-asr-inference"], marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "chatzzk-constants" },
+    { name = "chatzzk-core" },
     { name = "chatzzk-data-access" },
-    { name = "chatzzk-schemas" },
     { name = "dependency-injector" },
     { name = "loguru" },
     { name = "psycopg2-binary" },
@@ -631,7 +628,6 @@ dependencies = [
 db-migration = [
     { name = "alembic" },
     { name = "alembic-postgresql-enum" },
-    { name = "chatzzk-schemas" },
     { name = "psycopg2-binary" },
 ]
 dev = [
@@ -645,10 +641,8 @@ requires-dist = [
     { name = "alembic-postgresql-enum", marker = "extra == 'db-migration'", specifier = ">=1.8.0" },
     { name = "chatzzk-clients", extras = ["no-asr-inference"], editable = "packages/clients" },
     { name = "chatzzk-collector", extras = ["db-migration"] },
-    { name = "chatzzk-constants", editable = "packages/constants" },
+    { name = "chatzzk-core", editable = "packages/core" },
     { name = "chatzzk-data-access", editable = "packages/data_access" },
-    { name = "chatzzk-schemas", editable = "packages/schemas" },
-    { name = "chatzzk-schemas", extras = ["orm"], marker = "extra == 'db-migration'", editable = "packages/schemas" },
     { name = "dependency-injector", specifier = ">=4.48.2" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.4.0" },
@@ -659,9 +653,21 @@ requires-dist = [
 provides-extras = ["db-migration", "dev"]
 
 [[package]]
-name = "chatzzk-constants"
+name = "chatzzk-core"
 version = "0.1.0"
-source = { editable = "packages/constants" }
+source = { editable = "packages/core" }
+dependencies = [
+    { name = "loguru" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pydantic", specifier = ">=2.12.4" },
+    { name = "pydantic-settings", specifier = ">=2.12.0" },
+]
 
 [[package]]
 name = "chatzzk-data-access"
@@ -670,6 +676,7 @@ source = { editable = "packages/data_access" }
 dependencies = [
     { name = "aiofiles" },
     { name = "asyncpg" },
+    { name = "chatzzk-core" },
     { name = "orjson" },
     { name = "psycopg2-binary" },
     { name = "sqlalchemy" },
@@ -690,6 +697,7 @@ storage = [
 requires-dist = [
     { name = "aiofiles", marker = "extra == 'storage'", specifier = ">=25.1.0" },
     { name = "asyncpg", marker = "extra == 'repository'", specifier = ">=0.30.0" },
+    { name = "chatzzk-core", editable = "packages/core" },
     { name = "chatzzk-data-access", extras = ["repository"], editable = "packages/data_access" },
     { name = "chatzzk-data-access", extras = ["storage"], editable = "packages/data_access" },
     { name = "orjson", marker = "extra == 'storage'", specifier = ">=3.11.4" },
@@ -697,25 +705,6 @@ requires-dist = [
     { name = "sqlalchemy", marker = "extra == 'repository'", specifier = ">=2.0.44" },
 ]
 provides-extras = ["storage", "repository"]
-
-[[package]]
-name = "chatzzk-schemas"
-version = "0.1.0"
-source = { editable = "packages/schemas" }
-dependencies = [
-    { name = "chatzzk-constants" },
-    { name = "loguru" },
-    { name = "pydantic" },
-    { name = "pydantic-settings" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "chatzzk-constants", editable = "packages/constants" },
-    { name = "loguru", specifier = ">=0.7.3" },
-    { name = "pydantic", specifier = ">=2.12.4" },
-    { name = "pydantic-settings", specifier = ">=2.12.0" },
-]
 
 [[package]]
 name = "click"
@@ -2309,7 +2298,8 @@ name = "nvidia-nccl-cu12"
 version = "2.27.3"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.12'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.12.*'",
     "python_full_version < '3.12'",
 ]
 wheels = [
@@ -2322,7 +2312,8 @@ name = "nvidia-nccl-cu12"
 version = "2.27.5"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.12'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.12.*'",
     "python_full_version < '3.12'",
 ]
 wheels = [
@@ -4139,7 +4130,8 @@ name = "torch"
 version = "2.8.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.12'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.12.*'",
     "python_full_version < '3.12'",
 ]
 dependencies = [
@@ -4190,14 +4182,15 @@ name = "torch"
 version = "2.9.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.12'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.12.*'",
     "python_full_version < '3.12'",
 ]
 dependencies = [
-    { name = "filelock" },
-    { name = "fsspec" },
-    { name = "jinja2" },
-    { name = "networkx" },
+    { name = "filelock", marker = "extra == 'extra-15-chatzzk-clients-ml-backend' or extra == 'extra-15-chatzzk-clients-no-asr-inference' or extra != 'extra-15-chatzzk-clients-whisperx'" },
+    { name = "fsspec", marker = "extra == 'extra-15-chatzzk-clients-ml-backend' or extra == 'extra-15-chatzzk-clients-no-asr-inference' or extra != 'extra-15-chatzzk-clients-whisperx'" },
+    { name = "jinja2", marker = "extra == 'extra-15-chatzzk-clients-ml-backend' or extra == 'extra-15-chatzzk-clients-no-asr-inference' or extra != 'extra-15-chatzzk-clients-whisperx'" },
+    { name = "networkx", marker = "extra == 'extra-15-chatzzk-clients-ml-backend' or extra == 'extra-15-chatzzk-clients-no-asr-inference' or extra != 'extra-15-chatzzk-clients-whisperx'" },
     { name = "nvidia-cublas-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
     { name = "nvidia-cuda-cupti-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
     { name = "nvidia-cuda-nvrtc-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
@@ -4214,9 +4207,9 @@ dependencies = [
     { name = "nvidia-nvshmem-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
     { name = "nvidia-nvtx-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
     { name = "setuptools", marker = "(python_full_version >= '3.12' and extra == 'extra-15-chatzzk-clients-ml-backend') or (python_full_version >= '3.12' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (python_full_version >= '3.12' and extra != 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "sympy" },
+    { name = "sympy", marker = "extra == 'extra-15-chatzzk-clients-ml-backend' or extra == 'extra-15-chatzzk-clients-no-asr-inference' or extra != 'extra-15-chatzzk-clients-whisperx'" },
     { name = "triton", version = "3.5.1", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (platform_machine != 'x86_64' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx') or (sys_platform != 'linux' and extra == 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx')" },
-    { name = "typing-extensions" },
+    { name = "typing-extensions", marker = "extra == 'extra-15-chatzzk-clients-ml-backend' or extra == 'extra-15-chatzzk-clients-no-asr-inference' or extra != 'extra-15-chatzzk-clients-whisperx'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/15/db/c064112ac0089af3d2f7a2b5bfbabf4aa407a78b74f87889e524b91c5402/torch-2.9.1-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:62b3fd888277946918cba4478cf849303da5359f0fb4e3bfb86b0533ba2eaf8d", size = 104220430, upload-time = "2025-11-12T15:20:31.705Z" },
@@ -4280,7 +4273,8 @@ name = "torchaudio"
 version = "2.8.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.12'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.12.*'",
     "python_full_version < '3.12'",
 ]
 dependencies = [
@@ -4310,11 +4304,12 @@ name = "torchaudio"
 version = "2.9.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.12'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.12.*'",
     "python_full_version < '3.12'",
 ]
 dependencies = [
-    { name = "torch", version = "2.9.1", source = { registry = "https://pypi.org/simple" } },
+    { name = "torch", version = "2.9.1", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'extra-15-chatzzk-clients-ml-backend' or extra == 'extra-15-chatzzk-clients-no-asr-inference' or extra != 'extra-15-chatzzk-clients-whisperx'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/3f/6b/34e489fcb4adc4b571a166f2670cc7f156cbe3337867a892fade0a1a5224/torchaudio-2.9.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:6e3f5943135701168d30196e2befd46290180cdbb9ee508b167730d51f43208f", size = 807349, upload-time = "2025-11-12T15:25:57.843Z" },
@@ -4415,7 +4410,8 @@ name = "triton"
 version = "3.4.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.12'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.12.*'",
     "python_full_version < '3.12'",
 ]
 dependencies = [
@@ -4433,7 +4429,8 @@ name = "triton"
 version = "3.5.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.12'",
+    "python_full_version >= '3.13'",
+    "python_full_version == '3.12.*'",
     "python_full_version < '3.12'",
 ]
 wheels = [
@@ -4453,7 +4450,7 @@ wheels = [
 
 [[package]]
 name = "typer"
-version = "0.20.0"
+version = "0.19.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -4461,9 +4458,9 @@ dependencies = [
     { name = "shellingham" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8f/28/7c85c8032b91dbe79725b6f17d2fffc595dff06a35c7a30a37bef73a1ab4/typer-0.20.0.tar.gz", hash = "sha256:1aaf6494031793e4876fb0bacfa6a912b551cf43c1e63c800df8b1a866720c37", size = 106492, upload-time = "2025-10-20T17:03:49.445Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/21/ca/950278884e2ca20547ff3eb109478c6baf6b8cf219318e6bc4f666fad8e8/typer-0.19.2.tar.gz", hash = "sha256:9ad824308ded0ad06cc716434705f691d4ee0bfd0fb081839d2e426860e7fdca", size = 104755, upload-time = "2025-09-23T09:47:48.256Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/78/64/7713ffe4b5983314e9d436a90d5bd4f63b6054e2aca783a3cfc44cb95bbf/typer-0.20.0-py3-none-any.whl", hash = "sha256:5b463df6793ec1dca6213a3cf4c0f03bc6e322ac5e16e13ddd622a889489784a", size = 47028, upload-time = "2025-10-20T17:03:47.617Z" },
+    { url = "https://files.pythonhosted.org/packages/00/22/35617eee79080a5d071d0f14ad698d325ee6b3bf824fc0467c03b30e7fa8/typer-0.19.2-py3-none-any.whl", hash = "sha256:755e7e19670ffad8283db353267cb81ef252f595aa6834a0d1ca9312d9326cb9", size = 46748, upload-time = "2025-09-23T09:47:46.777Z" },
 ]
 
 [[package]]

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from chatzzk_constants.service_codes import LLMTask, LLMPromptPath
+from chatzzk_core.constants.service_codes import LLMPromptPath, LLMTask
 
 
 class LiteLLMProxyConfig(BaseModel):

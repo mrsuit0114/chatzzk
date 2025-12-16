@@ -1,12 +1,13 @@
 # 스토리지에 저장하는 포멧을 정의 -> 읽을 때도 같은 포멧으로 읽음
 
 import re
-
 from typing import Annotated, Literal
-from pydantic import BaseModel, Field, TypeAdapter, ConfigDict
 
-from chatzzk_constants.chzzk import UserRoleCode
-from chatzzk_constants.service_codes import StreamAtmosphere, EntryType, ASRHallucinationFilter, PlatformCode
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter
+
+from chatzzk_core.constants.chzzk import UserRoleCode
+from chatzzk_core.constants.service_codes import ASRHallucinationFilter, EntryType, PlatformCode
+from chatzzk_core.schemas.external.chzzk import ChzzkVideoChat
 
 _HALLUCINATION_KEYWORDS = ASRHallucinationFilter.get_keywords()
 
@@ -21,7 +22,6 @@ class ChzzkChatEntry(_StreamEntry):
     model_config = ConfigDict(validate_by_name=True, validate_by_alias=True, extra="ignore")
 
     nickname: str | None = Field(default=None)
-    user_role_code: UserRoleCode | None = Field(default=None)
     entry_type: Literal["CHAT", "DONATION"]
 
     @classmethod
@@ -40,11 +40,21 @@ class ChzzkChatEntry(_StreamEntry):
             return None
 
         # 일반 유저가 아닌 경우에만 sender 정보(닉네임)를 포함
-        if self.user_role_code and self.user_role_code != UserRoleCode.COMMON_USER:
-            nickname = self.nickname or "알수없음"
-            return f"[{self.entry_type}] ({nickname}) {sanitized_content}"
+        if self.nickname:
+            return f"[{self.entry_type}] ({self.nickname}) {sanitized_content}"
 
         return f"[{self.entry_type}] {sanitized_content}"
+
+    @classmethod
+    def from_chat_entry(cls, chzzk_video_chat: ChzzkVideoChat) -> "ChzzkChatEntry":
+        return cls(
+            content=chzzk_video_chat.content,
+            timestamp=chzzk_video_chat.message_time,
+            entry_type=EntryType.DONATION if chzzk_video_chat.extras.pay_amount else EntryType.CHAT,
+            nickname=chzzk_video_chat.profile.nickname
+            if chzzk_video_chat.profile.user_role_code != UserRoleCode.COMMON_USER
+            else None,
+        )
 
 
 class VADTimestampEntry(BaseModel):
@@ -57,8 +67,8 @@ class VADTimestampEntry(BaseModel):
 
 
 class ASREntry(_StreamEntry):
-    end: int
     start: int
+    end: int
 
     entry_type: Literal["ASR"] = EntryType.ASR
 
@@ -73,31 +83,43 @@ class ASREntry(_StreamEntry):
 
         return f"[{self.entry_type}] {self.content}"
 
-
-class ScoreDetail(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    expresiveness: int
-    coherence: int
-    significance: int
-    participation: int = 0  # raw에서는 없기 때문에
-
-
-class SummaryRawEntry(BaseModel):
-    # start, end는 ms 단위
-    start: int
-    end: int
-    summary: str
-    keywords: list[str]
-    atmosphere: StreamAtmosphere
-    scores: ScoreDetail
+    @classmethod
+    def from_asr_result(cls, start: int, end: int, content: str) -> "ASREntry":
+        return cls(
+            timestamp=(start + end) // 2,
+            content=content,
+            start=start,
+            end=end,
+            entry_type=EntryType.ASR,
+        )
 
 
-class SummaryEntry(BaseModel):
-    summary: str
-    keywords: list[str]
-    atmosphere: StreamAtmosphere
-    scores: ScoreDetail
-    scores_avg: float
+# class ScoreDetail(BaseModel):
+#     model_config = ConfigDict(extra="ignore")
+#     expresiveness: int
+#     coherence: int
+#     significance: int
+#     participation: int = 0  # raw에서는 없기 때문에
+
+
+# class SummaryEntry(BaseModel):
+#     start: int
+#     end: int
+#     summary: str
+#     keywords: list[str]
+#     atmosphere: StreamAtmosphere
+#     scores: ScoreDetail
+
+#     @classmethod
+#     def from_stream_segment_analysis_response(cls, start: int, end: int, response: StreamSegmentAnalysisResponse) -> "SummaryEntry":
+#         return cls(
+#             start=start,
+#             end=end,
+#             summary=response.summary,
+#             keywords=response.keywords,
+#             atmosphere=response.atmosphere,
+#             scores=response.scores,
+#         )
 
 
 ChzzkStreamEntry = Annotated[ChzzkChatEntry | ASREntry, Field(discriminator="entry_type")]

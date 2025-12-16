@@ -7,7 +7,7 @@ from loguru import logger
 
 from chatzzk_clients.ml.asr.base import ASRClientInterface
 from chatzzk_clients.ml.exceptions import ASRError
-from chatzzk_schemas.config.clients.ml import WhisperXConfig
+from chatzzk_core.schemas.config.clients.ml import WhisperXConfig
 
 
 class WhisperxClient(ASRClientInterface):

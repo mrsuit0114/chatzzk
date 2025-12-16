@@ -10,14 +10,14 @@ class PlatformCode(str, Enum):
     SOOP = "sooplive"
 
 
-class VODProcessingStatus(str, Enum):  # TODO: prefect 참고하여 수정 필요
+class VODPipelineStatus(str, Enum):  # TODO: prefect 참고하여 수정 필요
     PENDING = "PENDING"  # 모든 처리를 기다리는 초기 상태
     PROCESSING = "PROCESSING"  # 하나 이상의 파이프라인 단계가 진행 중인 상태
     COMPLETED = "COMPLETED"  # 모든 파이프라인 단계가 성공적으로 완료된 상태
     FAILED = "FAILED"  # 하나 이상의 필수 파이프라인 단계가 실패한 상태
 
 
-class VODProcessingStepStatus(str, Enum):
+class VODPipelineStepStatus(str, Enum):
     COMPLETED = "completed"
     FAILED = "failed"
 
@@ -27,7 +27,7 @@ class VODProcessingStepStatus(str, Enum):
 class DBDefault:
     IS_ACTIVE = "true"
 
-    VOD_PROCESSING_STATUS = VODProcessingStatus.PENDING.value
+    VOD_PIPELINE_STATUS = VODPipelineStatus.PENDING.value
 
     class Len:
         ID = 256

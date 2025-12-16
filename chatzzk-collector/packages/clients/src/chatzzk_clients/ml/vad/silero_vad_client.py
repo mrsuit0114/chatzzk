@@ -9,7 +9,7 @@ from loguru import logger
 
 from chatzzk_clients.ml.exceptions import VADError
 from chatzzk_clients.ml.vad.base import VADClientInterface
-from chatzzk_schemas.config.clients.ml import SileroVADConfig
+from chatzzk_core.schemas.config.clients.ml import SileroVADConfig
 
 # --- 멀티프로세싱을 위한 최상위 레벨 함수 정의 ---
 
@@ -28,7 +28,7 @@ def process_vad_chunk(
     audio_chunk_np: np.ndarray,
     threshold: float,
     min_silence_duration_ms: int,
-    max_speech_duration_s: int,
+    max_speech_duration_s: int | None,
 ) -> list[tuple[int, int]]:
     """자식 프로세스에서 단일 오디오 조각을 처리하는 실제 작업 함수"""
     global vad_model

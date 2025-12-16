@@ -2,8 +2,8 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, Field, TypeAdapter
 
-from chatzzk_constants.client import ASRHTTPConstant, SileroVADConstant, WhisperXConstant
-from chatzzk_constants.service_codes import AudioDataConstant
+from chatzzk_core.constants.client import ASRHTTPConstant, SileroVADConstant, WhisperXConstant
+from chatzzk_core.constants.service_codes import AudioDataConstant
 
 
 class AudioLoaderConfig(BaseModel):

@@ -1,17 +1,16 @@
 [project]
-name = "chatzzk-schemas"
+name = "chatzzk-core"
 version = "0.1.0"
-description = "Add your description here"
+description = "Core shared logic, schemas (DTOs), and constants for Chatzzk services."
 requires-python = ">=3.11"
 dependencies = [
     "loguru>=0.7.3",
     "pydantic>=2.12.4",
     "pydantic-settings>=2.12.0",
-    "chatzzk-constants",
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/chatzzk_schemas"]
+packages = ["src/chatzzk_core"]
 
 [build-system]
 requires = ["hatchling>=1.27.0"]

@@ -8,7 +8,7 @@ import ffmpeg
 from loguru import logger
 
 from chatzzk_clients._http.aiohttp_client import AioHTTPClient
-from chatzzk_schemas.config.clients.media_processor import MediaProcessorConfig
+from chatzzk_core.schemas.config.clients.media_processor import MediaProcessorConfig
 
 
 class MediaProcessor:

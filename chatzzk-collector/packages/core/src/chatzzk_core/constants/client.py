@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from chatzzk_constants.service_codes import AudioDataConstant, MLModelPath
+from chatzzk_core.constants.service_codes import AudioDataConstant, MLModelPath
 
 
 @dataclass

@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from chatzzk_constants.chzzk import ChzzkAPIConstant
+from chatzzk_core.constants.chzzk import ChzzkAPIConstant
 
 
 class ChzzkAPIConfig(BaseModel):
@@ -8,14 +8,13 @@ class ChzzkAPIConfig(BaseModel):
     vod_mainfest_headers: dict | None = ChzzkAPIConstant.VOD_MANIFEST_HEADERS
 
     channel_info_url: str = ChzzkAPIConstant.CHANNEL_INFO_URL
-    channel_vods_url: str = ChzzkAPIConstant.CHANNEL_VODS_URL
+    vod_metas_url: str = ChzzkAPIConstant.VOD_METAS_URL
 
     vod_info_url: str = ChzzkAPIConstant.VOD_INFO_URL
     vod_chats_url: str = ChzzkAPIConstant.VOD_CHATS_URL
     vod_playback_url: str = ChzzkAPIConstant.VOD_PLAYBACK_URL
 
     page_size: int = ChzzkAPIConstant.PAGE_SIZE
-    worker_num: int = ChzzkAPIConstant.WORKER_NUM
     last_end_ms_offset: int = ChzzkAPIConstant.LAST_END_TIME_OFFSET
     rs_idx: int = ChzzkAPIConstant.RS_IDX
 

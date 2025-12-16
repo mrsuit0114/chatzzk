@@ -4,8 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
-    "chatzzk-schemas",
-    "chatzzk-constants",
+    "chatzzk-core",
     "loguru>=0.7.3",
     "pydantic>=2.12.4",
     "chatzzk_clients[no-asr-inference]",

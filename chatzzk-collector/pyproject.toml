@@ -8,8 +8,7 @@ dependencies = [
     "chatzzk-clients[no-asr-inference]",
     "chatzzk-collector[db-migration]",
     "chatzzk-data-access",
-    "chatzzk-schemas",
-    "chatzzk-constants",
+    "chatzzk-core",
     "loguru>=0.7.3",
     "pydantic>=2.12.4",
     "dependency-injector>=4.48.2",
@@ -18,7 +17,6 @@ dependencies = [
 [project.optional-dependencies]
 
 db-migration = [
-    "chatzzk-schemas[orm]",
     "alembic>=1.17.2",
     "alembic-postgresql-enum>=1.8.0",
     "psycopg2-binary>=2.9.11",
@@ -30,8 +28,7 @@ dev = [
 ]
 
 [tool.uv.sources]
-"chatzzk-schemas" = { workspace = true }
-"chatzzk-constants" = { workspace = true }
+"chatzzk-core" = { workspace = true }
 "chatzzk-data-access" = { workspace = true }
 "chatzzk-clients" = { workspace = true }
 
@@ -43,3 +40,20 @@ members = [
 [tool.ruff]
 line-length = 120
 target-version = "py311"
+
+[tool.ruff.lint.isort]
+known-first-party = ["chatzzk_core", "chatzzk_data_access", "chatzzk_clients"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # Pyflakes
+    "I",   # isort (import sorting)
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear (potential bugs)
+]
+
+ignore = [
+    "E501",  # line too long
+    "E402",  # module level import not at top of file
+]
