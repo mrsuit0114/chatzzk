@@ -1,36 +1,16 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from chatzzk_core.schemas.config.clients.client import ClientsConfig
+from chatzzk_core.schemas.config.data_access.data_access import DataAccessConfig
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_nested_delimiter="__",  # 예: DB__DATABASE_URL
-        env_file="chatzzk-collector/local.test.env",
+        env_nested_delimiter="__",
+        env_file="local.test.env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
 
     clients: ClientsConfig
-
-
-# from pydantic import Field
-# from pydantic_settings import BaseSettings, SettingsConfigDict
-
-# from chatzzk_core.schemas.config.clients.client import ClientsConfig
-# from chatzzk_core.schemas.config.data_access.data_access import DataAccessConfig
-# from chatzzk_core.schemas.config.services.vod_discovery import VODDiscoveryServiceConfig
-
-
-# class Settings(BaseSettings):
-#     model_config = SettingsConfigDict(
-#         env_nested_delimiter="__",  # 예: DB__DATABASE_URL
-#         env_file="local.test.env",
-#         env_file_encoding="utf-8",
-#         extra="ignore",
-#     )
-
-#     data_access: DataAccessConfig
-#     clients: ClientsConfig
-
-#     vod_discovery_service: VODDiscoveryServiceConfig = Field(default_factory=VODDiscoveryServiceConfig)
+    data_access: DataAccessConfig

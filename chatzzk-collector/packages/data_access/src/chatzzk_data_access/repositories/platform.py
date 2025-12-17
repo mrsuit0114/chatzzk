@@ -1,0 +1,14 @@
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from chatzzk_core.constants.service_codes import PlatformCode
+from chatzzk_core.schemas.orm.models import Platform
+
+# 메서드 네이밍 - get_{entity}_(with_{entity})_by_{condition}
+
+
+class PlatformRepository:
+    async def get_platform_by_code(self, session: AsyncSession, platform_code: PlatformCode) -> Platform | None:
+        stmt = select(Platform).where(Platform.platform_code == platform_code)
+        result = await session.execute(stmt)
+        return result.first()

@@ -99,7 +99,7 @@ class SimpleChannelInfo(BaseAPIModel):
 
 
 class ChzzkVODMeta(BaseAPIModel):
-    video_no: int
+    video_no: Annotated[str, BeforeValidator(str)]
     video_id: str | None = None
     video_title: str | None = None
     video_type: str | None = None
@@ -149,7 +149,7 @@ class AdParameter(BaseAPIModel):
 
 
 class BaseVODInfo(BaseAPIModel):
-    video_no: int | None = None
+    video_no: Annotated[str, BeforeValidator(str)]
     video_id: str | None = None
     video_title: str | None = None
     video_type: str | None = None

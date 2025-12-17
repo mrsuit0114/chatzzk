@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import timedelta
 from enum import Enum, IntEnum
 
 
@@ -62,6 +63,6 @@ class UserRoleCode(str, Enum):
 @dataclass
 class ChzzkVODFilterConstant:
     MIN_DURATION_S = 1800
-    MIN_PUBLISH_DATE_AT_AGE = 30 * 60 * 1000
+    MIN_PUBLISH_DATE_AGE = timedelta(minutes=30)
     ALLOW_AUDLT = False
     LIVE_PV = 0

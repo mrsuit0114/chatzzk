@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.11"
 dependencies = [
+    "chatzzk-core",
     "chatzzk_data_access[storage]",
     "chatzzk_data_access[repository]",
 ]

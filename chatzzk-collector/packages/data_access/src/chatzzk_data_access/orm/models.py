@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, Integer, String, func, text, UniqueConstraint
+from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, Integer, String, UniqueConstraint, func, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from chatzzk_constants.service_codes import DBDefault, PlatformCode, VODProcessingStatus
+from chatzzk_core.constants.service_codes import DBDefault, PlatformCode, VODPipelineStatus
 
 
 class Base(DeclarativeBase):
@@ -31,9 +31,8 @@ class Channel(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     platform_id: Mapped[int] = mapped_column(ForeignKey("platforms.id"))
 
-    platform_channel_id: Mapped[str] = mapped_column(String(DBDefault.Len.ID))
+    platform_channel_id: Mapped[str] = mapped_column(String(DBDefault.Len.ID), index=True)
     channel_name: Mapped[str] = mapped_column(String(DBDefault.Len.NAME))
-    channel_url: Mapped[str] = mapped_column(String(DBDefault.Len.URL), unique=True)
     is_active: Mapped[bool] = mapped_column(Boolean, server_default=DBDefault.IS_ACTIVE)
     last_vod_crawled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
@@ -49,9 +48,6 @@ class Channel(Base):
     channel_llm_context: Mapped["ChannelLLMContext"] = relationship(
         back_populates="channel", cascade="all, delete-orphan", uselist=False
     )
-    chzzk_channel: Mapped["ChzzkChannel | None"] = relationship(
-        back_populates="channel", cascade="all, delete-orphan", uselist=False
-    )
 
 
 class VOD(Base):
@@ -60,21 +56,43 @@ class VOD(Base):
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     channel_id: Mapped[int] = mapped_column(ForeignKey("channels.id", ondelete="CASCADE", name="vods_channel_id_fkey"))
 
-    video_no: Mapped[str] = mapped_column(String(DBDefault.Len.ID))
+    video_no: Mapped[str] = mapped_column(String(DBDefault.Len.ID), index=True)
     video_title: Mapped[str] = mapped_column(String(DBDefault.Len.NAME))
     duration: Mapped[int] = mapped_column(Integer)
     publish_date: Mapped[datetime] = mapped_column(DateTime(timezone=True))
-    vod_url: Mapped[str] = mapped_column(String(DBDefault.Len.URL))
-    detail_chunk_count: Mapped[int] = mapped_column(Integer)
+    pipeline_status: Mapped[VODPipelineStatus] = mapped_column(
+        Enum(VODPipelineStatus), server_default=text(f"'{DBDefault.VOD_PIPELINE_STATUS}'")
+    )
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
     __table_args__ = (UniqueConstraint("channel_id", "video_no", name="uq_vod_channel_video"),)
 
     channel: Mapped["Channel"] = relationship(back_populates="vods")
-    vod_processing_status: Mapped["VODProcessingStatus"] = relationship(
+    pipeline_log: Mapped["VODPipelineLog"] = relationship(
         back_populates="vod", cascade="all, delete-orphan", uselist=False
     )
+
+
+class VODPipelineLog(Base):
+    __tablename__ = "vod_pipeline_logs"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    vod_id: Mapped[int] = mapped_column(
+        ForeignKey("vods.id", ondelete="CASCADE", name="vod_pipeline_logs_vod_id_fkey"), unique=True
+    )
+
+    process_details: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB), server_default=text("'{}'::jsonb"))
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    vod: Mapped["VOD"] = relationship(back_populates="pipeline_log")
 
 
 class ChannelLLMContext(Base):
@@ -94,43 +112,22 @@ class ChannelLLMContext(Base):
     channel: Mapped["Channel"] = relationship(back_populates="channel_llm_context")
 
 
-class VODProcessingStatus(Base):
-    __tablename__ = "vod_processing_statuses"
+# class ChzzkChannel(Base):
+#     __tablename__ = "chzzk_channels"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    vod_id: Mapped[int] = mapped_column(
-        ForeignKey("vods.id", ondelete="CASCADE", name="vod_processing_statuses_vod_id_fkey"), unique=True
-    )
+#     id: Mapped[int] = mapped_column(primary_key=True)
+#     channel_id: Mapped[int] = mapped_column(
+#         ForeignKey("channels.id", ondelete="CASCADE", name="chzzk_channels_channel_id_fkey"), unique=True
+#     )
 
-    status: Mapped[VODProcessingStatus] = mapped_column(
-        Enum(VODProcessingStatus), server_default=text(f"'{DBDefault.VOD_PROCESSING_STATUS}'")
-    )
-    status_details: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB), server_default=text("'{}'::jsonb"))
+#     verified_mark: Mapped[bool] = mapped_column(Boolean)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
+#     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+#     updated_at: Mapped[datetime] = mapped_column(
+#         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+#     )
 
-    vod: Mapped["VOD"] = relationship(back_populates="vod_processing_status")
-
-
-class ChzzkChannel(Base):
-    __tablename__ = "chzzk_channels"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    channel_id: Mapped[int] = mapped_column(
-        ForeignKey("channels.id", ondelete="CASCADE", name="chzzk_channels_channel_id_fkey"), unique=True
-    )
-
-    verified_mark: Mapped[bool] = mapped_column(Boolean)
-
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-
-    channel: Mapped["Channel"] = relationship(back_populates="chzzk_channel")
+#     channel: Mapped["Channel"] = relationship(back_populates="chzzk_channel")
 
 
 # class ChzzkVODAnalysis(Base):
