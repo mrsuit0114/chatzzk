@@ -21,5 +21,6 @@ jobs:
           pip install ruff
 
       - name: Run ruff lint
+        working-directory: chatzzk-collector
         run: |
           make check-quality
