@@ -201,7 +201,7 @@ class LiveRewindPlayback(BaseAPIModel):
     media: list[MediaItem] = Field(default_factory=list)
 
 
-class ChzzkVODInfo(BaseAPIModel):
+class ChzzkVODInfo(BaseVODInfo):
     paid_promotion: bool | None = None
     in_key: str | None = None
 

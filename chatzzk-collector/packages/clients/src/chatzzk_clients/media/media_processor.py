@@ -59,16 +59,25 @@ class MediaProcessor:
         if self._http_client is None:
             raise RuntimeError("HTTP Client is required for M3U8 download.")
 
-        async with self._http_client.get(m3u8_url) as response:
-            content = await response.text()
-        lines = content.splitlines()
-        segments = [line for line in lines if line and not line.startswith("#")]
-        format_num = len(str(len(segments)))
+        try:
+            async with self._http_client.get(m3u8_url) as response:
+                content = await response.text()
+            lines = content.splitlines()
+            segments = [line for line in lines if line and not line.startswith("#")]
+            format_num = len(str(len(segments)))
 
-        await self._download_init_segment(lines, tmp_dir, m3u8_url, format_num)
-        await self._download_segments(segments, tmp_dir, m3u8_url, format_num)
-        await self._merge_segments(tmp_dir, video_path)
-        await self.extract_wav_cleanup_video(video_path, output_wav_path, cleanup)
+            await self._download_init_segment(lines, tmp_dir, m3u8_url, format_num)
+            await self._download_segments(segments, tmp_dir, m3u8_url, format_num)
+            await self._merge_segments(tmp_dir, video_path)
+            await self._extract_wav_cleanup_video(video_path, output_wav_path, cleanup)
+
+            return str(output_wav_path)
+
+        finally:
+            if tmp_dir.exists():
+                loop = asyncio.get_running_loop()
+                await loop.run_in_executor(None, shutil.rmtree, tmp_dir)
+                logger.info(f"✅ Final cleanup: {tmp_dir} removed")
 
     async def _download_init_segment(self, lines: list[str], tmp_dir: Path, base_m3u8_url: str, format_num: int):
         init_segment = None
@@ -132,15 +141,15 @@ class MediaProcessor:
 
             logger.info(f"✅ Segments merged: {video_path}")
 
-            loop = asyncio.get_running_loop()
-            await loop.run_in_executor(None, shutil.rmtree, tmp_dir)
-            logger.info(f"✅ tmp_dir cleaned: {tmp_dir}")
+            # loop = asyncio.get_running_loop() # tmp/video.mp4로 저장하기에 tmp를 여기서 삭제하지 말 것
+            # await loop.run_in_executor(None, shutil.rmtree, tmp_dir)
+            # logger.info(f"✅ tmp_dir cleaned: {tmp_dir}")
 
         except Exception as e:
             logger.error(f"Error during merge: {e}")
             raise
 
-    async def extract_wav_cleanup_video(self, mp4_path: Path, wav_path: Path, cleanup: bool) -> Path:
+    async def _extract_wav_cleanup_video(self, mp4_path: Path, wav_path: Path, cleanup: bool) -> Path:
         """MP4에서 WAV 추출 및 mp4 삭제"""
         stream = (
             ffmpeg.input(str(mp4_path))

@@ -106,50 +106,50 @@ class StreamContextWindowSize:
 
 
 @dataclass
-class FileKeyTemplate:
-    VIDEO = "{platform_code}/{video_no}/video.mp4"
-    AUDIO = "{platform_code}/{video_no}/audio.wav"
-    CHAT = "{platform_code}/{video_no}/chat_entries.jsonl"
-    VAD_TIMESTAMP = "{platform_code}/{video_no}/vad_timestamps.jsonl"
-    ASR = "{platform_code}/{video_no}/asr_entries.jsonl"
-    SUMMARY_RAW = "{platform_code}/{video_no}/summary_raw.jsonl"
-    SUMMARY = "{platform_code}/{video_no}/summaries.jsonl"
-    META_SUMMARY = "{platform_code}/{video_no}/meta_summaries.jsonl"
+class StoragePaths:
+    AUDIO = "{vod_id}/audio.wav"
+    CHAT = "{vod_id}/chat_entries.jsonl"
+    VAD_TIMESTAMP = "{vod_id}/vad_timestamps.jsonl"
+    ASR = "{vod_id}/asr_entries.jsonl"
+    SUMMARY_RAW = "{vod_id}/summary_raw.jsonl"
+    SUMMARY = "{vod_id}/summaries.jsonl"
+    META_SUMMARY = "{vod_id}/meta_summaries.jsonl"
 
-    TMP_DIR = "{platform_code}/{video_no}/tmp"
-
-    @classmethod
-    def get_video_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
-        return cls.VIDEO.format(platform_code=platform_code.value, video_no=video_no)
+    TMP_VIDEO = "{vod_id}/tmp/video.mp4"
+    TMP_DIR = "{vod_id}/tmp"
 
     @classmethod
-    def get_audio_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
-        return cls.AUDIO.format(platform_code=platform_code.value, video_no=video_no)
+    def get_tmp_video_key(cls, vod_id: str | int) -> str:
+        return cls.TMP_VIDEO.format(vod_id=vod_id)
 
     @classmethod
-    def get_chat_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
-        return cls.CHAT.format(platform_code=platform_code.value, video_no=video_no)
+    def get_audio_key(cls, vod_id: str | int) -> str:
+        return cls.AUDIO.format(vod_id=vod_id)
 
     @classmethod
-    def get_vad_timestamp_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
-        return cls.VAD_TIMESTAMP.format(platform_code=platform_code.value, video_no=video_no)
+    def get_chat_key(cls, vod_id: str | int) -> str:
+        return cls.CHAT.format(vod_id=vod_id)
 
     @classmethod
-    def get_asr_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
-        return cls.ASR.format(platform_code=platform_code.value, video_no=video_no)
+    def get_vad_timestamp_key(cls, vod_id: str | int) -> str:
+        return cls.VAD_TIMESTAMP.format(vod_id=vod_id)
 
     @classmethod
-    def get_summary_raw_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
-        return cls.SUMMARY_RAW.format(platform_code=platform_code.value, video_no=video_no)
+    def get_asr_key(cls, vod_id: str | int) -> str:
+        return cls.ASR.format(vod_id=vod_id)
 
     @classmethod
-    def get_summary_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
-        return cls.SUMMARY.format(platform_code=platform_code.value, video_no=video_no)
+    def get_summary_raw_key(cls, vod_id: str | int) -> str:
+        return cls.SUMMARY_RAW.format(vod_id=vod_id)
 
     @classmethod
-    def get_meta_summary_key(cls, platform_code: PlatformCode, video_no: str | int) -> str:
-        return cls.META_SUMMARY.format(platform_code=platform_code.value, video_no=video_no)
+    def get_summary_key(cls, vod_id: str | int) -> str:
+        return cls.SUMMARY.format(vod_id=vod_id)
 
     @classmethod
-    def get_tmp_dir(cls, platform_code: PlatformCode, video_no: str | int) -> str:
-        return cls.TMP_DIR.format(platform_code=platform_code.value, video_no=video_no)
+    def get_meta_summary_key(cls, vod_id: str | int) -> str:
+        return cls.META_SUMMARY.format(vod_id=vod_id)
+
+    @classmethod
+    def get_tmp_dir(cls, vod_id: str | int) -> str:
+        return cls.TMP_DIR.format(vod_id=vod_id)

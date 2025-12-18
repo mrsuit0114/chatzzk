@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.pipeline.implementations.base import BasePipelineService
 from chatzzk_clients.chzzk.chzzk_api_client import ChzzkAPIClient
-from chatzzk_core.constants.service_codes import FileKeyTemplate, PlatformCode
+from chatzzk_core.constants.service_codes import PlatformCode, StoragePaths
 from chatzzk_core.schemas.external.chzzk import ChzzkVideoChat
 from chatzzk_core.schemas.internal.models import ChzzkChatEntry
 from chatzzk_data_access.repositories.vod import VODRepository
@@ -33,14 +33,14 @@ class ChzzkChatCollectionService(BasePipelineService):
             for log in batch:
                 yield ChzzkChatEntry.from_video_chat(log).model_dump()
 
-    async def collect_and_save_chats(self, video_no: str, duration: int) -> str:
+    async def collect_and_save_chats(self, vod_id: int, video_no: str, duration: int) -> str:
         """
         [Action] 실제 채팅 수집 및 파일 저장 수행
         Return:
             str: 저장된 파일 경로
         """
         try:
-            chat_key = FileKeyTemplate.get_chat_key(self.platform_code, video_no)
+            chat_key = StoragePaths.get_chat_key(vod_id)
             vod_chat_agen = self.chzzk_api_client.fetch_video_chats(video_no, duration)
             vod_chat_mapped_agen = self._async_chat_stream_generator(vod_chat_agen)
 
