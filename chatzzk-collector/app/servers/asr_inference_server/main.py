@@ -3,13 +3,13 @@ from contextlib import asynccontextmanager
 from typing import Annotated
 
 import numpy as np
+from chatzzk.services.asr_inference_server.settings import InferenceServerSettings
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from loguru import logger
 
 from chatzzk_clients.ml.asr.base import ASRClientInterface
 from chatzzk_clients.ml.asr.factory import create_asr_client
-from chatzzk_schemas.api_models.ml import ASRResponse
-from chatzzk.services.asr_inference_server.settings import InferenceServerSettings
+from chatzzk_core.schemas.external.ml import ASRResponse
 
 asr_client: ASRClientInterface = None
 settings = InferenceServerSettings()

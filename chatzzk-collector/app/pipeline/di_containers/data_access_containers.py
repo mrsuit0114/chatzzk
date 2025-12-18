@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from chatzzk_core.schemas.config.data_access.data_access import DataAccessConfig
 from chatzzk_data_access.repositories.channel import ChannelRepository
 from chatzzk_data_access.repositories.vod import VODRepository
+from chatzzk_data_access.storages.local_storage import LocalStorage
 
 
 async def init_db_engine(url: str):
@@ -29,3 +30,4 @@ class DataAccessContainer(containers.DeclarativeContainer):
 
     channel_repo = providers.Singleton(ChannelRepository)
     vod_repo = providers.Singleton(VODRepository)
+    tmp_storage = providers.Singleton(LocalStorage, base_dir=config.provided.tmp_storage_base_dir)

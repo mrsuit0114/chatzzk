@@ -26,6 +26,7 @@ class ChzzkVODDiscoveryService:
         self.chzzk_api_client = chzzk_api_client
         self.db_session_factory = db_session_factory
         self.filter_config = filter_config
+        self.platform_code = PlatformCode.CHZZK
 
     def _is_target_vod(self, vod_meta: ChzzkVODMeta, now_utc: datetime) -> bool:
         cfg = self.filter_config
@@ -48,7 +49,7 @@ class ChzzkVODDiscoveryService:
         # 수집 대상 채널을 반환
         target_channels = []
         async with self.db_session_factory() as session:
-            channels = await self.channel_repo.get_active_channels_by_platform_code(session, PlatformCode.CHZZK)
+            channels = await self.channel_repo.get_active_channels_by_platform_code(session, self.platform_code)
 
             target_channels = [
                 {

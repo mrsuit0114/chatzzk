@@ -46,13 +46,17 @@ class ChzzkChatEntry(_StreamEntry):
         return f"[{self.entry_type}] {sanitized_content}"
 
     @classmethod
-    def from_chat_entry(cls, chzzk_video_chat: ChzzkVideoChat) -> "ChzzkChatEntry":
+    def from_video_chat(cls, chzzk_video_chat: ChzzkVideoChat) -> "ChzzkChatEntry":
         return cls(
             content=chzzk_video_chat.content,
-            timestamp=chzzk_video_chat.message_time,
+            timestamp=chzzk_video_chat.player_message_time,
             entry_type=EntryType.DONATION if chzzk_video_chat.extras.pay_amount else EntryType.CHAT,
             nickname=chzzk_video_chat.profile.nickname
-            if chzzk_video_chat.profile.user_role_code != UserRoleCode.COMMON_USER
+            if (
+                chzzk_video_chat.profile
+                and chzzk_video_chat.profile.user_role_code
+                and chzzk_video_chat.profile.user_role_code != UserRoleCode.COMMON_USER
+            )
             else None,
         )
 

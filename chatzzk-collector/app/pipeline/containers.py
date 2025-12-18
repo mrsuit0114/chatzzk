@@ -2,6 +2,7 @@ from dependency_injector import containers, providers
 
 from app.pipeline.di_containers.client_containers import ClientContainer
 from app.pipeline.di_containers.data_access_containers import DataAccessContainer
+from app.pipeline.implementations.chat_collection_services import ChzzkChatCollectionService
 from app.pipeline.implementations.vod_discovery_services import ChzzkVODDiscoveryService
 from chatzzk_core.constants.service_codes import PlatformCode
 from chatzzk_core.schemas.config.services.vod_discovery import ChzzkVODFilterConfig
@@ -30,8 +31,22 @@ class AppContainer(containers.DeclarativeContainer):
         filter_config=ChzzkVODFilterConfig(),
     )
 
+    _chzzk_chat_collection_service = providers.Singleton(
+        ChzzkChatCollectionService,
+        vod_repo=data_access_package.vod_repo,
+        chzzk_api_client=clients_package.chzzk_api_client,
+        tmp_storage=data_access_package.tmp_storage,
+        db_session_factory=data_access_package.db_session_factory,
+    )
+
     vod_discovery_services = providers.Dict(
         {
             PlatformCode.CHZZK: _chzzk_vod_discovery_service,
+        }
+    )
+
+    chat_collection_services = providers.Dict(
+        {
+            PlatformCode.CHZZK: _chzzk_chat_collection_service,
         }
     )

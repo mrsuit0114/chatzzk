@@ -6,10 +6,6 @@ class DatabaseConfig(BaseModel):
     database_url: str
 
 
-class LocalFileSystemStorageConfig(BaseModel):
-    base_dir: str
-
-
 class DataAccessConfig(BaseModel):
     db: DatabaseConfig
-    tmp_storage: LocalFileSystemStorageConfig
+    tmp_storage_base_dir: str

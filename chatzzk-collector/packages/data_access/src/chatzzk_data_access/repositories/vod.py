@@ -1,5 +1,8 @@
+from sqlalchemy import select, update
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql.expression import cast
 
 from chatzzk_data_access.orm.models import VOD, VODPipelineLog
 
@@ -33,4 +36,19 @@ class VODRepository:
         stmt = pg_insert(VODPipelineLog).values(log_dicts)
 
         # 로그는 RETURNING 필요 없음
+        await session.execute(stmt)
+
+    async def get_log_details(self, session: AsyncSession, vod_id: int) -> dict | None:
+        stmt = select(VODPipelineLog.process_details).where(VODPipelineLog.vod_id == vod_id)
+        result = await session.execute(stmt)
+        details = result.scalar_one_or_none()
+
+        return details if details is not None else {}
+
+    async def update_log_details(self, session: AsyncSession, vod_id: int, update_payload: dict) -> None:
+        stmt = (
+            update(VODPipelineLog)
+            .where(VODPipelineLog.vod_id == vod_id)
+            .values(process_details=VODPipelineLog.process_details.op("||")(cast(update_payload, JSONB)))
+        )
         await session.execute(stmt)

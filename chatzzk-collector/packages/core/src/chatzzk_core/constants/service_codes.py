@@ -10,11 +10,20 @@ class PlatformCode(str, Enum):
     SOOP = "sooplive"
 
 
-class VODPipelineStatus(str, Enum):  # TODO: prefect 참고하여 수정 필요
+class VODPipelineStatus(str, Enum):
     PENDING = "PENDING"  # 모든 처리를 기다리는 초기 상태
     PROCESSING = "PROCESSING"  # 하나 이상의 파이프라인 단계가 진행 중인 상태
     COMPLETED = "COMPLETED"  # 모든 파이프라인 단계가 성공적으로 완료된 상태
     FAILED = "FAILED"  # 하나 이상의 필수 파이프라인 단계가 실패한 상태
+
+
+class VODProcessingStep(str, Enum):
+    CRAWL_CHATS = "crawl_chats"
+    DOWNLOAD_AUDIO = "download_audio"
+    PERFORM_VAD = "perform_vad"
+    PERFORM_ASR = "perform_asr"
+    GENERATE_SUMMARY = "generate_summary"
+    GENERATE_META_SUMMARY = "generate_meta_summary"
 
 
 class VODPipelineStepStatus(str, Enum):
@@ -101,7 +110,7 @@ class FileKeyTemplate:
     VIDEO = "{platform_code}/{video_no}/video.mp4"
     AUDIO = "{platform_code}/{video_no}/audio.wav"
     CHAT = "{platform_code}/{video_no}/chat_entries.jsonl"
-    VAD_TIMESTAMP = "{platform_code}/{video_no}/vad_timestamp.jsonl"
+    VAD_TIMESTAMP = "{platform_code}/{video_no}/vad_timestamps.jsonl"
     ASR = "{platform_code}/{video_no}/asr_entries.jsonl"
     SUMMARY_RAW = "{platform_code}/{video_no}/summary_raw.jsonl"
     SUMMARY = "{platform_code}/{video_no}/summaries.jsonl"
@@ -144,12 +153,3 @@ class FileKeyTemplate:
     @classmethod
     def get_tmp_dir(cls, platform_code: PlatformCode, video_no: str | int) -> str:
         return cls.TMP_DIR.format(platform_code=platform_code.value, video_no=video_no)
-
-
-class VODProcessingStep(str, Enum):
-    CRAWL_CHATS = "crawl_chats"
-    DOWNLOAD_AUDIO = "download_audio"
-    PERFORM_VAD = "perform_vad"
-    PERFORM_ASR = "perform_asr"
-    GENERATE_SUMMARY = "generate_summary"
-    GENERATE_META_SUMMARY = "generate_meta_summary"
