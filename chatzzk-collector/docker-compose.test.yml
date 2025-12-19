@@ -1,5 +1,5 @@
 services:
-  test-db:
+  test-db:  # 테스트용 데이터베이스 - production에서는 클라우드 사용
     image: postgres
     container_name: chatzzk-test-db
     environment:
@@ -16,13 +16,13 @@ services:
       timeout: 5s
       retries: 5
 
-  test-adminer:
+  test-adminer:  # 테스트용 데이터베이스 관리 UI - 클라우드에서 제공됨
     image: adminer
     ports:
       - 8080:8080
 
-  asr-inference-server:
-    image: test-asr-server
+  asr-inference-server:  # 실제 파이프라인에서 필요 -> k8s
+    image: chatzzk-asr-inference-server
     ports:
       - 8000:8000
     volumes:
@@ -35,15 +35,12 @@ services:
               count: all
               capabilities: [ gpu ]
 
-  llm-proxy-server:
+  llm-proxy-server:  # 실제 파이프라인에서 필요 -> k8s
     image: llm-proxy-server
     ports:
       - "4000:4000"
-    environment:
-      - GEMINI_API_KEY=AIzaSyBhHpg1tm3n1t9QFuIce4Z5C_srJ901kdc
-      - GEMINI_API_KEY_PAID=AIzaSyCAA7f7MiqIhUmvG_tYPaGypaLzBIVo454
-      - LANGFUSE_PUBLIC_KEY=pk-lf-dc84fc6b-d660-4a82-845d-130e213752b2
-      - LANGFUSE_SECRET_KEY=sk-lf-90b7fb4d-f5bf-498a-bf16-c3fa02a992a0
+    env_file:  # .env를 사용할 것
+      - app/servers/llm_proxy_server/.env
 
 volumes:
   test-db-data:

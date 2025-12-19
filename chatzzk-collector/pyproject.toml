@@ -5,17 +5,19 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "chatzzk-clients[no-asr-inference]",
-    "chatzzk-collector[db-migration]",
-    "chatzzk-data-access",
     "chatzzk-core",
     "loguru>=0.7.3",
     "pydantic>=2.12.4",
-    "dependency-injector>=4.48.2",
-    "prefect>=3.6.6",
 ]
 
 [project.optional-dependencies]
+pipeline = [
+    "chatzzk-data-access",
+    "chatzzk-clients[no-asr-inference]",
+    "chatzzk-collector[db-migration]",
+    "prefect>=3.6.6",
+    "dependency-injector>=4.48.2",
+]
 
 db-migration = [
     "alembic>=1.17.2",
@@ -32,10 +34,12 @@ dev = [
 "chatzzk-core" = { workspace = true }
 "chatzzk-data-access" = { workspace = true }
 "chatzzk-clients" = { workspace = true }
+"asr-inference-server" = { workspace = true }
 
 [tool.uv.workspace]
 members = [
     "packages/*",
+    "app/servers/asr_inference_server",
 ]
 
 [tool.ruff]

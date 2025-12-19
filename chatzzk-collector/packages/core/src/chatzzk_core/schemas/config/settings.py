@@ -7,7 +7,7 @@ from chatzzk_core.schemas.config.data_access.data_access import DataAccessConfig
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_nested_delimiter="__",
-        env_file="local.test.env",
+        env_file="test.env",
         env_file_encoding="utf-8",
         extra="ignore",
     )

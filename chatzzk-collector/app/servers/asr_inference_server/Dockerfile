@@ -4,12 +4,10 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
 WORKDIR /app
 
-# 워크스페이스 구성을 위해 루트의 설정 파일들을 복사합니다.
 COPY pyproject.toml uv.lock ./
 
-COPY chatzzk/packages/ ./chatzzk/packages/
-
-COPY chatzzk/services/asr_inference_server/ ./chatzzk/services/asr_inference_server/
+COPY app/ app/
+COPY packages/ packages/
 
 # 8. Python 환경 구성 및 의존성 설치
 # (1) uv python install 3.11: Ubuntu 22.04 기본은 3.10이므로, uv로 3.11을 관리형으로 설치합니다.
@@ -23,4 +21,4 @@ RUN uv python install 3.11 && \
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-CMD ["uvicorn", "chatzzk.services.asr_inference_server.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "app.servers.asr_inference_server.main:app", "--host", "0.0.0.0", "--port", "8000"]

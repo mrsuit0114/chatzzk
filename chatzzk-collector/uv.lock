@@ -14,6 +14,7 @@ conflicts = [[
 
 [manifest]
 members = [
+    "asr-inference-server",
     "chatzzk-clients",
     "chatzzk-collector",
     "chatzzk-core",
@@ -264,6 +265,38 @@ sdist = { url = "https://files.pythonhosted.org/packages/6a/da/e7908b54e0f804372
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2f/f5/c36551e93acba41a59939ae6a0fb77ddb3f2e8e8caa716410c65f7341f72/asgi_lifespan-2.1.0-py3-none-any.whl", hash = "sha256:ed840706680e28428c01e14afb3875d7d76d3206f3d5b2f2294e059b5c23804f", size = 10895, upload-time = "2023-03-28T17:35:47.772Z" },
 ]
+
+[[package]]
+name = "asr-inference-server"
+version = "0.1.0"
+source = { editable = "app/servers/asr_inference_server" }
+dependencies = [
+    { name = "chatzzk-clients", extra = ["numpy"] },
+    { name = "chatzzk-core" },
+    { name = "fastapi" },
+    { name = "python-multipart" },
+    { name = "uvicorn" },
+]
+
+[package.optional-dependencies]
+whisperx = [
+    { name = "chatzzk-clients", extra = ["whisperx"], marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "lightning" },
+    { name = "pytorch-lightning" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "chatzzk-clients", extras = ["numpy"], editable = "packages/clients" },
+    { name = "chatzzk-clients", extras = ["whisperx"], marker = "extra == 'whisperx'", editable = "packages/clients" },
+    { name = "chatzzk-core", editable = "packages/core" },
+    { name = "fastapi", specifier = ">=0.121.2" },
+    { name = "lightning", marker = "extra == 'whisperx'", specifier = "<2.6.0" },
+    { name = "python-multipart", specifier = ">=0.0.20" },
+    { name = "pytorch-lightning", marker = "extra == 'whisperx'", specifier = "<2.6.0" },
+    { name = "uvicorn", specifier = ">=0.38.0" },
+]
+provides-extras = ["whisperx"]
 
 [[package]]
 name = "asteroid-filterbanks"
@@ -687,16 +720,8 @@ name = "chatzzk-collector"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "alembic" },
-    { name = "alembic-postgresql-enum" },
-    { name = "chatzzk-clients" },
-    { name = "chatzzk-clients", extra = ["no-asr-inference"], marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
     { name = "chatzzk-core" },
-    { name = "chatzzk-data-access" },
-    { name = "dependency-injector" },
     { name = "loguru" },
-    { name = "prefect" },
-    { name = "psycopg2-binary" },
     { name = "pydantic" },
 ]
 
@@ -710,24 +735,34 @@ dev = [
     { name = "pre-commit" },
     { name = "ruff" },
 ]
+pipeline = [
+    { name = "alembic" },
+    { name = "alembic-postgresql-enum" },
+    { name = "chatzzk-clients" },
+    { name = "chatzzk-clients", extra = ["no-asr-inference"], marker = "extra == 'extra-15-chatzzk-clients-no-asr-inference' or (extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "chatzzk-data-access" },
+    { name = "dependency-injector" },
+    { name = "prefect" },
+    { name = "psycopg2-binary" },
+]
 
 [package.metadata]
 requires-dist = [
     { name = "alembic", marker = "extra == 'db-migration'", specifier = ">=1.17.2" },
     { name = "alembic-postgresql-enum", marker = "extra == 'db-migration'", specifier = ">=1.8.0" },
-    { name = "chatzzk-clients", extras = ["no-asr-inference"], editable = "packages/clients" },
-    { name = "chatzzk-collector", extras = ["db-migration"] },
+    { name = "chatzzk-clients", extras = ["no-asr-inference"], marker = "extra == 'pipeline'", editable = "packages/clients" },
+    { name = "chatzzk-collector", extras = ["db-migration"], marker = "extra == 'pipeline'" },
     { name = "chatzzk-core", editable = "packages/core" },
-    { name = "chatzzk-data-access", editable = "packages/data_access" },
-    { name = "dependency-injector", specifier = ">=4.48.2" },
+    { name = "chatzzk-data-access", marker = "extra == 'pipeline'", editable = "packages/data_access" },
+    { name = "dependency-injector", marker = "extra == 'pipeline'", specifier = ">=4.48.2" },
     { name = "loguru", specifier = ">=0.7.3" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.4.0" },
-    { name = "prefect", specifier = ">=3.6.6" },
+    { name = "prefect", marker = "extra == 'pipeline'", specifier = ">=3.6.6" },
     { name = "psycopg2-binary", marker = "extra == 'db-migration'", specifier = ">=2.9.11" },
     { name = "pydantic", specifier = ">=2.12.4" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.14.5" },
 ]
-provides-extras = ["db-migration", "dev"]
+provides-extras = ["pipeline", "db-migration", "dev"]
 
 [[package]]
 name = "chatzzk-core"
@@ -2012,22 +2047,23 @@ wheels = [
 
 [[package]]
 name = "lightning"
-version = "2.6.0"
+version = "2.5.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "fsspec", extra = ["http"], marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "fsspec", extra = ["http"] },
     { name = "lightning-utilities" },
     { name = "packaging" },
     { name = "pytorch-lightning" },
     { name = "pyyaml" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" } },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "torch", version = "2.9.1", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'extra-15-chatzzk-clients-ml-backend' or extra == 'extra-15-chatzzk-clients-no-asr-inference' or extra != 'extra-15-chatzzk-clients-whisperx'" },
     { name = "torchmetrics" },
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/1a/d5/892ea38816925b3511493e87b0b32494122bf8a20e66f4f2cd2667f95625/lightning-2.6.0.tar.gz", hash = "sha256:881841716b59c1837ae0c562c2e64fea9bcf49ef9de3867bd1f868557ec23d04", size = 656539, upload-time = "2025-11-28T09:34:25.069Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e9/da/289e17b2d4631b885771ce10ab7fe19c6c0ab2b1208d1dda418818ffbbfd/lightning-2.5.6.tar.gz", hash = "sha256:57b6abe87080895bc237fb7f36b7b4abaa2793760cbca00e3907e56607e0ed27", size = 640106, upload-time = "2025-11-05T20:53:06.823Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d6/e9/36b340c7ec01dad6f034481e98fc9fc0133307beb05c714c0542af98bbde/lightning-2.6.0-py3-none-any.whl", hash = "sha256:f1a13a48909960a3454518486f113fae4fadb2db0e28e9c50d8d38d46c9dc3d6", size = 845956, upload-time = "2025-11-28T09:34:23.273Z" },
+    { url = "https://files.pythonhosted.org/packages/23/dc/d7804f13928b6a81a0e948cfecbf0071e8cc74e3f341c704e23e75e504ad/lightning-2.5.6-py3-none-any.whl", hash = "sha256:25bb2053078c2efc57c082fda89dfbd975dfa76beb08def191947c2b571a8c8a", size = 827915, upload-time = "2025-11-05T20:53:03.169Z" },
 ]
 
 [[package]]
@@ -3872,6 +3908,15 @@ wheels = [
 ]
 
 [[package]]
+name = "python-multipart"
+version = "0.0.21"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/78/96/804520d0850c7db98e5ccb70282e29208723f0964e88ffd9d0da2f52ea09/python_multipart-0.0.21.tar.gz", hash = "sha256:7137ebd4d3bbf70ea1622998f902b97a29434a9e8dc40eb203bbcf7c2a2cba92", size = 37196, upload-time = "2025-12-17T09:24:22.446Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/aa/76/03af049af4dcee5d27442f71b6924f01f3efb5d2bd34f23fcd563f2cc5f5/python_multipart-0.0.21-py3-none-any.whl", hash = "sha256:cf7a6713e01c87aa35387f4774e812c4361150938d20d232800f75ffcf266090", size = 24541, upload-time = "2025-12-17T09:24:21.153Z" },
+]
+
+[[package]]
 name = "python-slugify"
 version = "8.0.4"
 source = { registry = "https://pypi.org/simple" }
@@ -3885,21 +3930,22 @@ wheels = [
 
 [[package]]
 name = "pytorch-lightning"
-version = "2.6.0"
+version = "2.5.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "fsspec", extra = ["http"], marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "fsspec", extra = ["http"] },
     { name = "lightning-utilities" },
     { name = "packaging" },
     { name = "pyyaml" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" } },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "torch", version = "2.9.1", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'extra-15-chatzzk-clients-ml-backend' or extra == 'extra-15-chatzzk-clients-no-asr-inference' or extra != 'extra-15-chatzzk-clients-whisperx'" },
     { name = "torchmetrics" },
     { name = "tqdm" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/07/d7/e3963d9669758f93b07941f4e2e82a394eb3d0980e29baa4764f3bad6689/pytorch_lightning-2.6.0.tar.gz", hash = "sha256:25b0d4f05e1f33b72be0920c34d0465777fe5f623228f9d6252b4b0f685d7037", size = 658853, upload-time = "2025-11-28T09:34:13.098Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/0a/1f/94a441d30779e1ffa5f7dc2ac5fa374c142d8b96c347a49a30226264124e/pytorch_lightning-2.5.6.tar.gz", hash = "sha256:c428faaceef74be50b870814d0d7e9f9c6ee748b8769a2afd3366bc69daf3a0f", size = 642830, upload-time = "2025-11-05T20:53:04.871Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/77/eb/cc6dbfe70d15318dbce82674b1e8057cef2634ca9f9121a16b8a06c630db/pytorch_lightning-2.6.0-py3-none-any.whl", hash = "sha256:ee72cff4b8c983ecfaae8599382544bd5236d9eb300adc7dd305f359195f4e79", size = 849476, upload-time = "2025-11-28T09:34:11.271Z" },
+    { url = "https://files.pythonhosted.org/packages/17/e4/32ed2f33c1b634f7c2895369222f4f8cb345044f4642bbff718e7dd1e0b7/pytorch_lightning-2.5.6-py3-none-any.whl", hash = "sha256:037bad1e2fd94d5eb6c5144f045fd4c1070c3d38fc9c14d9f3774a3a9be54dff", size = 831555, upload-time = "2025-11-05T20:53:03.316Z" },
 ]
 
 [[package]]
@@ -5134,7 +5180,8 @@ dependencies = [
     { name = "lightning-utilities" },
     { name = "numpy" },
     { name = "packaging" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" } },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-no-asr-inference') or (extra != 'extra-15-chatzzk-clients-no-asr-inference' and extra == 'extra-15-chatzzk-clients-whisperx') or (extra != 'extra-15-chatzzk-clients-ml-backend' and extra == 'extra-15-chatzzk-clients-whisperx')" },
+    { name = "torch", version = "2.9.1", source = { registry = "https://pypi.org/simple" }, marker = "extra == 'extra-15-chatzzk-clients-ml-backend' or extra == 'extra-15-chatzzk-clients-no-asr-inference' or extra != 'extra-15-chatzzk-clients-whisperx'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/85/2e/48a887a59ecc4a10ce9e8b35b3e3c5cef29d902c4eac143378526e7485cb/torchmetrics-1.8.2.tar.gz", hash = "sha256:cf64a901036bf107f17a524009eea7781c9c5315d130713aeca5747a686fe7a5", size = 580679, upload-time = "2025-09-03T14:00:54.077Z" }
 wheels = [

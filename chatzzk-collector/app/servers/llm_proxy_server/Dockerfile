@@ -2,7 +2,7 @@ FROM ghcr.io/berriai/litellm:main-latest
 
 WORKDIR /app
 
-COPY chatzzk/services/llm_proxy_server/litellm_config.yaml ./config.yaml
+COPY app/servers/llm_proxy_server/litellm_config.yaml ./config.yaml
 
 EXPOSE 4000
 

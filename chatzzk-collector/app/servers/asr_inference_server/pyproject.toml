@@ -14,6 +14,8 @@ dependencies = [
 [project.optional-dependencies]
 whisperx = [
     "chatzzk-clients[whisperx]",
+    "lightning<2.6.0",
+    "pytorch-lightning<2.6.0",
 ]
 
 [build-system]
