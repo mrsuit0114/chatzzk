@@ -45,6 +45,7 @@ class WhisperXConfig(BaseModel):
 class ASRHTTPConfig(BaseModel):
     asr_implementation: Literal["http"] = ASRHTTPConstant.ASR_IMPLEMENTATION
     asr_inference_server_url: str
+    audio_dtype_str: Literal["float32", "float16"] = AudioDataConstant.AUDIO_DTYPE_STR
 
 
 ASRConfig = Annotated[WhisperXConfig | ASRHTTPConfig, Field(discriminator="asr_implementation")]

@@ -15,6 +15,7 @@ class ASRHTTPClient(ASRClientInterface):
     def __init__(self, config: ASRHTTPConfig, http_client: AioHTTPClient):
         self.server_url = f"{config.asr_inference_server_url.rstrip('/')}/transcribe"
         self._http_client = http_client
+        self.audio_dtype_str = config.audio_dtype_str
         logger.info(f"ASRHTTPClient initialized for server: {self.server_url}")
 
     async def transcribe(self, audio_chunk_np: np.ndarray) -> str:
@@ -22,10 +23,10 @@ class ASRHTTPClient(ASRClientInterface):
         form_data = aiohttp.FormData()
         form_data.add_field(
             "audio_bytes",
-            BytesIO(audio_chunk_np.astype(np.float32).tobytes()),
+            BytesIO(audio_chunk_np.astype(self.audio_dtype_str).tobytes()),
             content_type="application/octet-stream",
         )
-        form_data.add_field("dtype", "float32")
+        form_data.add_field("dtype", self.audio_dtype_str)
 
         try:
             async with self._http_client.post(self.server_url, data=form_data) as response:

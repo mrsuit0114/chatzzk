@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.pipeline.implementations.base import BasePipelineService
 from chatzzk_clients.chzzk.chzzk_api_client import ChzzkAPIClient
-from chatzzk_core.constants.service_codes import PlatformCode, StoragePaths
+from chatzzk_core.constants.service_codes import StoragePaths
 from chatzzk_core.schemas.external.chzzk import ChzzkVideoChat
 from chatzzk_core.schemas.internal.models import ChzzkChatEntry
 from chatzzk_data_access.repositories.vod import VODRepository
@@ -20,11 +20,9 @@ class ChzzkChatCollectionService(BasePipelineService):
         tmp_storage: LocalStorage,
         db_session_factory: async_sessionmaker[AsyncSession],
     ):
+        super().__init__(vod_repo, db_session_factory)
         self.chzzk_api_client = chzzk_api_client
-        self.vod_repo = vod_repo
         self.tmp_storage = tmp_storage
-        self.db_session_factory = db_session_factory
-        self.platform_code = PlatformCode.CHZZK
 
     async def _async_chat_stream_generator(
         self, async_logs_iterable: AsyncIterable[list[ChzzkVideoChat]]

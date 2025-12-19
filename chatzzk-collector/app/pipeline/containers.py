@@ -2,8 +2,10 @@ from dependency_injector import containers, providers
 
 from app.pipeline.di_containers.client_containers import ClientContainer
 from app.pipeline.di_containers.data_access_containers import DataAccessContainer
+from app.pipeline.implementations.asr_service import ASRService
 from app.pipeline.implementations.audio_discovery_services import ChzzkAudioCollectionService
 from app.pipeline.implementations.chat_collection_services import ChzzkChatCollectionService
+from app.pipeline.implementations.vad_service import VADService
 from app.pipeline.implementations.vod_discovery_services import ChzzkVODDiscoveryService
 from chatzzk_core.constants.service_codes import PlatformCode
 from chatzzk_core.schemas.config.services.vod_discovery import ChzzkVODFilterConfig
@@ -65,4 +67,22 @@ class AppContainer(containers.DeclarativeContainer):
         {
             PlatformCode.CHZZK: _chzzk_audio_collection_service,
         }
+    )
+
+    vad_service = providers.Singleton(
+        VADService,
+        audio_loader=clients_package.audio_loader,
+        vod_repo=data_access_package.vod_repo,
+        vad_client=clients_package.vad_client_factory,
+        tmp_storage=data_access_package.tmp_storage,
+        db_session_factory=data_access_package.db_session_factory,
+    )
+
+    asr_service = providers.Singleton(
+        ASRService,
+        audio_loader=clients_package.audio_loader,
+        vod_repo=data_access_package.vod_repo,
+        asr_client=clients_package.asr_client_factory,
+        tmp_storage=data_access_package.tmp_storage,
+        db_session_factory=data_access_package.db_session_factory,
     )

@@ -1,3 +1,4 @@
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.pipeline.implementations.base import BasePipelineService
@@ -17,10 +18,9 @@ class ChzzkAudioCollectionService(BasePipelineService):
         db_session_factory: async_sessionmaker[AsyncSession],
         media_processor: MediaProcessor,
     ):
+        super().__init__(vod_repo, db_session_factory)
         self.chzzk_api_client = chzzk_api_client
-        self.vod_repo = vod_repo
         self.tmp_storage = tmp_storage
-        self.db_session_factory = db_session_factory
         self.media_processor = media_processor
         self.platform_code = PlatformCode.CHZZK
 
@@ -79,5 +79,5 @@ class ChzzkAudioCollectionService(BasePipelineService):
             return wav_key
 
         except Exception as e:
-            # 상위 Flow에서 에러를 핸들링하도록 전파
-            raise e
+            logger.error(f"Failed to collect and save audio for video_no {video_no}: {e}")
+            raise

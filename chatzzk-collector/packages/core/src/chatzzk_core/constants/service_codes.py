@@ -109,7 +109,7 @@ class StreamContextWindowSize:
 class StoragePaths:
     AUDIO = "{vod_id}/audio.wav"
     CHAT = "{vod_id}/chat_entries.jsonl"
-    VAD_TIMESTAMP = "{vod_id}/vad_timestamps.jsonl"
+    VAD_TIMESTAMPS = "{vod_id}/vad_timestamps.jsonl"
     ASR = "{vod_id}/asr_entries.jsonl"
     SUMMARY_RAW = "{vod_id}/summary_raw.jsonl"
     SUMMARY = "{vod_id}/summaries.jsonl"
@@ -131,8 +131,8 @@ class StoragePaths:
         return cls.CHAT.format(vod_id=vod_id)
 
     @classmethod
-    def get_vad_timestamp_key(cls, vod_id: str | int) -> str:
-        return cls.VAD_TIMESTAMP.format(vod_id=vod_id)
+    def get_vad_timestamps_key(cls, vod_id: str | int) -> str:
+        return cls.VAD_TIMESTAMPS.format(vod_id=vod_id)
 
     @classmethod
     def get_asr_key(cls, vod_id: str | int) -> str:

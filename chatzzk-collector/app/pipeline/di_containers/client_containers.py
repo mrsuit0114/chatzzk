@@ -44,7 +44,7 @@ class ClientContainer(containers.DeclarativeContainer):
         http_client=aiohttp_client,
     )
 
-    audio_loader = providers.Factory(AudioLoader, config=config.provided.audio_loader)
+    audio_loader = providers.Singleton(AudioLoader, config=config.provided.audio_loader)
 
     vad_client_factory = providers.Singleton(create_vad_client, model_config=config.provided.vad)
 
