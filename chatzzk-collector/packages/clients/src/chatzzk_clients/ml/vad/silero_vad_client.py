@@ -28,8 +28,8 @@ def process_vad_chunk(
     audio_chunk_np: np.ndarray,
     threshold: float,
     min_silence_duration_ms: int,
-    max_speech_duration_s: int | None,
-) -> list[tuple[int, int]]:
+    max_speech_duration_s: float,
+) -> list:
     """자식 프로세스에서 단일 오디오 조각을 처리하는 실제 작업 함수"""
     global vad_model
     from silero_vad import get_speech_timestamps

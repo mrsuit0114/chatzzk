@@ -98,17 +98,17 @@ class ChzzkAPIClient:
             page += 1
         return vods
 
-    async def fetch_vod_info(self, video_no: int) -> ChzzkVODInfo:
+    async def fetch_vod_info(self, video_no: str) -> ChzzkVODInfo:
         url = self.vod_info_url.format(video_no=video_no)
         return await self._fetch_content(url, ChzzkVODInfo)
 
-    async def _fetch_vod_chat_segment(self, video_no: int, player_message_time_ms: int) -> ChzzkVideoChatsContent:
+    async def _fetch_vod_chat_segment(self, video_no: str, player_message_time_ms: int) -> ChzzkVideoChatsContent:
         url = self.vod_chats_url.format(video_no=video_no, player_message_time=player_message_time_ms)
         async with self._limiter:
             return await self._fetch_content(url, ChzzkVideoChatsContent)
 
     async def _fetch_vod_chat_range_stream(
-        self, video_no: int, start_time_ms: int, end_time_ms: int
+        self, video_no: str, start_time_ms: int, end_time_ms: int
     ) -> AsyncGenerator[list[ChzzkVideoChat], None]:
         player_message_time_ms = start_time_ms
 
@@ -130,7 +130,7 @@ class ChzzkAPIClient:
 
             player_message_time_ms = vod_chats_content.next_player_message_time
 
-    async def fetch_video_chats(self, video_no: int, duration_s: int) -> AsyncGenerator[list[ChzzkVideoChat], None]:
+    async def fetch_video_chats(self, video_no: str, duration_s: int) -> AsyncGenerator[list[ChzzkVideoChat], None]:
         """
         [변경] 단일 워커 스트리밍 방식.
         전체 영상을 0초부터 끝까지 순차적으로 훑으며 데이터를 스트리밍합니다.

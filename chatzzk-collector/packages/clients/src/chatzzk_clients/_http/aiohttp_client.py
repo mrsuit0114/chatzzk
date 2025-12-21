@@ -1,6 +1,6 @@
 import asyncio
 from collections.abc import AsyncGenerator
-from contextlib import asynccontextmanager
+from contextlib import AbstractAsyncContextManager, asynccontextmanager
 from typing import Any
 
 import aiohttp
@@ -56,7 +56,7 @@ class AioHTTPClient:
         )
 
     @asynccontextmanager
-    async def _request(self, method: str, url: str, **kwargs: Any):
+    async def _request(self, method: str, url: str, **kwargs: Any) -> AsyncGenerator[aiohttp.ClientResponse, None]:
         try:
             async for attempt in self._retryer:
                 with attempt:
@@ -77,8 +77,8 @@ class AioHTTPClient:
             logger.error(f"Request permanently failed for url {url}: {e}")
             raise
 
-    def get(self, url: str, **kwargs: Any) -> AsyncGenerator[aiohttp.ClientResponse, None]:
+    def get(self, url: str, **kwargs: Any) -> AbstractAsyncContextManager[aiohttp.ClientResponse]:
         return self._request("GET", url, **kwargs)
 
-    def post(self, url: str, **kwargs: Any) -> AsyncGenerator[aiohttp.ClientResponse, None]:
+    def post(self, url: str, **kwargs: Any) -> AbstractAsyncContextManager[aiohttp.ClientResponse]:
         return self._request("POST", url, **kwargs)

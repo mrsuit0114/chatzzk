@@ -38,7 +38,7 @@ class VODRepository:
         # 로그는 RETURNING 필요 없음
         await session.execute(stmt)
 
-    async def get_log_details(self, session: AsyncSession, vod_id: int) -> dict | None:
+    async def get_log_details(self, session: AsyncSession, vod_id: int) -> dict:
         stmt = select(VODPipelineLog.process_details).where(VODPipelineLog.vod_id == vod_id)
         result = await session.execute(stmt)
         details = result.scalar_one_or_none()

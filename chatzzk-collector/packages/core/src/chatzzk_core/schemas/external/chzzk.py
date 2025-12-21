@@ -19,10 +19,10 @@ DataT = TypeVar("DataT")
 
 def convert_kst_to_utc(value: str) -> datetime | None:
     if isinstance(value, str):
-        value = datetime.fromisoformat(value)
-        if value.tzinfo is None:
-            value = value.replace(tzinfo=KST_TZ)
-        return value.astimezone(UTC_TZ)
+        value_date = datetime.fromisoformat(value)
+        if value_date.tzinfo is None:
+            value_date = value_date.replace(tzinfo=KST_TZ)
+        return value_date.astimezone(UTC_TZ)
     return None
 
 
@@ -106,14 +106,14 @@ class ChzzkVODMeta(BaseAPIModel):
 
     # Pydantic은 "YYYY-MM-DD HH:MM:SS" 문자열을 자동으로 datetime 객체로 변환해줍니다.
     # 단, 넘어오는 문자열에 시간대 정보가 없으면 timezone-naive(시간대 정보 없음) 상태가 됩니다.
-    publish_date: Annotated[datetime, BeforeValidator(convert_kst_to_utc)] = None
+    publish_date: Annotated[datetime, BeforeValidator(convert_kst_to_utc)] | None = None
 
     thumbnail_image_url: str | None = None
     trailer_url: str | None = None
     duration: int | None = None  # 초 단위
     read_count: int | None = None
 
-    publish_date_at: Annotated[int, BeforeValidator(convert_kst_timestamp_to_utc)] = None
+    publish_date_at: Annotated[int, BeforeValidator(convert_kst_timestamp_to_utc)] | None = None
 
     category_type: str | None = None
     video_category: str | None = None
@@ -154,14 +154,14 @@ class BaseVODInfo(BaseAPIModel):
     video_title: str | None = None
     video_type: str | None = None
 
-    publish_date: Annotated[datetime, BeforeValidator(convert_kst_to_utc)] = None
+    publish_date: Annotated[datetime, BeforeValidator(convert_kst_to_utc)] | None = None
 
     thumbnail_image_url: str | None = None
     trailer_url: str | None = None
     duration: int | None = None
     read_count: int | None = None
 
-    publish_date_at: Annotated[int, BeforeValidator(convert_kst_timestamp_to_utc)] = None
+    publish_date_at: Annotated[int, BeforeValidator(convert_kst_timestamp_to_utc)] | None = None
 
     category_type: str | None = None
     video_category: str | None = None
@@ -205,7 +205,7 @@ class ChzzkVODInfo(BaseVODInfo):
     paid_promotion: bool | None = None
     in_key: str | None = None
 
-    live_open_date: Annotated[datetime, BeforeValidator(convert_kst_to_utc)] = None
+    live_open_date: Annotated[datetime, BeforeValidator(convert_kst_to_utc)] | None = None
 
     vod_status: str | None = None
     live_rewind_playback_json: Annotated[LiveRewindPlayback, BeforeValidator(parse_json_string_to_obj)] | None = None
@@ -284,10 +284,10 @@ class ExtrasDetail(BaseAPIModel):
 class ChzzkVideoChat(BaseAPIModel):
     chat_channel_id: str | None = None
 
-    message_time: Annotated[int, BeforeValidator(convert_kst_timestamp_to_utc)] = None
+    message_time: Annotated[int, BeforeValidator(convert_kst_timestamp_to_utc)] | None = None
 
     user_id_hash: str | None = None
-    content: str | None = None
+    content: str
 
     extras: Json[ExtrasDetail] | None = None
 
@@ -296,7 +296,7 @@ class ChzzkVideoChat(BaseAPIModel):
 
     profile: Json[ProfileDetail] | None = None
 
-    player_message_time: int | None = None
+    player_message_time: int
 
 
 class ChzzkVideoChatsContent(BaseAPIModel):
