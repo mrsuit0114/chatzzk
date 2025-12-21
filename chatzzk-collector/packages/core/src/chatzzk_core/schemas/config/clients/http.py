@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from chatzzk_core.constants.client import AioHTTPConstant
+from chatzzk_core.constants import AioHTTPConstant
 
 
 class AioHTTPConfig(BaseModel):

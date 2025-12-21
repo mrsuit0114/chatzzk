@@ -3,9 +3,9 @@ from datetime import UTC, datetime
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from chatzzk_clients.chzzk.chzzk_api_client import ChzzkAPIClient
-from chatzzk_core.constants.service_codes import PlatformCode
-from chatzzk_core.schemas.config.services.vod_discovery import ChzzkVODFilterConfig
-from chatzzk_core.schemas.external.chzzk import ChzzkVODMeta
+from chatzzk_core.constants import PlatformCode
+from chatzzk_core.schemas.config.services.vod_discovery import ChzzkVODDiscoveryConfig
+from chatzzk_core.schemas.external import ChzzkVODMeta
 from chatzzk_data_access.repositories.channel import ChannelRepository
 from chatzzk_data_access.repositories.vod import VODRepository
 
@@ -19,17 +19,17 @@ class ChzzkVODDiscoveryService:
         vod_repo: VODRepository,
         chzzk_api_client: ChzzkAPIClient,
         db_session_factory: async_sessionmaker[AsyncSession],
-        filter_config: ChzzkVODFilterConfig,
+        config: ChzzkVODDiscoveryConfig,
     ):
         self.channel_repo = channel_repo
         self.vod_repo = vod_repo
         self.chzzk_api_client = chzzk_api_client
         self.db_session_factory = db_session_factory
-        self.filter_config = filter_config
+        self.config = config
         self.platform_code = PlatformCode.CHZZK
 
     def _is_target_vod(self, vod_meta: ChzzkVODMeta, now_utc: datetime) -> bool:
-        cfg = self.filter_config
+        cfg = self.config
         if vod_meta.duration < cfg.min_duration_s:
             return False
 

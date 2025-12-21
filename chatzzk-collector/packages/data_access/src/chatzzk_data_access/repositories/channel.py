@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import and_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from chatzzk_core.constants.service_codes import PlatformCode
+from chatzzk_core.constants import PlatformCode
 from chatzzk_data_access.orm.models import Channel, Platform
 
 

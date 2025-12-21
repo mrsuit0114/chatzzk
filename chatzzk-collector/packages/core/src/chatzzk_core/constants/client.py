@@ -1,9 +1,6 @@
-from dataclasses import dataclass
-
-from chatzzk_core.constants.service_codes import AudioDataConstant, MLModelPath
+from .service_code import AudioDataConstant, MLModelPaths
 
 
-@dataclass
 class SileroVADConstant:
     VAD_IMPLEMENTATION = "silero_vad"
     MIN_SILENCE_DURATION_MS = 500
@@ -15,7 +12,6 @@ class SileroVADConstant:
     SAMPLE_CHUNK_SIZE = 64
 
 
-@dataclass
 class WhisperXConstant:
     ASR_IMPLEMENTATION = "whisperx"
     DEVICE = "cuda"
@@ -23,15 +19,13 @@ class WhisperXConstant:
     COMPUTE_TYPE = "float16"
     BATCH_SIZE = 4
     LANGUAGE = "ko"
-    MODEL_PATH = MLModelPath.WHISPERX
+    MODEL_PATH = MLModelPaths.WHISPERX
 
 
-@dataclass
 class ASRHTTPConstant:
     ASR_IMPLEMENTATION = "http"
 
 
-@dataclass
 class AioHTTPConstant:
     RETRY_ATTEMPTS = 5
     RETRY_WAIT_MIN_S = 4.0
@@ -40,7 +34,6 @@ class AioHTTPConstant:
     TIMEOUT_S = 10.0
 
 
-@dataclass
 class MediaProcessorConstant:
     TARGET_SAMPLE_RATE = AudioDataConstant.SAMPLE_RATE
     TARGET_CHANNELS = AudioDataConstant.CHANNELS

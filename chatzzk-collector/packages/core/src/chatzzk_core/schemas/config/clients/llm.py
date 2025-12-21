@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from chatzzk_core.constants.service_codes import LLMPromptPath, LLMTask
+from chatzzk_core.constants import LLMPromptPaths
 
 
 class LiteLLMProxyConfig(BaseModel):
@@ -12,9 +12,4 @@ class LangfuseConfig(BaseModel):
     public_key: str
     secret_key: str
     base_url: str
-    prompt_paths: dict[str, str] = Field(
-        default_factory=lambda: {
-            LLMTask.SUMMARIZE.value: LLMPromptPath.SUMMARIZE,
-            LLMTask.META_SUMMARIZE.value: LLMPromptPath.META_SUMMARIZE,
-        }
-    )
+    prompt_paths: dict[str, str] = Field(default_factory=lambda: LLMPromptPaths.BY_TASK)

@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from chatzzk_core.constants.service_codes import DBDefault, PlatformCode, VODPipelineStatus
+from chatzzk_core.constants import DBDefault, PlatformCode, VODPipelineStatus
 
 
 class Base(DeclarativeBase):

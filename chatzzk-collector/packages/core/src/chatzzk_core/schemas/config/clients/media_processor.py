@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from chatzzk_core.constants.client import MediaProcessorConstant
+from chatzzk_core.constants import MediaProcessorConstant
 
 
 class MediaProcessorConfig(BaseModel):

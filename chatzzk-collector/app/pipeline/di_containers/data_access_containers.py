@@ -2,7 +2,7 @@ from dependency_injector import containers, providers
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from chatzzk_core.schemas.config.data_access.data_access import DataAccessConfig
+from chatzzk_core.schemas.config.data_access import DataAccessConfig
 from chatzzk_data_access.repositories.channel import ChannelRepository
 from chatzzk_data_access.repositories.vod import VODRepository
 from chatzzk_data_access.storages.local_storage import LocalStorage

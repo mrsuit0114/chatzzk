@@ -8,7 +8,7 @@ from chatzzk_clients.media.media_processor import MediaProcessor
 from chatzzk_clients.ml.asr.factory import create_asr_client
 from chatzzk_clients.ml.audio_loader import AudioLoader
 from chatzzk_clients.ml.vad.factory import create_vad_client
-from chatzzk_core.schemas.config.clients.client import ClientsConfig
+from chatzzk_core.schemas.config.clients import ClientsConfig
 
 # from chatzzk_clients.llm.prompt_builder import PromptBuilder
 # from chatzzk_clients.llm.litellm_proxy_client import LiteLLMProxyClient

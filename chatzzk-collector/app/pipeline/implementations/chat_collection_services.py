@@ -5,9 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.pipeline.implementations.base import BasePipelineService
 from chatzzk_clients.chzzk.chzzk_api_client import ChzzkAPIClient
-from chatzzk_core.constants.service_codes import StoragePaths
-from chatzzk_core.schemas.external.chzzk import ChzzkVideoChat
-from chatzzk_core.schemas.internal.models import ChzzkChatEntry
+from chatzzk_core.constants import StoragePaths
+from chatzzk_core.schemas.external import ChzzkVideoChat
+from chatzzk_core.schemas.internal import ChzzkChatEntry
 from chatzzk_data_access.repositories.vod import VODRepository
 from chatzzk_data_access.storages.local_storage import LocalStorage
 

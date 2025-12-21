@@ -11,7 +11,7 @@ from loguru import logger
 
 from chatzzk_clients._http.aiohttp_client import AioHTTPClient
 from chatzzk_core.schemas.config.clients.chzzk import ChzzkAPIConfig
-from chatzzk_core.schemas.external.chzzk import (
+from chatzzk_core.schemas.external import (
     ChzzkAPIResponse,
     ChzzkChannelInfo,
     ChzzkVideoChat,

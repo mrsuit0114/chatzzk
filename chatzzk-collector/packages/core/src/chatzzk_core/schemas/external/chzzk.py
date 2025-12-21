@@ -6,6 +6,8 @@ from zoneinfo import ZoneInfo
 from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, Json
 from pydantic.alias_generators import to_camel
 
+from chatzzk_core.constants import ChzzkOsType
+
 # 모든 시간 값이 KST기준으로 들어옴
 
 # -----------------helper--------------------------
@@ -270,7 +272,7 @@ class ProfileDetail(BaseAPIModel):
 
 class ExtrasDetail(BaseAPIModel):
     chat_type: str | None = None
-    os_type: str | None = None
+    os_type: ChzzkOsType | None = None
     streaming_channel_id: str | None = None
     emojis: dict[str, Any] | None = None
     extra_token: str | None = None

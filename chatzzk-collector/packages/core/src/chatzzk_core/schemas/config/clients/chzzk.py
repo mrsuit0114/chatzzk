@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from chatzzk_core.constants.chzzk import ChzzkAPIConstant
+from chatzzk_core.constants import ChzzkAPIConstant
 
 
 class ChzzkAPIConfig(BaseModel):

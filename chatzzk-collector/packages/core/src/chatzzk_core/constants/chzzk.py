@@ -1,9 +1,7 @@
-from dataclasses import dataclass
 from datetime import timedelta
-from enum import Enum, IntEnum
+from enum import Enum
 
 
-@dataclass
 class ChzzkAPIConstant:
     DEFAULT_HEADERS = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
@@ -30,29 +28,25 @@ class ChzzkAPIConstant:
     RATE_LIMIT_TIME_PERIOD = 0.1
 
 
-@dataclass
-class ChzzkMessageTypeCode(IntEnum):
+class ChzzkMessageTypeCode(int, Enum):
     CHAT = 1
     DONATION = 10
     SYSTEM = 30
 
 
-@dataclass
-class SubscriptionTier(IntEnum):
+class ChzzkSubscriptionTier(int, Enum):
     NO_SUBSCRIPTION = 0
     GENERAL = 1
     PREMIUM = 2
 
 
-@dataclass
-class OsType(str, Enum):
+class ChzzkOsType(str, Enum):
     IOS = "IOS"
     PC = "PC"
     AOS = "AOS"
 
 
-@dataclass
-class UserRoleCode(str, Enum):
+class ChzzkUserRoleCode(str, Enum):
     COMMON_USER = "common_user"
     STREAMING_CHAT_MANAGER = "streaming_chat_manager"
     STREAMING_CHANNEL_OWNER = "streaming_channel_owner"
@@ -60,9 +54,8 @@ class UserRoleCode(str, Enum):
     STREAMER = "streamer"  # channel_owner와 별개로 존재함, owner가 streamer 본인이 아닌가 채팅에서는 streamer로 확인
 
 
-@dataclass
 class ChzzkVODFilterConstant:
     MIN_DURATION_S = 1800
     MIN_PUBLISH_DATE_AGE = timedelta(minutes=30)
-    ALLOW_AUDLT = False
+    ALLOW_ADULT = False
     LIVE_PV = 0

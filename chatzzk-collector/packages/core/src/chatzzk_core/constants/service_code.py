@@ -1,6 +1,4 @@
 # 나중에는 값을 yaml 파일로 옮기고 읽어오기만 해야할 듯 -> 빌드 컨텍스트에 포함되어 골치아픔
-
-from dataclasses import dataclass
 from enum import Enum
 
 
@@ -32,7 +30,6 @@ class VODPipelineStepStatus(str, Enum):
 
 
 # -------------- db init value -------------------------
-@dataclass
 class DBDefault:
     IS_ACTIVE = "true"
 
@@ -44,7 +41,6 @@ class DBDefault:
         URL = 512
 
 
-@dataclass
 class AudioDataConstant:
     SAMPLE_RATE = 16000
     CHANNELS = 1
@@ -53,8 +49,7 @@ class AudioDataConstant:
     MAX_SPEECH_DURATION_S = 30
 
 
-@dataclass
-class MLModelPath:
+class MLModelPaths:
     MODEL_BASE: str = "models"
     WHISPERX: str = f"{MODEL_BASE}/whisperx"
 
@@ -63,18 +58,17 @@ class EntryType(str, Enum):
     CHAT = "CHAT"
     DONATION = "DONATION"
     ASR = "ASR"
+    SUMMARY = "SUMMARY"
+    META_SUMMARY = "META_SUMMARY"
 
 
-class ASRHallucinationFilter(str, Enum):
-    NEWS = "뉴스"
-    THANK_YOU_1 = "고맙습니다"
-    THANK_YOU_2 = "감사합니다"
-    WAS = "였습니다"
-    MBC = "MBC"
-
-    @classmethod
-    def get_keywords(cls) -> list[str]:
-        return [member.value for member in cls]
+ASR_HALLUCINATION_KEYWORDS = [
+    "뉴스",
+    "고맙습니다",
+    "감사합니다",
+    "였습니다",
+    "MBC",
+]
 
 
 class LLMTask(str, Enum):
@@ -82,10 +76,11 @@ class LLMTask(str, Enum):
     META_SUMMARIZE = "meta_summarize"
 
 
-@dataclass
-class LLMPromptPath:
-    SUMMARIZE: str = "stream/segment-analyzer"
-    META_SUMMARIZE: str = "stream/context-integrator"
+class LLMPromptPaths:
+    BY_TASK = {
+        LLMTask.SUMMARIZE: "stream/segment-analyzer",
+        LLMTask.META_SUMMARIZE: "stream/context-integrator",
+    }
 
 
 class StreamAtmosphere(str, Enum):
@@ -97,7 +92,12 @@ class StreamAtmosphere(str, Enum):
     ANTICIPATION = "기대"
 
 
-@dataclass
+class ScoreCategory(str, Enum):
+    EXPRESIVENESS = "expresiveness"
+    COHERENCE = "coherence"
+    SIGNIFICANCE = "significance"
+
+
 class StreamContextWindowSize:
     # entries의 timestamp에 대한 window size, 단위는 ms
     # CHUNK: int = 30 * 1000  채팅과 도네이션 이벤트를 기준으로 탐색할 때 길지도 짧지도 않아야 함
@@ -105,15 +105,14 @@ class StreamContextWindowSize:
     META_SUMMARY: int = 3600 * 1000
 
 
-@dataclass
 class StoragePaths:
     AUDIO = "{vod_id}/audio.wav"
     CHAT = "{vod_id}/chat_entries.jsonl"
     VAD_TIMESTAMPS = "{vod_id}/vad_timestamps.jsonl"
     ASR = "{vod_id}/asr_entries.jsonl"
-    SUMMARY_RAW = "{vod_id}/summary_raw.jsonl"
-    SUMMARY = "{vod_id}/summaries.jsonl"
-    META_SUMMARY = "{vod_id}/meta_summaries.jsonl"
+    SUMMARY_RAW = "{vod_id}/summary_raw_entries.jsonl"
+    SUMMARY = "{vod_id}/summary_entries.jsonl"
+    META_SUMMARY = "{vod_id}/meta_summary_entries.jsonl"
 
     TMP_VIDEO = "{vod_id}/tmp/video.mp4"
     TMP_DIR = "{vod_id}/tmp"

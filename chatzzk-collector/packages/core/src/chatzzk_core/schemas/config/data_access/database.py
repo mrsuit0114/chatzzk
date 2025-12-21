@@ -6,8 +6,3 @@ class DatabaseConfig(BaseModel):
     database_url: str
     pool_size: int
     max_overflow: int
-
-
-class DataAccessConfig(BaseModel):
-    db: DatabaseConfig
-    tmp_storage_base_dir: str
