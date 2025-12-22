@@ -6,8 +6,8 @@ from chatzzk_clients._http import AioHTTPClient
 from chatzzk_clients.chzzk import ChzzkAPIClient
 from chatzzk_clients.llm import ContextAssembler
 from chatzzk_clients.media import MediaProcessor
-from chatzzk_clients.ml import AudioLoader
 from chatzzk_clients.ml.asr import create_asr_client
+from chatzzk_clients.ml.audio_loader import AudioLoader
 from chatzzk_clients.ml.vad import create_vad_client
 from chatzzk_core.schemas.config import ClientsConfig
 
