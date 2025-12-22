@@ -6,8 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from chatzzk_core.constants import ChzzkUserRoleCode
-from chatzzk_core.constants.service_code import EntryType, ScoreCategory, StreamAtmosphere
+from chatzzk_core.constants import ChzzkUserRoleCode, EntryType, ScoreCategory, StreamAtmosphere
 from chatzzk_core.schemas.external import ChzzkVideoChat
 
 

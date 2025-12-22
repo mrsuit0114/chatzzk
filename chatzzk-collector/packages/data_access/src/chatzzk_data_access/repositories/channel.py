@@ -5,7 +5,7 @@ from sqlalchemy import and_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from chatzzk_core.constants import PlatformCode
-from chatzzk_data_access.orm.models import Channel, Platform
+from chatzzk_data_access.orm import Channel, Platform
 
 
 class ChannelRepository:

@@ -2,7 +2,7 @@ from pydantic import Field
 from pydantic_settings import BaseSettings
 
 from chatzzk_core.constants import AudioDataConstant
-from chatzzk_core.schemas.config.clients.ml import ASRConfig, WhisperXConfig
+from chatzzk_core.schemas.config.clients import ASRConfig, WhisperXConfig
 
 
 class InferenceServerSettings(BaseSettings):

@@ -2,7 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from chatzzk_core.constants import PlatformCode
-from chatzzk_core.schemas.orm.models import Platform
+from chatzzk_data_access.orm import Platform
 
 # 메서드 네이밍 - get_{entity}_(with_{entity})_by_{condition}
 

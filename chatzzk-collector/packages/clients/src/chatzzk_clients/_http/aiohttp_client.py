@@ -7,7 +7,7 @@ import aiohttp
 from loguru import logger
 from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, wait_exponential
 
-from chatzzk_core.schemas.config.clients.http import AioHTTPConfig
+from chatzzk_core.schemas.config.clients import AioHTTPConfig
 
 
 class AioHTTPClient:

@@ -9,8 +9,8 @@ import pydantic
 from aiolimiter import AsyncLimiter
 from loguru import logger
 
-from chatzzk_clients._http.aiohttp_client import AioHTTPClient
-from chatzzk_core.schemas.config.clients.chzzk import ChzzkAPIConfig
+from chatzzk_clients._http import AioHTTPClient
+from chatzzk_core.schemas.config.clients import ChzzkAPIConfig
 from chatzzk_core.schemas.external import (
     ChzzkAPIResponse,
     ChzzkChannelInfo,

@@ -3,7 +3,7 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from chatzzk_core.constants import VODPipelineStepStatus, VODProcessingStep
-from chatzzk_data_access.repositories.vod import VODRepository
+from chatzzk_data_access.repositories import VODRepository
 
 
 class BasePipelineService:

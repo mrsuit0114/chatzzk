@@ -1,12 +1,12 @@
 from dependency_injector import containers, providers
 
 from app.pipeline.implementations.asr_service import ASRService
-from app.pipeline.implementations.audio_discovery_services import ChzzkAudioCollectionService
+from app.pipeline.implementations.audio_collection_services import ChzzkAudioCollectionService
 from app.pipeline.implementations.chat_collection_services import ChzzkChatCollectionService
 from app.pipeline.implementations.vad_service import VADService
 from app.pipeline.implementations.vod_discovery_services import ChzzkVODDiscoveryService
 from chatzzk_core.constants import PlatformCode
-from chatzzk_core.schemas.config.services import ServicesConfig
+from chatzzk_core.schemas.config import ServicesConfig
 
 
 class ServiceContainer(containers.DeclarativeContainer):

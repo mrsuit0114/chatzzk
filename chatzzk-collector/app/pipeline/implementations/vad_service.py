@@ -2,11 +2,11 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.pipeline.implementations.base import BasePipelineService
-from chatzzk_clients.ml.audio_loader import AudioLoader
-from chatzzk_clients.ml.vad.base import VADClientInterface
+from chatzzk_clients.ml import AudioLoader
+from chatzzk_clients.ml.vad import VADClientInterface
 from chatzzk_core.constants import StoragePaths
-from chatzzk_data_access.repositories.vod import VODRepository
-from chatzzk_data_access.storages.local_storage import LocalStorage
+from chatzzk_data_access.repositories import VODRepository
+from chatzzk_data_access.storages import LocalStorage
 
 
 class VADService(BasePipelineService):

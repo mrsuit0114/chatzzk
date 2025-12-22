@@ -4,7 +4,7 @@ import numpy as np
 from loguru import logger
 from torchcodec.decoders import AudioDecoder
 
-from chatzzk_core.schemas.config.clients.ml import AudioLoaderConfig
+from chatzzk_core.schemas.config.clients import AudioLoaderConfig
 
 
 class AudioLoader:

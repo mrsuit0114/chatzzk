@@ -5,9 +5,9 @@ import torch
 import whisperx
 from loguru import logger
 
-from chatzzk_clients.ml.asr.base import ASRClientInterface
-from chatzzk_clients.ml.exceptions import ASRError
-from chatzzk_core.schemas.config.clients.ml import WhisperXConfig
+from chatzzk_clients.ml import ASRError
+from chatzzk_clients.ml.asr import ASRClientInterface
+from chatzzk_core.schemas.config.clients import WhisperXConfig
 
 
 class WhisperxClient(ASRClientInterface):

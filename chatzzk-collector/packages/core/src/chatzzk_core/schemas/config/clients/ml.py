@@ -1,6 +1,6 @@
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, TypeAdapter
+from pydantic import BaseModel, Field
 
 from chatzzk_core.constants import ASRHTTPConstant, AudioDataConstant, SileroVADConstant, WhisperXConstant
 
@@ -8,11 +8,11 @@ from chatzzk_core.constants import ASRHTTPConstant, AudioDataConstant, SileroVAD
 class AudioLoaderConfig(BaseModel):
     target_sample_rate: int = AudioDataConstant.SAMPLE_RATE
     target_channels: int = AudioDataConstant.CHANNELS
-    target_dtype: Literal["float32", "float16"] = AudioDataConstant.AUDIO_DTYPE_STR
+    target_dtype: Literal[AudioDataConstant.AUDIO_DTYPE_STR] = AudioDataConstant.AUDIO_DTYPE_STR
 
 
 class SileroVADConfig(BaseModel):
-    vad_implementation: Literal["silero_vad"] = SileroVADConstant.VAD_IMPLEMENTATION
+    vad_implementation: Literal[SileroVADConstant.VAD_IMPLEMENTATION] = SileroVADConstant.VAD_IMPLEMENTATION
     min_silence_duration_ms: int = SileroVADConstant.MIN_SILENCE_DURATION_MS
     max_speech_duration_s: int = SileroVADConstant.MAX_SPEECH_DURATION_S
     min_silence_duration_samples: int = SileroVADConstant.MIN_SILENCE_DURATION_SAMPLES
@@ -24,15 +24,10 @@ class SileroVADConfig(BaseModel):
 
 
 VADConfig = Annotated[SileroVADConfig, Field(discriminator="vad_implementation")]
-VADConfigAdapter = TypeAdapter(VADConfig)
-
-
-def validate_vad_config(raw: dict):
-    return VADConfigAdapter.validate_python(raw)
 
 
 class WhisperXConfig(BaseModel):
-    asr_implementation: Literal["whisperx"] = WhisperXConstant.ASR_IMPLEMENTATION
+    asr_implementation: Literal[WhisperXConstant.ASR_IMPLEMENTATION] = WhisperXConstant.ASR_IMPLEMENTATION
     device: str = WhisperXConstant.DEVICE
     model_size: str = WhisperXConstant.MODEL_SIZE
     compute_type: str = WhisperXConstant.COMPUTE_TYPE
@@ -42,14 +37,9 @@ class WhisperXConfig(BaseModel):
 
 
 class ASRHTTPConfig(BaseModel):
-    asr_implementation: Literal["http"] = ASRHTTPConstant.ASR_IMPLEMENTATION
+    asr_implementation: Literal[ASRHTTPConstant.ASR_IMPLEMENTATION] = ASRHTTPConstant.ASR_IMPLEMENTATION
     asr_inference_server_url: str
-    audio_dtype_str: Literal["float32", "float16"] = AudioDataConstant.AUDIO_DTYPE_STR
+    audio_dtype_str: Literal[AudioDataConstant.AUDIO_DTYPE_STR] = AudioDataConstant.AUDIO_DTYPE_STR
 
 
 ASRConfig = Annotated[WhisperXConfig | ASRHTTPConfig, Field(discriminator="asr_implementation")]
-ASRConfigAdapter = TypeAdapter(ASRConfig)
-
-
-def validate_asr_config(raw: dict):
-    return ASRConfigAdapter.validate_python(raw)

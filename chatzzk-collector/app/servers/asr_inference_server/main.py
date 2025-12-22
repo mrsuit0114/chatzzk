@@ -7,8 +7,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from loguru import logger
 
 from app.servers.asr_inference_server.settings import InferenceServerSettings
-from chatzzk_clients.ml.asr.base import ASRClientInterface
-from chatzzk_clients.ml.asr.factory import create_asr_client
+from chatzzk_clients.ml.asr import ASRClientInterface, create_asr_client
 from chatzzk_core.schemas.external import ASRResponse
 
 asr_client: ASRClientInterface = None

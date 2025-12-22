@@ -2,12 +2,11 @@ from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from chatzzk_clients.chzzk.chzzk_api_client import ChzzkAPIClient
+from chatzzk_clients.chzzk import ChzzkAPIClient
 from chatzzk_core.constants import PlatformCode
-from chatzzk_core.schemas.config.services.vod_discovery import ChzzkVODDiscoveryConfig
+from chatzzk_core.schemas.config.services import ChzzkVODDiscoveryConfig
 from chatzzk_core.schemas.external import ChzzkVODMeta
-from chatzzk_data_access.repositories.channel import ChannelRepository
-from chatzzk_data_access.repositories.vod import VODRepository
+from chatzzk_data_access.repositories import ChannelRepository, VODRepository
 
 
 class ChzzkVODDiscoveryService:

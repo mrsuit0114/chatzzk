@@ -4,7 +4,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.expression import cast
 
-from chatzzk_data_access.orm.models import VOD, VODPipelineLog
+from chatzzk_data_access.orm import VOD, VODPipelineLog
 
 
 class VODRepository:

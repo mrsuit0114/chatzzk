@@ -2,12 +2,12 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.pipeline.implementations.base import BasePipelineService
-from chatzzk_clients.ml.asr.base import ASRClientInterface
-from chatzzk_clients.ml.audio_loader import AudioLoader
+from chatzzk_clients.ml import AudioLoader
+from chatzzk_clients.ml.asr import ASRClientInterface
 from chatzzk_core.constants import AudioDataConstant, StoragePaths
 from chatzzk_core.schemas.internal import ASREntry
-from chatzzk_data_access.repositories.vod import VODRepository
-from chatzzk_data_access.storages.local_storage import LocalStorage
+from chatzzk_data_access.repositories import VODRepository
+from chatzzk_data_access.storages import LocalStorage
 
 
 class ASRService(BasePipelineService):

@@ -7,9 +7,9 @@ import numpy as np
 import torch
 from loguru import logger
 
-from chatzzk_clients.ml.exceptions import VADError
-from chatzzk_clients.ml.vad.base import VADClientInterface
-from chatzzk_core.schemas.config.clients.ml import SileroVADConfig
+from chatzzk_clients.ml import VADError
+from chatzzk_clients.ml.vad import VADClientInterface
+from chatzzk_core.schemas.config.clients import SileroVADConfig
 
 # --- 멀티프로세싱을 위한 최상위 레벨 함수 정의 ---
 

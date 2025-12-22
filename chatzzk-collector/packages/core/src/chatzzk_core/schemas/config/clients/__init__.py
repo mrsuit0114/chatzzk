@@ -4,7 +4,7 @@ from .chzzk import ChzzkAPIConfig
 from .http import AioHTTPConfig
 from .llm import LangfuseConfig, LiteLLMProxyConfig
 from .media_processor import MediaProcessorConfig
-from .ml import ASRConfig, AudioLoaderConfig, VADConfig
+from .ml import ASRConfig, ASRHTTPConfig, AudioLoaderConfig, SileroVADConfig, VADConfig, WhisperXConfig
 
 
 class ClientsConfig(BaseModel):
@@ -30,4 +30,7 @@ __all__ = [
     "MediaProcessorConfig",
     "LangfuseConfig",
     "LiteLLMProxyConfig",
+    "ASRHTTPConfig",
+    "SileroVADConfig",
+    "WhisperXConfig",
 ]

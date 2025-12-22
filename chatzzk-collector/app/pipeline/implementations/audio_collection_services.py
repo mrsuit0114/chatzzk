@@ -2,11 +2,11 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.pipeline.implementations.base import BasePipelineService
-from chatzzk_clients.chzzk.chzzk_api_client import ChzzkAPIClient
-from chatzzk_clients.media.media_processor import MediaProcessor
+from chatzzk_clients.chzzk import ChzzkAPIClient
+from chatzzk_clients.media import MediaProcessor
 from chatzzk_core.constants import PlatformCode, StoragePaths
-from chatzzk_data_access.repositories.vod import VODRepository
-from chatzzk_data_access.storages.local_storage import LocalStorage
+from chatzzk_data_access.repositories import VODRepository
+from chatzzk_data_access.storages import LocalStorage
 
 
 class ChzzkAudioCollectionService(BasePipelineService):
