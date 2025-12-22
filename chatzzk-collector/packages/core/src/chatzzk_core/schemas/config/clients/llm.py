@@ -1,6 +1,10 @@
 from pydantic import BaseModel, Field
 
-from chatzzk_core.constants import LLMPromptPaths
+from chatzzk_core.constants import ASR_HALLUCINATION_KEYWORDS, LLMPromptPaths, LLMTask
+
+
+class ContextAssemblerConfig(BaseModel):
+    hallucination_keywords: list[str] = Field(default=ASR_HALLUCINATION_KEYWORDS)
 
 
 class LiteLLMProxyConfig(BaseModel):
@@ -12,4 +16,4 @@ class LangfuseConfig(BaseModel):
     public_key: str
     secret_key: str
     base_url: str
-    prompt_paths: dict[str, str] = Field(default_factory=lambda: LLMPromptPaths.BY_TASK)
+    prompt_paths: dict[LLMTask, str] = Field(default=LLMPromptPaths.BY_TASK)

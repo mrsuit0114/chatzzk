@@ -10,7 +10,7 @@ from chatzzk_core.schemas.config import ServicesConfig
 
 
 class ServiceContainer(containers.DeclarativeContainer):
-    config: providers.Dependency(instance_of=ServicesConfig) = providers.Dependency()
+    config = providers.Dependency(instance_of=ServicesConfig)
     client = providers.DependenciesContainer()
     data_access = providers.DependenciesContainer()
 

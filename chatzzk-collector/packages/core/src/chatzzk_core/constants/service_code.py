@@ -32,6 +32,7 @@ class VODPipelineStepStatus(str, Enum):
 # -------------- db init value -------------------------
 class DBDefault:
     IS_ACTIVE = "true"
+    IS_EXPOSED = "true"
 
     VOD_PIPELINE_STATUS = VODPipelineStatus.PENDING.value
 

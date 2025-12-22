@@ -4,6 +4,7 @@ from loguru import logger
 
 from chatzzk_clients._http import AioHTTPClient
 from chatzzk_clients.chzzk import ChzzkAPIClient
+from chatzzk_clients.llm import ContextAssembler
 from chatzzk_clients.media import MediaProcessor
 from chatzzk_clients.ml import AudioLoader
 from chatzzk_clients.ml.asr import create_asr_client
@@ -26,7 +27,7 @@ async def init_client_session():  # https://python-dependency-injector.ets-labs.
 class ClientContainer(containers.DeclarativeContainer):
     """clients 패키지의 의존성을 관리하는 컨테이너"""
 
-    config: providers.Dependency(instance_of=ClientsConfig) = providers.Dependency()
+    config = providers.Dependency(instance_of=ClientsConfig)
 
     _session = providers.Resource(init_client_session)
 
@@ -50,6 +51,11 @@ class ClientContainer(containers.DeclarativeContainer):
 
     asr_client_factory = providers.Singleton(
         create_asr_client, model_config=config.provided.asr, http_client=aiohttp_client
+    )
+
+    context_assembler = providers.Singleton(
+        ContextAssembler,
+        config=config.provided.context_assembler,
     )
 
     # prompt_builder = providers.Singleton(

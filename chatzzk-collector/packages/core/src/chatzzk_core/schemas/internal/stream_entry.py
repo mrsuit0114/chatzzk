@@ -1,5 +1,3 @@
-# 스토리지에 저장하는 포멧을 정의 -> 읽을 때도 같은 포멧으로 읽음
-
 import re
 from abc import ABC, abstractmethod
 from typing import Literal
@@ -40,7 +38,7 @@ class ChatEntry(BaseStreamEntry):
     nickname: str | None = Field(default=None, description="특수 권한 유저 닉네임 (일반 유저는 None)")
 
     def to_context_string(self) -> str:
-        prefix = f"[{self.entry_type.value}]"
+        prefix = f"[{self.entry_type}]"
         if self.nickname:
             return f"{prefix} ({self.nickname}) {self.content}"
         return f"{prefix} {self.content}"
@@ -92,7 +90,7 @@ class ASREntry(BaseStreamEntry):
     end: int = Field(..., description="발화 종료 시점")
 
     def to_context_string(self) -> str:
-        return f"[{self.entry_type.value}] {self.content}"
+        return f"[{self.entry_type}] {self.content}"
 
     def is_hallucination(self, hallucination_keywords: list[str]) -> bool:
         """환각 여부 판단"""

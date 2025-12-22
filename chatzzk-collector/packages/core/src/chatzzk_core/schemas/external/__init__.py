@@ -7,10 +7,8 @@ from .chzzk import (
     ChzzkVODMeta,
     ChzzkVODMetasContent,
 )
-from .ml import ASRResponse
 
 __all__ = [
-    "ASRResponse",
     "ChzzkAPIResponse",
     "ChzzkChannelInfo",
     "ChzzkVideoChat",

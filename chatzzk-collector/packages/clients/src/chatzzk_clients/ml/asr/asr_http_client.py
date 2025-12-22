@@ -8,7 +8,7 @@ from chatzzk_clients._http import AioHTTPClient
 from chatzzk_clients.ml import ASRError
 from chatzzk_clients.ml.asr import ASRClientInterface
 from chatzzk_core.schemas.config.clients import ASRHTTPConfig
-from chatzzk_core.schemas.external import ASRResponse
+from chatzzk_core.schemas.internal import ASRResponse
 
 
 class ASRHTTPClient(ASRClientInterface):

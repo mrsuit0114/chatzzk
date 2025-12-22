@@ -63,6 +63,7 @@ class VOD(Base):
     pipeline_status: Mapped[VODPipelineStatus] = mapped_column(
         Enum(VODPipelineStatus), server_default=text(f"'{DBDefault.VOD_PIPELINE_STATUS}'")
     )
+    is_exposed: Mapped[bool] = mapped_column(Boolean, server_default=DBDefault.IS_EXPOSED)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(

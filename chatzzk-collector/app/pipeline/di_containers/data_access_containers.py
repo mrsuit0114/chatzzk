@@ -33,7 +33,7 @@ async def init_db_engine(url: str, pool_size: int, max_overflow: int):
 
 
 class DataAccessContainer(containers.DeclarativeContainer):
-    config: providers.Dependency(instance_of=DataAccessConfig) = providers.Dependency()
+    config = providers.Dependency(instance_of=DataAccessConfig)
 
     _db_engine = providers.Resource(
         init_db_engine,

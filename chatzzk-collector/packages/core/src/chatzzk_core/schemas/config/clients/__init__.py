@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 
 from .chzzk import ChzzkAPIConfig
 from .http import AioHTTPConfig
-from .llm import LangfuseConfig, LiteLLMProxyConfig
+from .llm import ContextAssemblerConfig, LangfuseConfig, LiteLLMProxyConfig
 from .media_processor import MediaProcessorConfig
 from .ml import ASRConfig, ASRHTTPConfig, AudioLoaderConfig, SileroVADConfig, VADConfig, WhisperXConfig
 
@@ -18,6 +18,7 @@ class ClientsConfig(BaseModel):
     media_processor: MediaProcessorConfig = Field(default_factory=MediaProcessorConfig)
     prompt_builder: LangfuseConfig
     llm_proxy: LiteLLMProxyConfig
+    context_assembler: ContextAssemblerConfig = Field(default_factory=ContextAssemblerConfig)
 
 
 __all__ = [
@@ -30,6 +31,7 @@ __all__ = [
     "MediaProcessorConfig",
     "LangfuseConfig",
     "LiteLLMProxyConfig",
+    "ContextAssemblerConfig",
     "ASRHTTPConfig",
     "SileroVADConfig",
     "WhisperXConfig",

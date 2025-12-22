@@ -5,9 +5,9 @@ from typing import TypeVar
 from urllib.parse import urljoin
 
 import m3u8
-import pydantic
 from aiolimiter import AsyncLimiter
 from loguru import logger
+from pydantic import BaseModel, ValidationError
 
 from chatzzk_clients._http import AioHTTPClient
 from chatzzk_core.schemas.config.clients import ChzzkAPIConfig
@@ -21,7 +21,7 @@ from chatzzk_core.schemas.external import (
     ChzzkVODMetasContent,
 )
 
-T = TypeVar("T", bound=pydantic.BaseModel)
+T = TypeVar("T", bound=BaseModel)
 
 
 class ChzzkAPIClient:
@@ -70,7 +70,7 @@ class ChzzkAPIClient:
 
                 return validated_response.content
 
-            except pydantic.ValidationError as e:
+            except ValidationError as e:
                 logger.error(f"Failed to validate response structure from {url}: {e}")
                 raise
 
