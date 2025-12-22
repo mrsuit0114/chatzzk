@@ -2,13 +2,13 @@ from typing import Any
 
 import aiohttp
 import litellm
-from pydantic import BaseModel
 from loguru import logger
+from pydantic import BaseModel
 
-from chatzzk_schemas.config.clients.llm import LiteLLMProxyConfig
+from chatzzk_core.schemas.config import LiteLLMProxyConfig
 
 
-class LiteLLMProxyClient:
+class LLMPClient:
     """
     LLM Proxy Server에 요청을 보내는 클라이언트.
     litellm의 completion 기능을 활용하여 OpenAI 호환 API(Proxy)와 통신.
