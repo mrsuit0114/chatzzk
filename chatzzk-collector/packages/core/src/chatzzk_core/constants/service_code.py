@@ -20,8 +20,8 @@ class VODProcessingStep(str, Enum):
     DOWNLOAD_AUDIO = "download_audio"
     PERFORM_VAD = "perform_vad"
     PERFORM_ASR = "perform_asr"
-    GENERATE_SUMMARY = "generate_summary"
-    GENERATE_META_SUMMARY = "generate_meta_summary"
+    GENERATE_SEGMENT_SUMMARY = "generate_segment_summary"
+    GENERATE_CHAPTER_SUMMARY = "generate_chapter_summary"
 
 
 class VODPipelineStepStatus(str, Enum):
@@ -59,8 +59,8 @@ class EntryType(str, Enum):
     CHAT = "CHAT"
     DONATION = "DONATION"
     ASR = "ASR"
-    SUMMARY = "SUMMARY"
-    META_SUMMARY = "META_SUMMARY"
+    SEGMENT_SUMMARY = "SEGMENT_SUMMARY"
+    CHAPTER_SUMMARY = "CHAPTER_SUMMARY"
 
 
 ASR_HALLUCINATION_KEYWORDS = [
@@ -94,16 +94,16 @@ class StreamAtmosphere(str, Enum):
 
 
 class ScoreCategory(str, Enum):
-    EXPRESIVENESS = "expresiveness"
-    COHERENCE = "coherence"
+    EXPRESSIVENESS = "expressiveness"
+    REACTION_UNITY = "reaction_unity"
     SIGNIFICANCE = "significance"
 
 
 class StreamContextWindowSize:
     # entries의 timestamp에 대한 window size, 단위는 ms
-    # CHUNK: int = 30 * 1000  채팅과 도네이션 이벤트를 기준으로 탐색할 때 길지도 짧지도 않아야 함
-    SUMMARY: int = 300 * 1000
-    META_SUMMARY: int = 3600 * 1000
+    # CLIP: int = 30 * 1000  채팅과 도네이션 이벤트를 기준으로 탐색할 때 길지도 짧지도 않아야 함
+    SEGMENT: int = 300 * 1000
+    CHAPTER: int = 3600 * 1000
 
 
 class StoragePaths:
@@ -111,9 +111,8 @@ class StoragePaths:
     CHAT = "{vod_id}/chat_entries.jsonl"
     VAD_TIMESTAMPS = "{vod_id}/vad_timestamps.jsonl"
     ASR = "{vod_id}/asr_entries.jsonl"
-    SUMMARY_RAW = "{vod_id}/summary_raw_entries.jsonl"
-    SUMMARY = "{vod_id}/summary_entries.jsonl"
-    META_SUMMARY = "{vod_id}/meta_summary_entries.jsonl"
+    SEGMENT_SUMMARY = "{vod_id}/segment_summary_entries.jsonl"
+    CHAPTER_SUMMARY = "{vod_id}/chapter_summary_entries.jsonl"
 
     TMP_VIDEO = "{vod_id}/tmp/video.mp4"
     TMP_DIR = "{vod_id}/tmp"
@@ -139,16 +138,12 @@ class StoragePaths:
         return cls.ASR.format(vod_id=vod_id)
 
     @classmethod
-    def get_summary_raw_key(cls, vod_id: str | int) -> str:
-        return cls.SUMMARY_RAW.format(vod_id=vod_id)
+    def get_segment_summary_key(cls, vod_id: str | int) -> str:
+        return cls.SEGMENT_SUMMARY.format(vod_id=vod_id)
 
     @classmethod
-    def get_summary_key(cls, vod_id: str | int) -> str:
-        return cls.SUMMARY.format(vod_id=vod_id)
-
-    @classmethod
-    def get_meta_summary_key(cls, vod_id: str | int) -> str:
-        return cls.META_SUMMARY.format(vod_id=vod_id)
+    def get_chapter_summary_key(cls, vod_id: str | int) -> str:
+        return cls.CHAPTER_SUMMARY.format(vod_id=vod_id)
 
     @classmethod
     def get_tmp_dir(cls, vod_id: str | int) -> str:

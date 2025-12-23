@@ -1,11 +1,12 @@
 import re
 from abc import ABC, abstractmethod
-from typing import Literal
+from typing import Literal, cast
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from chatzzk_core.constants import ChzzkUserRoleCode, EntryType, ScoreCategory, StreamAtmosphere
 from chatzzk_core.schemas.external import ChzzkVideoChat
+from chatzzk_core.schemas.internal.llm import SegmentSummaryGenerationOutput
 
 
 class BaseStreamEntry(BaseModel, ABC):
@@ -109,19 +110,36 @@ class ASREntry(BaseStreamEntry):
         )
 
 
-class SummaryEntry(BaseStreamEntry):
-    entry_type: Literal[EntryType.SUMMARY] = EntryType.SUMMARY
+class SegmentSummaryEntry(BaseStreamEntry):
+    entry_type: Literal[EntryType.SEGMENT_SUMMARY] = EntryType.SEGMENT_SUMMARY
     keywords: list[str] = Field(default_factory=list)
     atmosphere: StreamAtmosphere
-    scores: dict[ScoreCategory, int] = Field(default_factory=dict)  # 예: {"fun": 5, "accuracy": 4}
+    scores: dict[ScoreCategory, int] = Field(default_factory=dict)
 
     def to_context_string(self) -> str:
         return self.content
 
+    @classmethod
+    def from_generation_output(
+        cls,
+        timestamp: int,
+        generation_output: SegmentSummaryGenerationOutput,
+    ) -> "SegmentSummaryEntry":
+        scores_dict = cast(dict[ScoreCategory, int], generation_output.scores.model_dump())
 
-class MetaSummaryEntry(BaseStreamEntry):
+        return cls(
+            timestamp=timestamp,
+            content=generation_output.summary_text,
+            entry_type=EntryType.SEGMENT_SUMMARY,
+            keywords=generation_output.keywords,
+            atmosphere=generation_output.atmosphere,
+            scores=scores_dict,
+        )
+
+
+class ChapterSummaryEntry(BaseStreamEntry):
     title: str
-    entry_type: Literal[EntryType.META_SUMMARY] = EntryType.META_SUMMARY
+    entry_type: Literal[EntryType.CHAPTER_SUMMARY] = EntryType.CHAPTER_SUMMARY
 
     def to_context_string(self) -> str:
-        raise NotImplementedError("MetaSummaryEntry is not intended to be used as a generation context.")
+        raise NotImplementedError("ChapterSummaryEntry is not intended to be used as a generation context.")

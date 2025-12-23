@@ -1,12 +1,12 @@
 from .ml import ASRResponse
-from .stream_entry import ASREntry, BaseStreamEntry, ChatEntry, ChzzkChatEntry, MetaSummaryEntry, SummaryEntry
+from .stream_entry import ASREntry, BaseStreamEntry, ChapterSummaryEntry, ChatEntry, ChzzkChatEntry, SegmentSummaryEntry
 
 __all__ = [
     "BaseStreamEntry",
     "ChatEntry",
     "ChzzkChatEntry",
     "ASREntry",
-    "SummaryEntry",
-    "MetaSummaryEntry",
+    "SegmentSummaryEntry",
+    "ChapterSummaryEntry",
     "ASRResponse",
 ]
