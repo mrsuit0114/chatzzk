@@ -1,36 +1,43 @@
-from typing import Any
+from typing import Any, TypeVar
 
-import aiohttp
-import litellm
-from loguru import logger
+import instructor
 from pydantic import BaseModel
 
-from chatzzk_core.schemas.config import LiteLLMProxyConfig
+from chatzzk_core.constants import LLMTask
+from chatzzk_core.schemas.config.clients import LiteLLMConfig
+
+T = TypeVar("T", bound=BaseModel)
 
 
-class LLMPClient:
-    """
-    LLM Proxy Server에 요청을 보내는 클라이언트.
-    litellm의 completion 기능을 활용하여 OpenAI 호환 API(Proxy)와 통신.
-    """
+class LLMClient:
+    def __init__(self, client: instructor.AsyncInstructor, config: LiteLLMConfig):
+        self.client = client
+        self.max_retries = config.max_retries
 
-    def __init__(self, config: LiteLLMProxyConfig, session: aiohttp.ClientSession):
-        self.proxy_url = config.proxy_url
-        self.api_key = config.api_key
-        self.session = session
-        litellm.use_litellm_proxy = True
+    async def request_completion(
+        self, messages: list[dict[str, str]], task: LLMTask, response_model: type[T], **kwargs: Any
+    ) -> T:
+        """
+        LiteLLM Proxy로 요청을 보내고, 구조화된 데이터를 반환합니다.
 
-    async def generate(self, messages: list[dict[str, Any]], model: str, schema_model: BaseModel, **kwargs) -> str:
+        Args:
+            messages: OpenAI 포맷의 메시지 리스트
+            task: LLMTask Enum (LiteLLM Proxy의 model_alias로 사용됨)
+            response_model: 반환받을 Pydantic 모델 클래스
+            **kwargs: 추가 파라미터 (필요한 경우에만 사용)
+
+        Returns:
+            response_model의 인스턴스 (T)
+        """
         try:
-            response = await litellm.acompletion(
-                model=model,
+            response = await self.client.chat.completions.create(
+                model=task.value,
                 messages=messages,
-                response_format=schema_model,
-                base_url=self.proxy_url,
-                api_key=self.api_key,
-                shared_session=self.session,
+                response_model=response_model,
+                max_retries=self.max_retries,
+                **kwargs,
             )
-            return response.choices[0].message.content
+            return response
+
         except Exception as e:
-            logger.error(f"Proxy LLM generation failed: {e}")
             raise e

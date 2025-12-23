@@ -15,10 +15,10 @@ from .client import (
 )
 from .service_code import (
     ASR_HALLUCINATION_KEYWORDS,
+    LLM_PROMPT_PATHS,
     AudioDataConstant,
     DBDefault,
     EntryType,
-    LLMPromptPaths,
     LLMTask,
     MLModelPaths,
     PlatformCode,
@@ -50,7 +50,7 @@ __all__ = [
     "AudioDataConstant",
     "DBDefault",
     "EntryType",
-    "LLMPromptPaths",
+    "LLM_PROMPT_PATHS",
     "LLMTask",
     "MLModelPaths",
     "PlatformCode",

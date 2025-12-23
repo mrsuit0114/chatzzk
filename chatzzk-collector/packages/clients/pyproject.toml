@@ -46,9 +46,9 @@ whisperx = [
 ]
 
 llm-generation = [
-    "chatzzk_clients[http-core]",
+    "instructor>=1.13.0",
+    "openai>=2.9.0",
     "langfuse>=3.10.1",
-    "litellm>=1.80.5",
 ]
 
 

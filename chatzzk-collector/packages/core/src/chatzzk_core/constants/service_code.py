@@ -73,15 +73,15 @@ ASR_HALLUCINATION_KEYWORDS = [
 
 
 class LLMTask(str, Enum):
-    SUMMARIZE = "summarize"
-    META_SUMMARIZE = "meta_summarize"
+    SEGMENT_SUMMARIZE = "segment_summarize"
+    CHAPTER_SUMMARIZE = "chapter_summarize"
 
 
-class LLMPromptPaths:
-    BY_TASK = {
-        LLMTask.SUMMARIZE: "stream/segment-analyzer",
-        LLMTask.META_SUMMARIZE: "stream/context-integrator",
-    }
+# LLMTask와 구분하면 다대일, 버전관리가 용이함
+LLM_PROMPT_PATHS = {
+    LLMTask.SEGMENT_SUMMARIZE: "segment-summarizer",
+    LLMTask.CHAPTER_SUMMARIZE: "chapter-summarizer",
+}
 
 
 class StreamAtmosphere(str, Enum):
@@ -100,10 +100,11 @@ class ScoreCategory(str, Enum):
 
 
 class StreamContextWindowSize:
-    # entries의 timestamp에 대한 window size, 단위는 ms
-    # CLIP: int = 30 * 1000  채팅과 도네이션 이벤트를 기준으로 탐색할 때 길지도 짧지도 않아야 함
+    # ms
+    CLIP: int = 30 * 1000
     SEGMENT: int = 300 * 1000
     CHAPTER: int = 3600 * 1000
+    STREAM_LOG_PADDING: int = 5 * 60 * 1000
 
 
 class StoragePaths:
