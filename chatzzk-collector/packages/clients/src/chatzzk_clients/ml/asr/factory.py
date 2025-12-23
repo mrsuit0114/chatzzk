@@ -5,7 +5,7 @@ from chatzzk_core.schemas.config.clients import ASRConfig, ASRHTTPConfig, Whispe
 
 
 def create_asr_client(model_config: ASRConfig, *, http_client=None) -> ASRClientInterface:
-    logger.info(f"Creating ASR client for implementation: {model_config.asr_implementation}")
+    logger.info(f"Creating ASR client for implementation: {model_config.implementation}")
 
     if isinstance(model_config, WhisperXConfig):
         from chatzzk_clients.ml.asr.whisperx_client import WhisperxClient

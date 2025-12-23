@@ -62,7 +62,7 @@ class ServiceContainer(containers.DeclarativeContainer):
         VADService,
         audio_loader=client.audio_loader,
         vod_repo=data_access.vod_repo,
-        vad_client=client.vad_client_factory,
+        vad_client=client.vad_client,
         tmp_storage=data_access.tmp_storage,
         db_session_factory=data_access.db_session_factory,
     )
@@ -71,7 +71,7 @@ class ServiceContainer(containers.DeclarativeContainer):
         ASRService,
         audio_loader=client.audio_loader,
         vod_repo=data_access.vod_repo,
-        asr_client=client.asr_client_factory,
+        asr_client=client.asr_client,
         tmp_storage=data_access.tmp_storage,
         db_session_factory=data_access.db_session_factory,
     )

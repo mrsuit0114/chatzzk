@@ -79,11 +79,9 @@ class ClientContainer(containers.DeclarativeContainer):
 
     audio_loader = providers.Singleton(AudioLoader, config=config.provided.audio_loader)
 
-    vad_client_factory = providers.Singleton(create_vad_client, model_config=config.provided.vad)
+    vad_client = providers.Singleton(create_vad_client, model_config=config.provided.vad)
 
-    asr_client_factory = providers.Singleton(
-        create_asr_client, model_config=config.provided.asr, http_client=aiohttp_client
-    )
+    asr_client = providers.Singleton(create_asr_client, model_config=config.provided.asr, http_client=aiohttp_client)
 
     context_assembler = providers.Singleton(
         ContextAssembler,

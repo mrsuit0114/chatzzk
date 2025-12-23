@@ -85,12 +85,14 @@ LLM_PROMPT_PATHS = {
 
 
 class StreamAtmosphere(str, Enum):
-    SADNESS = "슬픔"
     NEUTRAL = "중립"
     HILARIOUS = "폭소"
+    SADNESS = "슬픔"
     ANGER = "분노"
+    BOOING = "야유"
     ADMIRATION = "감탄"
     ANTICIPATION = "기대"
+    ENCOURAGEMENT = "격려"
 
 
 class ScoreCategory(str, Enum):
@@ -99,7 +101,7 @@ class ScoreCategory(str, Enum):
     SIGNIFICANCE = "significance"
 
 
-class StreamContextWindowSize:
+class StreamContextWindowConfig:
     # ms
     CLIP: int = 30 * 1000
     SEGMENT: int = 300 * 1000

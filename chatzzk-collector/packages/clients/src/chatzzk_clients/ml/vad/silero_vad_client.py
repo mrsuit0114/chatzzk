@@ -11,8 +11,6 @@ from chatzzk_clients.ml import VADError
 from chatzzk_clients.ml.vad import VADClientInterface
 from chatzzk_core.schemas.config.clients import SileroVADConfig
 
-# --- 멀티프로세싱을 위한 최상위 레벨 함수 정의 ---
-
 
 def init_vad_worker():
     """각 자식 프로세스에서 VAD 모델을 초기화하는 함수"""
@@ -49,14 +47,49 @@ def process_vad_chunk(
         raise VADError("VAD detection failed in worker process") from e
 
 
-# --- SileroVADClient 클래스 --- VAD 작업 오케스트레이터
+class VADProcessGroup:
+    def __init__(self, config: SileroVADConfig):
+        self.executor = ProcessPoolExecutor(
+            max_workers=config.worker_num,
+            initializer=init_vad_worker,
+        )
+        self.config = config
+
+    async def run_chunks(self, chunks: list[np.ndarray]):
+        loop = asyncio.get_running_loop()
+        tasks = [
+            loop.run_in_executor(
+                self.executor,
+                partial(
+                    process_vad_chunk,
+                    audio_chunk_np=chunk,
+                    threshold=self.config.threshold,
+                    min_silence_duration_ms=self.config.min_silence_duration_ms,
+                    max_speech_duration_s=self.config.max_speech_duration_s,
+                ),
+            )
+            for chunk in chunks
+        ]
+        return await asyncio.gather(*tasks)
+
+    def close(self):
+        self.executor.shutdown()
+
+
+class VADProcessGroupPool:
+    def __init__(self, group_count: int, config: SileroVADConfig):
+        self.queue = asyncio.Queue()
+        for _ in range(group_count):
+            self.queue.put_nowait(VADProcessGroup(config))
 
 
 class SileroVADClient(VADClientInterface):
     def __init__(self, config: SileroVADConfig):
         self.config = config
-        self.executor = ProcessPoolExecutor(max_workers=config.worker_num, initializer=init_vad_worker)
-        logger.info(f"SileroVADClient initialized with ProcessPoolExecutor(worker_num={config.worker_num}).")
+        self.group_pool = VADProcessGroupPool(
+            group_count=config.parallel_num,
+            config=config,
+        )
 
     def _split_audio(self, audio_np: np.ndarray) -> tuple[list[np.ndarray], list[int]]:
         total_len = len(audio_np)
@@ -87,7 +120,6 @@ class SileroVADClient(VADClientInterface):
     def _combine_chunk_timestamps(
         self, chunk_results: list[list[dict[str, int]]], chunk_starts: list[int], min_silence_samples: int
     ):
-        # chunk_timestamps: _split_audio에서 구한 chunks에 대해 timestamps의 리스트 list[list[dict[str, int]]]
         combined_timestamps: list[dict[str, int]] = []
 
         for i, chunk_timestamps in enumerate(chunk_results):
@@ -117,34 +149,11 @@ class SileroVADClient(VADClientInterface):
 
         return combined_timestamps
 
-    async def detect_speech(self, audio_np: np.ndarray) -> list[dict[str, int]]:
-        audio_chunks, chunk_start_by_chunk_samples = self._split_audio(audio_np)
-
-        loop = asyncio.get_running_loop()
-        tasks = [
-            loop.run_in_executor(
-                self.executor,
-                partial(
-                    process_vad_chunk,
-                    audio_chunk_np=chunk,
-                    min_silence_duration_ms=self.config.min_silence_duration_ms,
-                    max_speech_duration_s=self.config.max_speech_duration_s,
-                    threshold=self.config.threshold,
-                ),
-            )
-            for chunk in audio_chunks
-        ]
-
+    async def detect_speech(self, audio_np: np.ndarray):
+        group = await self.group_pool.queue.get()
         try:
-            chunk_results = await asyncio.gather(*tasks)
-            return self._combine_chunk_timestamps(
-                chunk_results, chunk_start_by_chunk_samples, self.config.min_silence_duration_samples
-            )
-        except Exception as e:
-            logger.error(f"An error occurred during parallel VAD processing: {e}")
-            raise VADError("Failed to execute VAD task in process pool") from e
-
-    def close(self):
-        """애플리케이션 종료 시 Executor를 안전하게 종료합니다."""
-        logger.info("Shutting down VAD ProcessPoolExecutor...")
-        self.executor.shutdown()
+            chunks, starts = self._split_audio(audio_np)
+            results = await group.run_chunks(chunks)
+            return self._combine_chunk_timestamps(results, starts, self.config.min_silence_duration_samples)
+        finally:
+            self.group_pool.queue.put_nowait(group)

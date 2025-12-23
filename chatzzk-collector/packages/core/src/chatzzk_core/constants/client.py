@@ -2,18 +2,19 @@ from .service_code import AudioDataConstant, MLModelPaths
 
 
 class SileroVADConstant:
-    VAD_IMPLEMENTATION = "silero_vad"
+    IMPLEMENTATION = "silero_vad"
     MIN_SILENCE_DURATION_MS = 500
     MAX_SPEECH_DURATION_S = AudioDataConstant.MAX_SPEECH_DURATION_S
     MIN_SILENCE_DURATION_SAMPLES = MIN_SILENCE_DURATION_MS * AudioDataConstant.SAMPLE_RATE // 1000
     THRESHOLD = 0.5
+    PARALLEL_NUM = 2
     WORKER_NUM = 4
     OVERLAP_NUM = 3
     SAMPLE_CHUNK_SIZE = 64
 
 
 class WhisperXConstant:
-    ASR_IMPLEMENTATION = "whisperx"
+    IMPLEMENTATION = "whisperx"
     DEVICE = "cuda"
     MODEL_SIZE = "large-v3"
     COMPUTE_TYPE = "float16"
@@ -23,7 +24,7 @@ class WhisperXConstant:
 
 
 class ASRHTTPConstant:
-    ASR_IMPLEMENTATION = "http"
+    IMPLEMENTATION = "http"
 
 
 class AioHTTPConstant:

@@ -23,12 +23,14 @@ class ContextAssembler:
         self,
         iterators: list[AsyncGenerator[T, None]],
         window_size_ms: int,
-        step_size_ms: int,
+        step_size_ms: int = 0,
         padding_ms: int = 0,
         preprocess_chat: bool = True,
     ) -> AsyncGenerator[list[T], None]:
         # [State] 메서드 지역 변수로 버퍼 관리 (동시성 안전)
         window_buffer: deque[T] = deque()
+        if step_size_ms == 0:
+            step_size_ms = window_size_ms
 
         merged_stream = self._merge_streams(iterators)
         current_window_start = 0

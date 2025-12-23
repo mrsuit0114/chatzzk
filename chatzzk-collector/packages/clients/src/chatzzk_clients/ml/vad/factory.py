@@ -5,7 +5,7 @@ from chatzzk_core.schemas.config.clients import SileroVADConfig, VADConfig
 
 
 def create_vad_client(model_config: VADConfig) -> VADClientInterface:
-    logger.info(f"Creating VAD client for implementation: {model_config.vad_implementation}")
+    logger.info(f"Creating VAD client for implementation: {model_config.implementation}")
 
     if isinstance(model_config, SileroVADConfig):
         from chatzzk_clients.ml.vad.silero_vad_client import SileroVADClient
