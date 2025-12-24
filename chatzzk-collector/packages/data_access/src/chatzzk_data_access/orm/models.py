@@ -104,7 +104,7 @@ class ChannelMetadata(Base):
         ForeignKey("channels.id", ondelete="CASCADE", name="channel_metadata_channel_id_fkey"), unique=True
     )
 
-    metadata: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB), server_default=text("'{}'::jsonb"))
+    attributes: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB), server_default=text("'{}'::jsonb"))
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

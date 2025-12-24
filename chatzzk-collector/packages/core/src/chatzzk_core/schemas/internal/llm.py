@@ -3,10 +3,9 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from chatzzk_core.constants.service_code import StreamAtmosphere
-from chatzzk_core.schemas.internal.shared import ContextRenderable
 
 
-class PlatformMetadataContext(BaseModel, ContextRenderable):
+class PlatformMetadataContext(BaseModel):
     model_config = ConfigDict(from_attributes=True, extra="ignore")
     platform_name: str
     donation_unit: str | None = None
@@ -20,7 +19,7 @@ class PlatformMetadataContext(BaseModel, ContextRenderable):
 
 
 # ChannelLLMContext의 llm_context을 구성할 때도 이 모델을 사용할 것
-class ChannelMetadataContext(BaseModel, ContextRenderable):
+class ChannelMetadataContext(BaseModel):
     model_config = ConfigDict(extra="ignore")
     streamer_nicknames: list[str] = Field(default_factory=list)
     streamer_sex: Literal["남성", "여성"] = "남성"
@@ -51,7 +50,7 @@ class ChannelMetadataContext(BaseModel, ContextRenderable):
         return "\n".join(channel_lines)
 
 
-class MetadataContext(BaseModel, ContextRenderable):
+class MetadataContext(BaseModel):
     platform: PlatformMetadataContext
     channel: ChannelMetadataContext
 
@@ -74,14 +73,13 @@ class SegmentSummaryGenerationInput(BaseModel):
         platform_metadata_context: PlatformMetadataContext,
         channel_metadata_context: ChannelMetadataContext,
         previous_summary: str,
-        broadcast_logs: list[ContextRenderable],
+        broadcast_logs: str,
     ) -> "SegmentSummaryGenerationInput":
         metadata_context = MetadataContext(platform=platform_metadata_context, channel=channel_metadata_context)
-        broadcast_logs_str = "\n".join(log.to_context_string() for log in broadcast_logs)
         return cls(
             metadata_context=metadata_context.to_context_string(),
             previous_summary=previous_summary,
-            broadcast_logs=broadcast_logs_str,
+            broadcast_logs=broadcast_logs,
         )
 
 
@@ -121,12 +119,12 @@ class ChapterSummaryGenerationInput(BaseModel):
         cls,
         platform_metadata_context: PlatformMetadataContext,
         channel_metadata_context: ChannelMetadataContext,
-        segment_summaries: list[ContextRenderable],
+        segment_summaries: str,
     ) -> "ChapterSummaryGenerationInput":
         metadata_context = MetadataContext(platform=platform_metadata_context, channel=channel_metadata_context)
         return cls(
             metadata_context=metadata_context.to_context_string(),
-            segment_summaries="\n\n".join(summary.to_context_string() for summary in segment_summaries),
+            segment_summaries=segment_summaries,
         )
 
 

@@ -101,12 +101,12 @@ class ScoreCategory(str, Enum):
     SIGNIFICANCE = "significance"
 
 
-class StreamWindowConfig:
+class StreamWindowConstant:
     # ms
-    CLIP: int = 30 * 1000
-    SEGMENT: int = 300 * 1000
-    CHAPTER: int = 3600 * 1000
-    STREAM_LOG_PADDING: int = 5 * 60 * 1000
+    CLIP_SIZE: int = 30 * 1000
+    SEGMENT_SIZE: int = 300 * 1000
+    CHAPTER_SIZE: int = 3600 * 1000
+    STREAM_LOG_PADDING_SIZE: int = 5 * 60 * 1000
 
 
 class StoragePaths:

@@ -1,5 +1,4 @@
 import re
-from abc import ABC
 from typing import Literal, cast
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -7,10 +6,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from chatzzk_core.constants import ChzzkUserRoleCode, EntryType, ScoreCategory, StreamAtmosphere
 from chatzzk_core.schemas.external import ChzzkVideoChat
 from chatzzk_core.schemas.internal.llm import SegmentSummaryGenerationOutput
-from chatzzk_core.schemas.internal.shared import ContextRenderable
 
 
-class BaseStreamEntry(BaseModel, ABC):
+class BaseStreamEntry(BaseModel):
     # 스트림 엔트리의 기본 클래스
     model_config = ConfigDict(use_enum_values=True)
 
@@ -27,7 +25,7 @@ class BaseStreamEntry(BaseModel, ABC):
         return self
 
 
-class ChatEntry(BaseStreamEntry, ContextRenderable):
+class ChatEntry(BaseStreamEntry):
     entry_type: Literal[EntryType.CHAT, EntryType.DONATION]
     nickname: str | None = Field(default=None, description="특수 권한 유저 닉네임 (일반 유저는 None)")
 
@@ -78,7 +76,7 @@ class ChzzkChatEntry(ChatEntry):
         )
 
 
-class ASREntry(BaseStreamEntry, ContextRenderable):
+class ASREntry(BaseStreamEntry):
     entry_type: Literal[EntryType.ASR] = EntryType.ASR
     start: int = Field(..., description="발화 시작 시점 (Sample Index 기반 환산 값)")
     end: int = Field(..., description="발화 종료 시점")
@@ -103,7 +101,7 @@ class ASREntry(BaseStreamEntry, ContextRenderable):
         )
 
 
-class SegmentSummaryEntry(BaseStreamEntry, ContextRenderable):
+class SegmentSummaryEntry(BaseStreamEntry):
     entry_type: Literal[EntryType.SEGMENT_SUMMARY] = EntryType.SEGMENT_SUMMARY
     keywords: list[str] = Field(default_factory=list)
     atmosphere: StreamAtmosphere
@@ -130,7 +128,7 @@ class SegmentSummaryEntry(BaseStreamEntry, ContextRenderable):
         )
 
 
-class ChapterSummaryEntry(BaseStreamEntry, ContextRenderable):
+class ChapterSummaryEntry(BaseStreamEntry):
     title: str
     entry_type: Literal[EntryType.CHAPTER_SUMMARY] = EntryType.CHAPTER_SUMMARY
 
