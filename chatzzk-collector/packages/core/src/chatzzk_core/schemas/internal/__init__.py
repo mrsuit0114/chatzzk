@@ -1,13 +1,13 @@
 from .llm import (
-    ChannelMetadata,
+    ChannelMetadataContext,
     ChapterSummaryGenerationInput,
     ChapterSummaryGenerationOutput,
-    PlatformMetadata,
+    PlatformMetadataContext,
     SegmentSummaryGenerationInput,
     SegmentSummaryGenerationOutput,
 )
 from .ml import ASRResponse
-from .stream_entry import ASREntry, BaseStreamEntry, ChapterSummaryEntry, ChatEntry, ChzzkChatEntry, SegmentSummaryEntry
+from .stream import ASREntry, BaseStreamEntry, ChapterSummaryEntry, ChatEntry, ChzzkChatEntry, SegmentSummaryEntry
 
 __all__ = [
     "BaseStreamEntry",
@@ -21,6 +21,6 @@ __all__ = [
     "SegmentSummaryGenerationOutput",
     "ChapterSummaryGenerationInput",
     "SegmentSummaryGenerationInput",
-    "ChannelMetadata",
-    "PlatformMetadata",
+    "ChannelMetadataContext",
+    "PlatformMetadataContext",
 ]

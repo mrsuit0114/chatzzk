@@ -8,7 +8,7 @@ from chatzzk_data_access.orm import Platform
 
 
 class PlatformRepository:
-    async def get_platform_by_code(self, session: AsyncSession, platform_code: PlatformCode) -> Platform | None:
+    async def get_platform_by_code(self, session: AsyncSession, platform_code: PlatformCode) -> Platform:
         stmt = select(Platform).where(Platform.platform_code == platform_code)
         result = await session.execute(stmt)
-        return result.first()
+        return result.scalar_one()

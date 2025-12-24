@@ -1,5 +1,5 @@
 import re
-from abc import ABC, abstractmethod
+from abc import ABC
 from typing import Literal, cast
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -7,14 +7,16 @@ from pydantic import BaseModel, ConfigDict, Field
 from chatzzk_core.constants import ChzzkUserRoleCode, EntryType, ScoreCategory, StreamAtmosphere
 from chatzzk_core.schemas.external import ChzzkVideoChat
 from chatzzk_core.schemas.internal.llm import SegmentSummaryGenerationOutput
+from chatzzk_core.schemas.internal.shared import ContextRenderable
 
 
 class BaseStreamEntry(BaseModel, ABC):
+    # 스트림 엔트리의 기본 클래스
+    model_config = ConfigDict(use_enum_values=True)
+
     timestamp: int
     content: str
     entry_type: EntryType
-
-    model_config = ConfigDict(use_enum_values=True)
 
     def __lt__(self, other: "BaseStreamEntry") -> bool:
         if not isinstance(other, BaseStreamEntry):
@@ -24,17 +26,8 @@ class BaseStreamEntry(BaseModel, ABC):
     def sanitize(self) -> "BaseStreamEntry":
         return self
 
-    # [핵심 2] 컨텍스트 변환은 필수 구현 (Assembler가 호출하므로)
-    @abstractmethod
-    def to_context_string(self) -> str:
-        """
-        LLM 입력용 컨텍스트 문자열로 변환합니다.
-        LLM 입력으로 사용되지 않는 모델은 NotImplementedError를 발생시킵니다.
-        """
-        pass
 
-
-class ChatEntry(BaseStreamEntry):
+class ChatEntry(BaseStreamEntry, ContextRenderable):
     entry_type: Literal[EntryType.CHAT, EntryType.DONATION]
     nickname: str | None = Field(default=None, description="특수 권한 유저 닉네임 (일반 유저는 None)")
 
@@ -85,7 +78,7 @@ class ChzzkChatEntry(ChatEntry):
         )
 
 
-class ASREntry(BaseStreamEntry):
+class ASREntry(BaseStreamEntry, ContextRenderable):
     entry_type: Literal[EntryType.ASR] = EntryType.ASR
     start: int = Field(..., description="발화 시작 시점 (Sample Index 기반 환산 값)")
     end: int = Field(..., description="발화 종료 시점")
@@ -110,7 +103,7 @@ class ASREntry(BaseStreamEntry):
         )
 
 
-class SegmentSummaryEntry(BaseStreamEntry):
+class SegmentSummaryEntry(BaseStreamEntry, ContextRenderable):
     entry_type: Literal[EntryType.SEGMENT_SUMMARY] = EntryType.SEGMENT_SUMMARY
     keywords: list[str] = Field(default_factory=list)
     atmosphere: StreamAtmosphere
@@ -137,9 +130,9 @@ class SegmentSummaryEntry(BaseStreamEntry):
         )
 
 
-class ChapterSummaryEntry(BaseStreamEntry):
+class ChapterSummaryEntry(BaseStreamEntry, ContextRenderable):
     title: str
     entry_type: Literal[EntryType.CHAPTER_SUMMARY] = EntryType.CHAPTER_SUMMARY
 
     def to_context_string(self) -> str:
-        raise NotImplementedError("ChapterSummaryEntry is not intended to be used as a generation context.")
+        return self.content

@@ -45,7 +45,7 @@ class Channel(Base):
 
     platform: Mapped["Platform"] = relationship(back_populates="channels")
     vods: Mapped[list["VOD"]] = relationship(back_populates="channel", cascade="all, delete-orphan")
-    channel_llm_context: Mapped["ChannelLLMContext"] = relationship(
+    channel_metadata: Mapped["ChannelMetadata"] = relationship(
         back_populates="channel", cascade="all, delete-orphan", uselist=False
     )
 
@@ -96,21 +96,21 @@ class VODPipelineLog(Base):
     vod: Mapped["VOD"] = relationship(back_populates="pipeline_log")
 
 
-class ChannelLLMContext(Base):
-    __tablename__ = "channel_llm_contexts"
+class ChannelMetadata(Base):
+    __tablename__ = "channel_metadata"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     channel_id: Mapped[int] = mapped_column(
-        ForeignKey("channels.id", ondelete="CASCADE", name="channel_llm_contexts_channel_id_fkey"), unique=True
+        ForeignKey("channels.id", ondelete="CASCADE", name="channel_metadata_channel_id_fkey"), unique=True
     )
 
-    llm_context: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB), server_default=text("'{}'::jsonb"))
+    metadata: Mapped[dict] = mapped_column(MutableDict.as_mutable(JSONB), server_default=text("'{}'::jsonb"))
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    channel: Mapped["Channel"] = relationship(back_populates="channel_llm_context")
+    channel: Mapped["Channel"] = relationship(back_populates="channel_metadata")
 
 
 # class ChzzkChannel(Base):

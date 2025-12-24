@@ -101,7 +101,7 @@ class ScoreCategory(str, Enum):
     SIGNIFICANCE = "significance"
 
 
-class StreamContextWindowConfig:
+class StreamWindowConfig:
     # ms
     CLIP: int = 30 * 1000
     SEGMENT: int = 300 * 1000

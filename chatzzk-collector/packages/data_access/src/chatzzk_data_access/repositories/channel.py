@@ -6,16 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from chatzzk_core.constants import PlatformCode
 from chatzzk_data_access.orm import Channel, Platform
+from chatzzk_data_access.orm.models import ChannelMetadata
 
 
 class ChannelRepository:
-    async def get_channel_by_platform_channel_id(
-        self, session: AsyncSession, platform_code: int, platform_channel_id: int
-    ) -> Channel | None:
-        stmt = select(Channel).where(Channel.platform_channel_id == platform_channel_id)
-        result = await session.execute(stmt)
-        return result.scalar_one_or_none()
-
     async def get_active_channels_by_platform_code(
         self, session: AsyncSession, platform_code: PlatformCode
     ) -> Sequence[Channel]:
@@ -44,3 +38,10 @@ class ChannelRepository:
     async def update_last_crawled_at(self, session: AsyncSession, channel_id: int, scanned_at: datetime) -> None:
         stmt = update(Channel).where(Channel.id == channel_id).values(last_vod_crawled_at=scanned_at)
         await session.execute(stmt)
+
+    async def get_channel_metadata_by_channel_id(self, session: AsyncSession, channel_id: int) -> dict:
+        stmt = select(ChannelMetadata.metadata).where(ChannelMetadata.channel_id == channel_id)
+        result = await session.execute(stmt)
+        metadata = result.scalar_one_or_none()
+
+        return metadata if metadata is not None else {}
