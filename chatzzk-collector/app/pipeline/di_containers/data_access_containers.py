@@ -3,7 +3,7 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from chatzzk_core.schemas.config import DataAccessConfig
-from chatzzk_data_access.repositories import ChannelRepository, VODRepository
+from chatzzk_data_access.repositories import ChannelRepository, PlatformRepository, VODRepository
 from chatzzk_data_access.storages import LocalStorage
 
 
@@ -46,6 +46,7 @@ class DataAccessContainer(containers.DeclarativeContainer):
         async_sessionmaker, bind=_db_engine, expire_on_commit=False, class_=AsyncSession
     )
 
+    platform_repo = providers.Singleton(PlatformRepository)
     channel_repo = providers.Singleton(ChannelRepository)
     vod_repo = providers.Singleton(VODRepository)
     tmp_storage = providers.Singleton(LocalStorage, base_dir=config.provided.tmp_storage_base_dir)

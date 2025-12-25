@@ -20,7 +20,6 @@ class PlatformMetadataContext(BaseModel):
 
 # ChannelLLMContext의 llm_context을 구성할 때도 이 모델을 사용할 것
 class ChannelMetadataContext(BaseModel):
-    model_config = ConfigDict(extra="ignore")
     streamer_nicknames: list[str] = Field(default_factory=list)
     streamer_sex: Literal["남성", "여성"] = "남성"
     fan_nicknames: list[str] = Field(default_factory=list)
@@ -64,7 +63,7 @@ class SegmentSummaryGenerationInput(BaseModel):
     atmosphere_list: str = ", ".join(atmo.value for atmo in StreamAtmosphere)
 
     metadata_context: str
-    previous_summary: str = Field(default="이전 요약이 없습니다.", description="이전 구간 요약문")
+    previous_summary: str
     broadcast_logs: str = Field(..., description="방송 로그 (ASR, CHAT, DONATION), 없는 경우 llm API 호출 불가")
 
     @classmethod
@@ -75,6 +74,8 @@ class SegmentSummaryGenerationInput(BaseModel):
         previous_summary: str,
         broadcast_logs: str,
     ) -> "SegmentSummaryGenerationInput":
+        if previous_summary == "":
+            previous_summary = "이전 요약이 없습니다."
         metadata_context = MetadataContext(platform=platform_metadata_context, channel=channel_metadata_context)
         return cls(
             metadata_context=metadata_context.to_context_string(),

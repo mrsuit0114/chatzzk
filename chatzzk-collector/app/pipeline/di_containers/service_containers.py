@@ -3,6 +3,7 @@ from dependency_injector import containers, providers
 from app.pipeline.implementations.asr_service import ASRService
 from app.pipeline.implementations.audio_collection_services import ChzzkAudioCollectionService
 from app.pipeline.implementations.chat_collection_services import ChzzkChatCollectionService
+from app.pipeline.implementations.llm_generation_service import LLMGenerationService
 from app.pipeline.implementations.vad_service import VADService
 from app.pipeline.implementations.vod_discovery_services import ChzzkVODDiscoveryService
 from chatzzk_core.constants import PlatformCode
@@ -74,4 +75,17 @@ class ServiceContainer(containers.DeclarativeContainer):
         asr_client=client.asr_client,
         tmp_storage=data_access.tmp_storage,
         db_session_factory=data_access.db_session_factory,
+    )
+
+    llm_generation_service = providers.Singleton(
+        LLMGenerationService,
+        tmp_storage=data_access.tmp_storage,
+        platform_repo=data_access.platform_repo,
+        channel_repo=data_access.channel_repo,
+        vod_repo=data_access.vod_repo,
+        db_session_factory=data_access.db_session_factory,
+        context_assembler=client.context_assembler,
+        llm_client=client.llm_client,
+        config=config.provided.llm_generation,
+        prompt_manager=client.prompt_manager,
     )

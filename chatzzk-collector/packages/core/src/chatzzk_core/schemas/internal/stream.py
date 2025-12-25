@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from chatzzk_core.constants import ChzzkUserRoleCode, EntryType, ScoreCategory, StreamAtmosphere
 from chatzzk_core.schemas.external import ChzzkVideoChat
-from chatzzk_core.schemas.internal.llm import SegmentSummaryGenerationOutput
+from chatzzk_core.schemas.internal.llm import ChapterSummaryGenerationOutput, SegmentSummaryGenerationOutput
 
 
 class BaseStreamEntry(BaseModel):
@@ -134,3 +134,16 @@ class ChapterSummaryEntry(BaseStreamEntry):
 
     def to_context_string(self) -> str:
         return self.content
+
+    @classmethod
+    def from_generation_output(
+        cls,
+        timestamp: int,
+        generation_output: ChapterSummaryGenerationOutput,
+    ) -> "ChapterSummaryEntry":
+        return cls(
+            timestamp=timestamp,
+            content=generation_output.summary_text,
+            entry_type=EntryType.CHAPTER_SUMMARY,
+            title=generation_output.title,
+        )

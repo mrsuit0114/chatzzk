@@ -1,5 +1,10 @@
 model_list:
-  - model_name: summarize
+  - model_name: segment_summarize
+    litellm_params:
+      model: gemini/gemini-2.5-flash
+      temperature: 0.2
+
+  - model_name: chapter_summarize
     litellm_params:
       model: gemini/gemini-2.5-flash
       temperature: 0.2

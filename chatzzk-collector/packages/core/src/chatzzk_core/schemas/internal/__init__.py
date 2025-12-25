@@ -2,6 +2,7 @@ from .llm import (
     ChannelMetadataContext,
     ChapterSummaryGenerationInput,
     ChapterSummaryGenerationOutput,
+    EvaluationScores,
     PlatformMetadataContext,
     SegmentSummaryGenerationInput,
     SegmentSummaryGenerationOutput,
@@ -23,4 +24,5 @@ __all__ = [
     "SegmentSummaryGenerationInput",
     "ChannelMetadataContext",
     "PlatformMetadataContext",
+    "EvaluationScores",
 ]

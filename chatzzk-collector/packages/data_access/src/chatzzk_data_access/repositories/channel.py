@@ -40,7 +40,7 @@ class ChannelRepository:
         await session.execute(stmt)
 
     async def get_channel_metadata_by_channel_id(self, session: AsyncSession, channel_id: int) -> dict:
-        stmt = select(ChannelMetadata.metadata).where(ChannelMetadata.channel_id == channel_id)
+        stmt = select(ChannelMetadata.attributes).where(ChannelMetadata.channel_id == channel_id)
         result = await session.execute(stmt)
         metadata = result.scalar_one_or_none()
 
