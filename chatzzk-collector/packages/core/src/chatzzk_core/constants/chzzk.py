@@ -1,5 +1,5 @@
 from datetime import timedelta
-from enum import Enum
+from enum import IntEnum, StrEnum
 
 
 class ChzzkAPIConstant:
@@ -28,25 +28,25 @@ class ChzzkAPIConstant:
     RATE_LIMIT_TIME_PERIOD = 0.1
 
 
-class ChzzkMessageTypeCode(int, Enum):
+class ChzzkMessageTypeCode(IntEnum):
     CHAT = 1
     DONATION = 10
     SYSTEM = 30
 
 
-class ChzzkSubscriptionTier(int, Enum):
+class ChzzkSubscriptionTier(IntEnum):
     NO_SUBSCRIPTION = 0
     GENERAL = 1
     PREMIUM = 2
 
 
-class ChzzkOsType(str, Enum):
+class ChzzkOsType(StrEnum):
     IOS = "IOS"
     PC = "PC"
     AOS = "AOS"
 
 
-class ChzzkUserRoleCode(str, Enum):
+class ChzzkUserRoleCode(StrEnum):
     COMMON_USER = "common_user"
     STREAMING_CHAT_MANAGER = "streaming_chat_manager"
     STREAMING_CHANNEL_OWNER = "streaming_channel_owner"

@@ -23,9 +23,9 @@ class BasePipelineService:
     async def is_step_completed(self, vod_id: int, step: VODProcessingStep) -> bool:
         async with self.db_session_factory() as session:
             log_details = await self.vod_repo.get_log_details(session, vod_id)
-            step_info = log_details.get(step.value, {})
+            step_info = log_details.get(step, {})
 
-            if step_info.get("status") == VODPipelineStepStatus.COMPLETED.value:
+            if step_info.get("status") == VODPipelineStepStatus.COMPLETED:
                 return True
             return False
 
@@ -38,8 +38,8 @@ class BasePipelineService:
         end_at: datetime,
     ) -> None:
         update_payload = {
-            step.value: {
-                "status": status.value,
+            step: {
+                "status": status,
                 "start_at": start_at.isoformat(),
                 "end_at": end_at.isoformat(),
             }

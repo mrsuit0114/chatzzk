@@ -1,40 +1,43 @@
 # 나중에는 값을 yaml 파일로 옮기고 읽어오기만 해야할 듯 -> 빌드 컨텍스트에 포함되어 골치아픔
-from enum import Enum
+from enum import StrEnum
 
 
-class PlatformCode(str, Enum):
+class PlatformCode(StrEnum):
     CHZZK = "chzzk"
     YOUTUBE = "youtube"
     SOOP = "sooplive"
 
 
-class VODPipelineStatus(str, Enum):
+class VODPipelineStatus(StrEnum):
     PENDING = "PENDING"  # 모든 처리를 기다리는 초기 상태
     PROCESSING = "PROCESSING"  # 하나 이상의 파이프라인 단계가 진행 중인 상태
     COMPLETED = "COMPLETED"  # 모든 파이프라인 단계가 성공적으로 완료된 상태
     FAILED = "FAILED"  # 하나 이상의 필수 파이프라인 단계가 실패한 상태
 
 
-class VODProcessingStep(str, Enum):
+class VODProcessingStep(StrEnum):
     CRAWL_CHATS = "crawl_chats"
     DOWNLOAD_AUDIO = "download_audio"
     PERFORM_VAD = "perform_vad"
     PERFORM_ASR = "perform_asr"
     GENERATE_SEGMENT_SUMMARY = "generate_segment_summary"
     GENERATE_CHAPTER_SUMMARY = "generate_chapter_summary"
+    GENERATE_ANALYTICS = "generate_analytics"
 
 
-class VODPipelineStepStatus(str, Enum):
+class VODPipelineStepStatus(StrEnum):
     COMPLETED = "completed"
     FAILED = "failed"
 
 
 # -------------- db init value -------------------------
 class DBDefault:
-    IS_ACTIVE = "true"
+    IS_COLLECTION_ENABLED = "true"
+    VOD_EXPOSURE_DELAY_HOURS = 0
+
     IS_EXPOSED = "true"
 
-    VOD_PIPELINE_STATUS = VODPipelineStatus.PENDING.value
+    VOD_PIPELINE_STATUS = VODPipelineStatus.PENDING
 
     class Len:
         ID = 256
@@ -55,7 +58,7 @@ class MLModelPaths:
     WHISPERX: str = f"{MODEL_BASE}/whisperx"
 
 
-class EntryType(str, Enum):
+class EntryType(StrEnum):
     CHAT = "CHAT"
     DONATION = "DONATION"
     ASR = "ASR"
@@ -64,15 +67,18 @@ class EntryType(str, Enum):
 
 
 ASR_HALLUCINATION_KEYWORDS = [
-    "뉴스",
+    "뉴스 스토리였습니다",
     "고맙습니다",
     "감사합니다",
-    "였습니다",
+    "세계였습니다",
     "MBC",
+    "다음 영상에서 만나요",
+    "다음 주에 만나요",
+    "자막 제공",
 ]
 
 
-class LLMTask(str, Enum):
+class LLMTask(StrEnum):
     SEGMENT_SUMMARIZE = "segment_summarize"
     CHAPTER_SUMMARIZE = "chapter_summarize"
 
@@ -84,7 +90,7 @@ LLM_PROMPT_PATHS = {
 }
 
 
-class StreamAtmosphere(str, Enum):
+class StreamAtmosphere(StrEnum):
     NEUTRAL = "중립"
     HILARIOUS = "폭소"
     SADNESS = "슬픔"
@@ -95,7 +101,7 @@ class StreamAtmosphere(str, Enum):
     ENCOURAGEMENT = "격려"
 
 
-class ScoreCategory(str, Enum):
+class ScoreCategory(StrEnum):
     EXPRESSIVENESS = "expressiveness"
     REACTION_UNITY = "reaction_unity"
     SIGNIFICANCE = "significance"

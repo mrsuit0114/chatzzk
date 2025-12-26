@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, Integer, String, UniqueConstraint, func, text
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -10,6 +10,22 @@ from chatzzk_core.constants import DBDefault, PlatformCode, VODPipelineStatus
 
 class Base(DeclarativeBase):
     pass
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    # [필수] Supabase가 발급한 유저의 UUID를 저장할 컬럼
+    # 웹 서비스에서 로그인 성공 시, 이 값을 기준으로 우리 DB의 유저를 찾습니다.
+    supabase_uid: Mapped[str] = mapped_column(UUID(as_uuid=True), unique=True, index=True)
+
+    email: Mapped[str] = mapped_column(String(255))
+    nickname: Mapped[str] = mapped_column(String(50))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    channels: Mapped[list["Channel"]] = relationship(back_populates="owner")
 
 
 class Platform(Base):
@@ -29,12 +45,17 @@ class Channel(Base):
     __tablename__ = "channels"
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", name="channels_user_id_fkey"))
     platform_id: Mapped[int] = mapped_column(ForeignKey("platforms.id"))
 
     platform_channel_id: Mapped[str] = mapped_column(String(DBDefault.Len.ID), index=True)
     channel_name: Mapped[str] = mapped_column(String(DBDefault.Len.NAME))
-    is_active: Mapped[bool] = mapped_column(Boolean, server_default=DBDefault.IS_ACTIVE)
     last_vod_crawled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    is_collection_enabled: Mapped[bool] = mapped_column(Boolean, server_default=DBDefault.IS_COLLECTION_ENABLED)
+    vod_exposure_delay_hours: Mapped[int] = mapped_column(
+        Integer, server_default=text(f"'{DBDefault.VOD_EXPOSURE_DELAY_HOURS}'")
+    )
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -43,6 +64,7 @@ class Channel(Base):
 
     __table_args__ = (UniqueConstraint("platform_id", "platform_channel_id", name="uq_channel_platform_identifier"),)
 
+    owner: Mapped["User"] = relationship(back_populates="channels")
     platform: Mapped["Platform"] = relationship(back_populates="channels")
     vods: Mapped[list["VOD"]] = relationship(back_populates="channel", cascade="all, delete-orphan")
     channel_metadata: Mapped["ChannelMetadata"] = relationship(

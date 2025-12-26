@@ -60,7 +60,7 @@ class MetadataContext(BaseModel):
 class SegmentSummaryGenerationInput(BaseModel):
     # 프롬프트 생성을 위해 서비스에서 제공해야하는 최종 모델이자 prompt manager의 해당 메서드가 알고 있는 모델 -> **model_dump()를 사용할 것
     # 필드끼리는 템플릿에서 개행으로 구분되어 있으므로 필드 내부의 개행만 고려할 것
-    atmosphere_list: str = ", ".join(atmo.value for atmo in StreamAtmosphere)
+    atmosphere_list: str = ", ".join(StreamAtmosphere)
 
     metadata_context: str
     previous_summary: str
