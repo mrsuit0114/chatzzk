@@ -54,7 +54,7 @@ class Channel(Base):
 
     is_collection_enabled: Mapped[bool] = mapped_column(Boolean, server_default=DBDefault.IS_COLLECTION_ENABLED)
     vod_exposure_delay_hours: Mapped[int] = mapped_column(
-        Integer, server_default=text(f"'{DBDefault.VOD_EXPOSURE_DELAY_HOURS}'")
+        Integer, server_default=text(f"{DBDefault.VOD_EXPOSURE_DELAY_HOURS}")
     )
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
