@@ -4,6 +4,7 @@ from app.pipeline.implementations.asr_service import ASRService
 from app.pipeline.implementations.audio_collection_services import ChzzkAudioCollectionService
 from app.pipeline.implementations.chat_collection_services import ChzzkChatCollectionService
 from app.pipeline.implementations.llm_generation_service import LLMGenerationService
+from app.pipeline.implementations.log_analytics_service import LogAnalyticsService
 from app.pipeline.implementations.vad_service import VADService
 from app.pipeline.implementations.vod_discovery_services import ChzzkVODDiscoveryService
 from chatzzk_core.constants import PlatformCode
@@ -88,4 +89,13 @@ class ServiceContainer(containers.DeclarativeContainer):
         llm_client=client.llm_client,
         config=config.provided.llm_generation,
         prompt_manager=client.prompt_manager,
+    )
+
+    log_analytics_service = providers.Singleton(
+        LogAnalyticsService,
+        vod_repo=data_access.vod_repo,
+        tmp_storage=data_access.tmp_storage,
+        db_session_factory=data_access.db_session_factory,
+        stream_stats_calculator=client.stream_stats_calculator,
+        context_assembler=client.context_assembler,
     )

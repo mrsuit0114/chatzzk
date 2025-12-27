@@ -219,6 +219,30 @@ class LocalStorage:
 
         return count
 
+    async def write_json(self, key: str, data: dict[str, Any]) -> str:
+        """
+        Returns:
+            str: 저장된 파일의 절대 경로 (문자열)
+        """
+        full_path: Path = self._resolve_path(key)
+
+        # 부모 디렉토리 확인
+        if not full_path.parent.exists():
+            await self._mkdir_p(full_path.parent)
+
+        try:
+            content = orjson.dumps(data)
+
+            async with aiofiles.open(full_path, "wb") as f:
+                await f.write(content)
+
+            logger.debug(f"💾 JSON saved to: {full_path}")
+            return str(full_path)
+
+        except Exception as e:
+            logger.error(f"❌ Failed to write JSON to {full_path}: {e}")
+            raise
+
 
 # 해당 vod에 대한 데이터 파이프라인이 완료되면 저장된 데이터를 전부 삭제해야함
 # 모든 파일이 {platform_code}/{video_no}/ 아래에있으므로 해당 폴더를 삭제하는 것으로 해결

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from chatzzk_core.constants import VODPipelineStepStatus, VODProcessingStep
+from chatzzk_core.constants import VODPipelineStatus, VODPipelineStepStatus, VODProcessingStep
 from chatzzk_data_access.repositories import VODRepository
 
 
@@ -29,7 +29,7 @@ class BasePipelineService:
                 return True
             return False
 
-    async def update_step_status(
+    async def record_step_status(
         self,
         vod_id: int,
         step: VODProcessingStep,
@@ -48,3 +48,9 @@ class BasePipelineService:
         async with self.db_session_factory() as session:
             async with session.begin():
                 await self.vod_repo.update_log_details(session, vod_id, update_payload)
+
+    async def fail_pipeline(self, vod_id: int) -> None:
+        # step이 실패했을 때 바로 적용하기 위함
+        async with self.db_session_factory() as session:
+            async with session.begin():
+                await self.vod_repo.update_vod_pipeline_status(session, vod_id, VODPipelineStatus.FAILED)

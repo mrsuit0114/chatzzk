@@ -122,6 +122,8 @@ class StoragePaths:
     ASR = "{vod_id}/asr_entries.jsonl"
     SEGMENT_SUMMARY = "{vod_id}/segment_summary_entries.jsonl"
     CHAPTER_SUMMARY = "{vod_id}/chapter_summary_entries.jsonl"
+    ANALYTICS = "{vod_id}/web/analytics.json"
+    STREAM_LOGS = "{vod_id}/web/stream_logs_{index}.json"
 
     TMP_VIDEO = "{vod_id}/tmp/video.mp4"
     TMP_DIR = "{vod_id}/tmp"
@@ -149,6 +151,14 @@ class StoragePaths:
     @classmethod
     def get_segment_summary_key(cls, vod_id: str | int) -> str:
         return cls.SEGMENT_SUMMARY.format(vod_id=vod_id)
+
+    @classmethod
+    def get_analytics_key(cls, vod_id: str | int) -> str:
+        return cls.ANALYTICS.format(vod_id=vod_id)
+
+    @classmethod
+    def get_stream_logs_key(cls, vod_id: str | int, index: int) -> str:
+        return cls.STREAM_LOGS.format(vod_id=vod_id, index=index)
 
     @classmethod
     def get_chapter_summary_key(cls, vod_id: str | int) -> str:

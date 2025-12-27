@@ -8,7 +8,17 @@ from .llm import (
     SegmentSummaryGenerationOutput,
 )
 from .ml import ASRResponse
-from .stream import ASREntry, BaseStreamEntry, ChapterSummaryEntry, ChatEntry, ChzzkChatEntry, SegmentSummaryEntry
+from .stream import (
+    ASREntry,
+    BaseStreamEntry,
+    ChapterSummaryDict,
+    ChapterSummaryEntry,
+    ChatEntry,
+    ChzzkChatEntry,
+    SegmentSummaryDict,
+    SegmentSummaryEntry,
+    StreamEntryDict,
+)
 
 __all__ = [
     "BaseStreamEntry",
@@ -25,4 +35,7 @@ __all__ = [
     "ChannelMetadataContext",
     "PlatformMetadataContext",
     "EvaluationScores",
+    "StreamEntryDict",
+    "SegmentSummaryDict",
+    "ChapterSummaryDict",
 ]

@@ -2,8 +2,10 @@ from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.expression import cast
 
+from chatzzk_core.constants import VODPipelineStatus
 from chatzzk_data_access.orm import VOD, VODPipelineLog
 
 
@@ -51,4 +53,13 @@ class VODRepository:
             .where(VODPipelineLog.vod_id == vod_id)
             .values(process_details=VODPipelineLog.process_details.op("||")(cast(update_payload, JSONB)))
         )
+        await session.execute(stmt)
+
+    async def get_vod_with_channel(self, session: AsyncSession, vod_id: int) -> VOD:
+        stmt = select(VOD).options(selectinload(VOD.channel)).where(VOD.id == vod_id)
+        result = await session.execute(stmt)
+        return result.scalar_one()
+
+    async def update_vod_pipeline_status(self, session: AsyncSession, vod_id: int, status: VODPipelineStatus) -> None:
+        stmt = update(VOD).where(VOD.id == vod_id).values(pipeline_status=status)
         await session.execute(stmt)

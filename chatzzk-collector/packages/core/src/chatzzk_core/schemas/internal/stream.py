@@ -1,7 +1,8 @@
 import re
-from typing import Literal, cast
+from typing import Literal, TypedDict, cast
 
 from pydantic import BaseModel, ConfigDict, Field
+from pydantic.alias_generators import to_camel
 
 from chatzzk_core.constants import ChzzkUserRoleCode, EntryType, ScoreCategory, StreamAtmosphere
 from chatzzk_core.schemas.external import ChzzkVideoChat
@@ -10,7 +11,7 @@ from chatzzk_core.schemas.internal.llm import ChapterSummaryGenerationOutput, Se
 
 class BaseStreamEntry(BaseModel):
     # 스트림 엔트리의 기본 클래스
-    model_config = ConfigDict(use_enum_values=True)
+    model_config = ConfigDict(use_enum_values=True, populate_by_name=True, alias_generator=to_camel)
 
     timestamp: int
     content: str
@@ -147,3 +148,22 @@ class ChapterSummaryEntry(BaseStreamEntry):
             entry_type=EntryType.CHAPTER_SUMMARY,
             title=generation_output.title,
         )
+
+
+class StreamEntryDict(TypedDict):
+    timestamp: int
+    content: str
+
+
+class SegmentSummaryDict(TypedDict):
+    timestamp: int
+    content: str
+    atmosphere: StreamAtmosphere
+    keywords: list[str]
+    scores: dict[ScoreCategory, int]
+
+
+class ChapterSummaryDict(TypedDict):
+    timestamp: int
+    content: str
+    title: str
