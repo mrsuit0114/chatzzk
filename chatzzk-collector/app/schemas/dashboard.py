@@ -4,7 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from chatzzk_core.constants import PlatformCode, StreamWindowConstant
+from chatzzk_core.constants import EntryTypeCode, PlatformCode, StreamWindowConstant
 
 
 class CamelBaseModel(BaseModel):
@@ -71,6 +71,13 @@ class DashboardResponse(CamelBaseModel):
     chapters: list[ChapterItem]
 
 
+class StreamLogItem(CamelBaseModel):
+    ts: int
+    ty: EntryTypeCode
+    u: str | None = None
+    c: str
+
+
 class StreamLogResponse(CamelBaseModel):
     version: Literal["1.0"] = "1.0"
-    stream_log: list
+    stream_logs: list[StreamLogItem]

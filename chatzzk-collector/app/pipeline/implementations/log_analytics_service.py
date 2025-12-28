@@ -12,11 +12,12 @@ from app.schemas.dashboard import (
     DashboardStats,
     SegmentItem,
     StatSeries,
+    StreamLogItem,
     StreamLogResponse,
 )
 from chatzzk_clients.analytics import StreamStatsCalculator
 from chatzzk_clients.llm import ContextAssembler
-from chatzzk_core.constants import PlatformCode, StoragePaths, StreamWindowConstant
+from chatzzk_core.constants import EntryTypeCode, PlatformCode, StoragePaths, StreamWindowConstant
 from chatzzk_core.schemas.internal import ASREntry, ChapterSummaryDict, ChatEntry, SegmentSummaryDict, StreamEntryDict
 from chatzzk_data_access.repositories import VODRepository
 from chatzzk_data_access.storages import LocalStorage
@@ -181,8 +182,17 @@ class LogAnalyticsService(BasePipelineService):
             preprocess_chat=False,
         ):
             stream_logs_key = StoragePaths.get_stream_logs_key(vod_id, stream_logs_index)
-            stream_log = StreamLogResponse(stream_log=[entry.model_dump(by_alias=True) for entry in window_entries])
-            await self.tmp_storage.write_json(stream_logs_key, stream_log.model_dump(by_alias=True))
+            stream_logs = []
+            for entry in window_entries:
+                stream_log = StreamLogItem(
+                    ts=entry.timestamp,
+                    ty=EntryTypeCode.from_entry_type(entry.entry_type),
+                    u=getattr(entry, "nickname", None),
+                    c=entry.content,
+                )
+                stream_logs.append(stream_log)
+            stream_log = StreamLogResponse(stream_logs=stream_logs)
+            await self.tmp_storage.write_json(stream_logs_key, stream_log.model_dump(exclude_none=True, by_alias=True))
             stream_logs_index += 1
 
         return stream_logs_key

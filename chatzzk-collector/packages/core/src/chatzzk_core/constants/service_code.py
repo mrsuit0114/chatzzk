@@ -1,5 +1,5 @@
 # 나중에는 값을 yaml 파일로 옮기고 읽어오기만 해야할 듯 -> 빌드 컨텍스트에 포함되어 골치아픔
-from enum import StrEnum
+from enum import IntEnum, StrEnum
 
 
 class PlatformCode(StrEnum):
@@ -64,6 +64,18 @@ class EntryType(StrEnum):
     ASR = "ASR"
     SEGMENT_SUMMARY = "SEGMENT_SUMMARY"
     CHAPTER_SUMMARY = "CHAPTER_SUMMARY"
+
+
+class EntryTypeCode(IntEnum):
+    CHAT = 1
+    DONATION = 2
+    ASR = 3
+    SEGMENT_SUMMARY = 10
+    CHAPTER_SUMMARY = 11
+
+    @classmethod
+    def from_entry_type(cls, entry_type: EntryType) -> int:
+        return cls[entry_type]
 
 
 ASR_HALLUCINATION_KEYWORDS = [
