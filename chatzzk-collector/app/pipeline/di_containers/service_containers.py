@@ -7,6 +7,8 @@ from app.pipeline.implementations.llm_generation_service import LLMGenerationSer
 from app.pipeline.implementations.log_analytics_service import LogAnalyticsService
 from app.pipeline.implementations.vad_service import VADService
 from app.pipeline.implementations.vod_discovery_services import ChzzkVODDiscoveryService
+from app.pipeline.implementations.vod_dispatch_service import VODDispatchService
+from app.pipeline.implementations.vod_publishing_service import VODPublishingService
 from chatzzk_core.constants import PlatformCode
 from chatzzk_core.schemas.config import ServicesConfig
 
@@ -46,6 +48,12 @@ class ServiceContainer(containers.DeclarativeContainer):
         {
             PlatformCode.CHZZK: _chzzk_vod_discovery_service,
         }
+    )
+
+    vod_dispatch_service = providers.Singleton(
+        VODDispatchService,
+        vod_repo=data_access.vod_repo,
+        db_session_factory=data_access.db_session_factory,
     )
 
     chat_collection_services = providers.Dict(
@@ -98,4 +106,12 @@ class ServiceContainer(containers.DeclarativeContainer):
         db_session_factory=data_access.db_session_factory,
         stream_stats_calculator=client.stream_stats_calculator,
         context_assembler=client.context_assembler,
+    )
+
+    vod_publishing_service = providers.Singleton(
+        VODPublishingService,
+        vod_repo=data_access.vod_repo,
+        db_session_factory=data_access.db_session_factory,
+        tmp_storage=data_access.tmp_storage,
+        cloud_storage=data_access.cloud_storage,
     )

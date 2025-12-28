@@ -1,6 +1,18 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Boolean, DateTime, Enum, ForeignKey, Integer, String, UniqueConstraint, func, text
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    UniqueConstraint,
+    func,
+    text,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -92,7 +104,11 @@ class VOD(Base):
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
-    __table_args__ = (UniqueConstraint("channel_id", "video_no", name="uq_vod_channel_video"),)
+    __table_args__ = (
+        UniqueConstraint("channel_id", "video_no", name="uq_vod_channel_video"),
+        Index("idx_vod_status_created", "pipeline_status", "created_at"),
+        Index("idx_vod_exposed_publish", "is_exposed", "publish_date"),
+    )
 
     channel: Mapped["Channel"] = relationship(back_populates="vods")
     pipeline_log: Mapped["VODPipelineLog"] = relationship(

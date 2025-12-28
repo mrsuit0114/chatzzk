@@ -1,3 +1,5 @@
+import asyncio
+import shutil
 from collections.abc import AsyncIterable, Iterable
 from pathlib import Path
 from typing import Any
@@ -243,6 +245,10 @@ class LocalStorage:
             logger.error(f"❌ Failed to write JSON to {full_path}: {e}")
             raise
 
+    async def cleanup_vod_directory(self, vod_id: int) -> None:
+        vod_id = str(vod_id)
+        dir_path = self._resolve_path(vod_id)
 
-# 해당 vod에 대한 데이터 파이프라인이 완료되면 저장된 데이터를 전부 삭제해야함
-# 모든 파일이 {platform_code}/{video_no}/ 아래에있으므로 해당 폴더를 삭제하는 것으로 해결
+        if dir_path.exists():
+            loop = asyncio.get_running_loop()
+            await loop.run_in_executor(None, shutil.rmtree, dir_path)

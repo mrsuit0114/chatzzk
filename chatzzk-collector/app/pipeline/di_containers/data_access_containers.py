@@ -1,10 +1,11 @@
+from aiobotocore.session import get_session
 from dependency_injector import containers, providers
 from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from chatzzk_core.schemas.config import DataAccessConfig
 from chatzzk_data_access.repositories import ChannelRepository, PlatformRepository, VODRepository
-from chatzzk_data_access.storages import LocalStorage
+from chatzzk_data_access.storages import LocalStorage, R2Storage
 
 
 # 앱 실행 용도는 transaction pooler 용 url
@@ -32,6 +33,11 @@ async def init_db_engine(url: str, pool_size: int, max_overflow: int):
         logger.debug("⚫ [DataAccessContainer] DB Engine Disposed.")
 
 
+def init_botocore_session():
+    session = get_session()
+    return session
+
+
 class DataAccessContainer(containers.DeclarativeContainer):
     config = providers.Dependency(instance_of=DataAccessConfig)
 
@@ -46,7 +52,19 @@ class DataAccessContainer(containers.DeclarativeContainer):
         async_sessionmaker, bind=_db_engine, expire_on_commit=False, class_=AsyncSession
     )
 
+    _botocore_session = providers.Resource(init_botocore_session)
+
     platform_repo = providers.Singleton(PlatformRepository)
     channel_repo = providers.Singleton(ChannelRepository)
     vod_repo = providers.Singleton(VODRepository)
     tmp_storage = providers.Singleton(LocalStorage, base_dir=config.provided.tmp_storage_base_dir)
+
+    cloud_storage = providers.Singleton(
+        R2Storage,
+        session=_botocore_session,
+        account_id=config.provided.cloud_storage.account_id,
+        access_key=config.provided.cloud_storage.access_key,
+        secret_key=config.provided.cloud_storage.secret_key,
+        bucket_name=config.provided.cloud_storage.bucket_name,
+        public_domain=config.provided.cloud_storage.public_domain,
+    )

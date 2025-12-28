@@ -134,11 +134,13 @@ class StoragePaths:
     ASR = "{vod_id}/asr_entries.jsonl"
     SEGMENT_SUMMARY = "{vod_id}/segment_summary_entries.jsonl"
     CHAPTER_SUMMARY = "{vod_id}/chapter_summary_entries.jsonl"
-    ANALYTICS = "{vod_id}/web/analytics.json"
-    STREAM_LOGS = "{vod_id}/web/stream_logs_{index}.json"
 
     TMP_VIDEO = "{vod_id}/tmp/video.mp4"
     TMP_DIR = "{vod_id}/tmp"
+
+    WEB_DIR = "{vod_id}/web"
+    ANALYTICS = "{vod_id}/web/analytics.json"
+    STREAM_LOGS = "{vod_id}/web/stream_logs_{index}.json"
 
     @classmethod
     def get_tmp_video_key(cls, vod_id: str | int) -> str:
@@ -179,3 +181,15 @@ class StoragePaths:
     @classmethod
     def get_tmp_dir(cls, vod_id: str | int) -> str:
         return cls.TMP_DIR.format(vod_id=vod_id)
+
+    @classmethod
+    def get_web_dir(cls, vod_id: str | int) -> str:
+        return cls.WEB_DIR.format(vod_id=vod_id)
+
+
+class BucketPaths:
+    VOD_DIR = "vods/{vod_id}"
+
+    @classmethod
+    def get_vod_prefix(cls, vod_id: str | int) -> str:
+        return cls.VOD_DIR.format(vod_id=vod_id)
