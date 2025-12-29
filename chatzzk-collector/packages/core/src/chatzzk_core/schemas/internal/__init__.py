@@ -1,3 +1,4 @@
+from .dto import VODDTO, ChannelDTO, PlatformDTO, TargetVODInfo
 from .llm import (
     ChannelMetadataContext,
     ChapterSummaryGenerationInput,
@@ -38,4 +39,8 @@ __all__ = [
     "StreamEntryDict",
     "SegmentSummaryDict",
     "ChapterSummaryDict",
+    "PlatformDTO",
+    "ChannelDTO",
+    "VODDTO",
+    "TargetVODInfo",
 ]

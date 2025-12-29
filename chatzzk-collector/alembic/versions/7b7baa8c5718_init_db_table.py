@@ -1,8 +1,8 @@
-"""refactor vod status and separate pipeline logs
+"""init db table
 
-Revision ID: 286b2b592466
+Revision ID: 7b7baa8c5718
 Revises:
-Create Date: 2025-12-15 18:35:40.525729
+Create Date: 2025-12-28 21:49:56.297762
 
 """
 
@@ -14,7 +14,7 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "286b2b592466"
+revision: str = "7b7baa8c5718"
 down_revision: str | Sequence[str] | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
@@ -26,7 +26,11 @@ def upgrade() -> None:
     op.create_table(
         "platforms",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("platform_code", sa.Enum("CHZZK", "YOUTUBE", "SOOP", name="platformcode"), nullable=False),
+        sa.Column(
+            "platform_code",
+            postgresql.ENUM("CHZZK", "YOUTUBE", "SOOP", name="platformcode", create_type=False),
+            nullable=False,
+        ),
         sa.Column("platform_url", sa.String(length=512), nullable=False),
         sa.Column("platform_name", sa.String(length=256), nullable=False),
         sa.Column("donation_unit", sa.String(length=256), nullable=True),
@@ -34,35 +38,46 @@ def upgrade() -> None:
         sa.UniqueConstraint("platform_code"),
     )
     op.create_table(
+        "users",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("supabase_uid", sa.UUID(), nullable=False),
+        sa.Column("email", sa.String(length=255), nullable=False),
+        sa.Column("nickname", sa.String(length=50), nullable=False),
+        sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index(op.f("ix_users_supabase_uid"), "users", ["supabase_uid"], unique=True)
+    op.create_table(
         "channels",
         sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.Integer(), nullable=True),
         sa.Column("platform_id", sa.Integer(), nullable=False),
         sa.Column("platform_channel_id", sa.String(length=256), nullable=False),
         sa.Column("channel_name", sa.String(length=256), nullable=False),
-        sa.Column("is_active", sa.Boolean(), server_default="true", nullable=False),
         sa.Column("last_vod_crawled_at", sa.DateTime(timezone=True), nullable=True),
+        sa.Column("is_collection_enabled", sa.Boolean(), server_default="true", nullable=False),
+        sa.Column("vod_exposure_delay_hours", sa.Integer(), server_default=sa.text("0"), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(
             ["platform_id"],
             ["platforms.id"],
         ),
+        sa.ForeignKeyConstraint(["user_id"], ["users.id"], name="channels_user_id_fkey"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("platform_id", "platform_channel_id", name="uq_channel_platform_identifier"),
     )
+    op.create_index(op.f("ix_channels_platform_channel_id"), "channels", ["platform_channel_id"], unique=False)
     op.create_table(
-        "channel_llm_contexts",
+        "channel_metadata",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("channel_id", sa.Integer(), nullable=False),
         sa.Column(
-            "llm_context",
-            postgresql.JSONB(astext_type=sa.Text()),
-            server_default=sa.text("'{}'::jsonb"),
-            nullable=False,
+            "attributes", postgresql.JSONB(astext_type=sa.Text()), server_default=sa.text("'{}'::jsonb"), nullable=False
         ),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(
-            ["channel_id"], ["channels.id"], name="channel_llm_contexts_channel_id_fkey", ondelete="CASCADE"
+            ["channel_id"], ["channels.id"], name="channel_metadata_channel_id_fkey", ondelete="CASCADE"
         ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("channel_id"),
@@ -74,19 +89,25 @@ def upgrade() -> None:
         sa.Column("video_no", sa.String(length=256), nullable=False),
         sa.Column("video_title", sa.String(length=256), nullable=False),
         sa.Column("duration", sa.Integer(), nullable=False),
+        sa.Column("publish_date", sa.DateTime(timezone=True), nullable=False),
         sa.Column(
             "pipeline_status",
-            sa.Enum("PENDING", "PROCESSING", "COMPLETED", "FAILED", name="vodpipelinestatus"),
+            postgresql.ENUM(
+                "PENDING", "PROCESSING", "COMPLETED", "FAILED", name="vodpipelinestatus", create_type=False
+            ),
             server_default=sa.text("'PENDING'"),
             nullable=False,
         ),
-        sa.Column("publish_date", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("is_exposed", sa.Boolean(), server_default="true", nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.ForeignKeyConstraint(["channel_id"], ["channels.id"], name="vods_channel_id_fkey", ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("channel_id", "video_no", name="uq_vod_channel_video"),
     )
+    op.create_index("idx_vod_exposed_publish", "vods", ["is_exposed", "publish_date"], unique=False)
+    op.create_index("idx_vod_status_created", "vods", ["pipeline_status", "created_at"], unique=False)
+    op.create_index(op.f("ix_vods_video_no"), "vods", ["video_no"], unique=False)
     op.create_table(
         "vod_pipeline_logs",
         sa.Column("id", sa.BigInteger(), nullable=False),
@@ -110,8 +131,14 @@ def downgrade() -> None:
     """Downgrade schema."""
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_table("vod_pipeline_logs")
+    op.drop_index(op.f("ix_vods_video_no"), table_name="vods")
+    op.drop_index("idx_vod_status_created", table_name="vods")
+    op.drop_index("idx_vod_exposed_publish", table_name="vods")
     op.drop_table("vods")
-    op.drop_table("channel_llm_contexts")
+    op.drop_table("channel_metadata")
+    op.drop_index(op.f("ix_channels_platform_channel_id"), table_name="channels")
     op.drop_table("channels")
+    op.drop_index(op.f("ix_users_supabase_uid"), table_name="users")
+    op.drop_table("users")
     op.drop_table("platforms")
     # ### end Alembic commands ###

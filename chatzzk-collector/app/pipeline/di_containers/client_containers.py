@@ -34,6 +34,7 @@ def init_langfuse_client(config: LangfuseConfig):
         public_key=config.public_key,
         secret_key=config.secret_key,
         base_url=config.base_url,
+        tracing_enabled=False,
     )
     yield client
     logger.debug("🔴 [ClientContainer] Closing LangfuseClient...")

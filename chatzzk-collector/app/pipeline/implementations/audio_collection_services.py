@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.pipeline.implementations.base import BasePipelineService
 from chatzzk_clients.chzzk import ChzzkAPIClient
 from chatzzk_clients.media import MediaProcessor
-from chatzzk_core.constants import PlatformCode, StoragePaths
+from chatzzk_core.constants import PlatformCode, StoragePaths, VODPipelineStepStatus, VODProcessingStep
 from chatzzk_data_access.repositories import VODRepository
 from chatzzk_data_access.storages import LocalStorage
 
@@ -35,13 +35,20 @@ class ChzzkAudioCollectionService(BasePipelineService):
         Returns:
             str: 저장된 오디오 파일의 Key (StoragePaths 기준)
         """
+        start_at = self._get_utc_now()
+        step_status = VODPipelineStepStatus.FAILED
+        pipeline_step = VODProcessingStep.DOWNLOAD_AUDIO
+
         wav_key = StoragePaths.get_audio_key(vod_id)
         wav_abs_path = self.tmp_storage.get_absolute_path(wav_key)
 
-        # WAV가 저장될 부모 디렉토리 생성
-        await self.tmp_storage.ensure_parent_dir(wav_key)
+        if await self._is_step_completed(vod_id, pipeline_step):
+            return wav_key
 
+        # WAV가 저장될 부모 디렉토리 생성
         try:
+            await self.tmp_storage.ensure_parent_dir(wav_key)
+
             # 2. VOD 상세 정보 획득
             vod_info = await self.chzzk_api_client.fetch_vod_info(video_no)
 
@@ -76,8 +83,12 @@ class ChzzkAudioCollectionService(BasePipelineService):
                     cleanup=True,
                 )
 
+            step_status = VODPipelineStepStatus.COMPLETED
             return wav_key
 
         except Exception as e:
             logger.error(f"Failed to collect and save audio for video_no {video_no}: {e}")
+            await self._fail_pipeline(vod_id)
             raise
+        finally:
+            await self._record_step_status(vod_id, pipeline_step, step_status, start_at, self._get_utc_now())

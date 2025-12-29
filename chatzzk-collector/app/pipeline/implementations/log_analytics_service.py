@@ -1,7 +1,4 @@
-# 데이터 로드
-# 시계열 집계
-# 통계 산출
-# 웹 최적화 구조 생성 및 저장
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.pipeline.implementations.base import BasePipelineService
@@ -17,7 +14,14 @@ from app.schemas.dashboard import (
 )
 from chatzzk_clients.analytics import StreamStatsCalculator
 from chatzzk_clients.llm import ContextAssembler
-from chatzzk_core.constants import EntryTypeCode, PlatformCode, StoragePaths, StreamWindowConstant
+from chatzzk_core.constants import (
+    EntryTypeCode,
+    PlatformCode,
+    StoragePaths,
+    StreamWindowConstant,
+    VODPipelineStepStatus,
+    VODProcessingStep,
+)
 from chatzzk_core.schemas.internal import ASREntry, ChapterSummaryDict, ChatEntry, SegmentSummaryDict, StreamEntryDict
 from chatzzk_data_access.repositories import VODRepository
 from chatzzk_data_access.storages import LocalStorage
@@ -198,7 +202,22 @@ class LogAnalyticsService(BasePipelineService):
         return stream_logs_key
 
     async def process(self, vod_id: int, platform: PlatformCode) -> str:
-        analytics_key = await self._process_analytics(vod_id, platform)
-        await self._generate_stream_logs(vod_id)
+        start_at = self._get_utc_now()
+        analytics_key = StoragePaths.get_analytics_key(vod_id)
+        step_status = VODPipelineStepStatus.FAILED
+        pipeline_step = VODProcessingStep.GENERATE_ANALYTICS
+        if await self._is_step_completed(vod_id, pipeline_step):
+            return analytics_key
+
+        try:
+            analytics_key = await self._process_analytics(vod_id, platform)
+            await self._generate_stream_logs(vod_id)
+            step_status = VODPipelineStepStatus.COMPLETED
+        except Exception as e:
+            logger.error(f"[Process Analytics Error] VOD {vod_id} failed: {str(e)}")
+            await self._fail_pipeline(vod_id)
+            raise
+        finally:
+            await self._record_step_status(vod_id, pipeline_step, step_status, start_at, self._get_utc_now())
 
         return analytics_key

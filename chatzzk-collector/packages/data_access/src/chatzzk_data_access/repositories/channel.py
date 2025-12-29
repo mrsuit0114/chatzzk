@@ -22,7 +22,7 @@ class ChannelRepository:
             .join(Channel.platform)  # INNER JOIN 생성
             .where(
                 and_(
-                    Channel.is_active.is_(True),  # 활성 상태 필터링
+                    Channel.is_collection_enabled.is_(True),  # 활성 상태 필터링
                     Platform.platform_code == platform_code,  # 플랫폼 코드 필터링
                 )
             )

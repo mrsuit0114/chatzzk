@@ -5,7 +5,7 @@ from typing import Any
 
 import aiohttp
 from loguru import logger
-from tenacity import AsyncRetrying, retry_if_exception_type, stop_after_attempt, wait_exponential
+from tenacity import AsyncRetrying, retry_if_exception, stop_after_attempt, wait_exponential
 
 from chatzzk_core.schemas.config.clients import AioHTTPConfig
 
@@ -20,7 +20,7 @@ class AioHTTPClient:
             wait=wait_exponential(
                 min=config.retry_wait_min_s, max=config.retry_wait_max_s, multiplier=config.multiplier
             ),
-            retry=retry_if_exception_type(self._is_retryable_exception),
+            retry=retry_if_exception(self._is_retryable_exception),
             reraise=True,
             before_sleep=self._before_sleep_log,
         )

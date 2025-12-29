@@ -5,6 +5,7 @@ from app.pipeline.implementations.audio_collection_services import ChzzkAudioCol
 from app.pipeline.implementations.chat_collection_services import ChzzkChatCollectionService
 from app.pipeline.implementations.llm_generation_service import LLMGenerationService
 from app.pipeline.implementations.log_analytics_service import LogAnalyticsService
+from app.pipeline.implementations.platform_service import PlatformService
 from app.pipeline.implementations.vad_service import VADService
 from app.pipeline.implementations.vod_discovery_services import ChzzkVODDiscoveryService
 from app.pipeline.implementations.vod_dispatch_service import VODDispatchService
@@ -42,6 +43,12 @@ class ServiceContainer(containers.DeclarativeContainer):
         tmp_storage=data_access.tmp_storage,
         db_session_factory=data_access.db_session_factory,
         media_processor=client.media_processor,
+    )
+
+    platform_service = providers.Singleton(
+        PlatformService,
+        platform_repo=data_access.platform_repo,
+        db_session_factory=data_access.db_session_factory,
     )
 
     vod_discovery_services = providers.Dict(

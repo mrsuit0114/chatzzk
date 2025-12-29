@@ -12,3 +12,8 @@ class PlatformRepository:
         stmt = select(Platform).where(Platform.platform_code == platform_code)
         result = await session.execute(stmt)
         return result.scalar_one()
+
+    async def get_all_platform_codes(self, session: AsyncSession) -> list[PlatformCode]:
+        stmt = select(Platform.platform_code)
+        result = await session.execute(stmt)
+        return [row for row in result.scalars().all()]

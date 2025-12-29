@@ -5,7 +5,14 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.pipeline.implementations.base import BasePipelineService
 from chatzzk_clients.llm import ContextAssembler, LLMClient, PromptManager
-from chatzzk_core.constants import LLMTask, PlatformCode, StoragePaths, StreamAtmosphere
+from chatzzk_core.constants import (
+    LLMTask,
+    PlatformCode,
+    StoragePaths,
+    StreamAtmosphere,
+    VODPipelineStepStatus,
+    VODProcessingStep,
+)
 from chatzzk_core.schemas.config.services import LLMGenerationConfig
 from chatzzk_core.schemas.internal import (
     ASREntry,
@@ -128,77 +135,94 @@ class LLMGenerationService(BasePipelineService):
     async def generate_segment_summaries(self, platform: PlatformCode, channel_id: int, vod_id: int):
         logger.info(f"Starting segment summary generation for VOD: {vod_id}")
 
-        # 1. Prompt Path 확인
-        llm_task = LLMTask.SEGMENT_SUMMARIZE
-        prompt_path = self.prompt_paths.get(llm_task)
-        if not prompt_path:
-            raise ValueError(f"Prompt path not found for task: {llm_task}")
-
-        # 2. Resume 상태 복원
+        start_at = self._get_utc_now()
+        step_status = VODPipelineStepStatus.FAILED
+        pipeline_step = VODProcessingStep.GENERATE_SEGMENT_SUMMARY
         segment_summary_key = StoragePaths.get_segment_summary_key(vod_id)
-        last_entry = await self._recover_last_segment_summary(vod_id)
 
-        # 윈도우 크기 캐싱 (반복 사용)
-        window_size = self.window_config.segment_size
+        if await self._is_step_completed(vod_id, pipeline_step):
+            return segment_summary_key
 
-        if last_entry:
-            next_valid_start_time = last_entry.timestamp + window_size
-            previous_summary = last_entry.content
-            logger.info(f"Resuming generation. Next valid window starts at or after: {next_valid_start_time}")
-        else:
-            next_valid_start_time = 0
-            previous_summary = ""
+        try:
+            # 1. Prompt Path 확인
+            llm_task = LLMTask.SEGMENT_SUMMARIZE
+            prompt_path = self.prompt_paths.get(llm_task)
+            if not prompt_path:
+                raise ValueError(f"Prompt path not found for task: {llm_task}")
 
-        # 3. 데이터 준비
-        platform_metadata_context, channel_metadata_context = await self._fetch_metadata_context(platform, channel_id)
-        log_iterators = await self._create_log_stream_iterators(vod_id, platform)
+            # 2. Resume 상태 복원
+            last_entry = await self._recover_last_segment_summary(vod_id)
 
-        # 4. 윈도우 순회 (Main Loop)
-        async for window_entries in self.context_assembler.get_windows(
-            iterators=log_iterators,
-            window_size_ms=window_size,
-        ):
-            if not window_entries:
-                continue
+            # 윈도우 크기 캐싱 (반복 사용)
+            window_size = self.window_config.segment_size
 
-            # [Step 1] 현재 데이터의 정확한 격자 시간 계산 (Alignment)
-            # 예: 10분 01초 데이터 -> 10분 00초 윈도우로 보정
-            first_log_ts = window_entries[0].timestamp
-            aligned_window_start = (first_log_ts // window_size) * window_size
+            if last_entry:
+                next_valid_start_time = last_entry.timestamp + window_size
+                previous_summary = last_entry.content
+                logger.info(f"Resuming generation. Next valid window starts at or after: {next_valid_start_time}")
+            else:
+                next_valid_start_time = 0
+                previous_summary = ""
 
-            # [Step 2] 이미 처리된 구간 Skip
-            if aligned_window_start < next_valid_start_time:
-                continue
-
-            # [Step 3] 데이터 공백(Gap) 채우기 (핵심 로직)
-            # 스트림이 건너뛴 구간(5분)이 있다면 여기서 강제로 채워 넣습니다.
-            while next_valid_start_time < aligned_window_start:
-                logger.info(f"Detected gap. Filling empty entry at {next_valid_start_time}")
-
-                empty_entry = self._create_empty_segment_summary_entry(next_valid_start_time)
-                await self.tmp_storage.append_jsonl(segment_summary_key, empty_entry.model_dump())
-
-                # 빈 엔트리라도 컨텍스트는 이어져야 함
-                previous_summary = empty_entry.content
-                next_valid_start_time += window_size
-
-            # [Step 4] 현재 윈도우 처리
-            # 정상적인 데이터가 있는 구간 처리
-            new_entry = await self._process_segment_window(
-                window_entries=window_entries,
-                current_timestamp=aligned_window_start,  # 보정된 시간 사용
-                platform_metadata_context=platform_metadata_context,
-                channel_metadata_context=channel_metadata_context,
-                previous_summary=previous_summary,
-                prompt_path=prompt_path,
-                output_key=segment_summary_key,
+            # 3. 데이터 준비
+            platform_metadata_context, channel_metadata_context = await self._fetch_metadata_context(
+                platform, channel_id
             )
+            log_iterators = await self._create_log_stream_iterators(vod_id, platform)
 
-            if new_entry:
-                previous_summary = new_entry.content
-                next_valid_start_time = new_entry.timestamp + window_size
+            # 4. 윈도우 순회 (Main Loop)
+            async for window_entries in self.context_assembler.get_windows(
+                iterators=log_iterators,
+                window_size_ms=window_size,
+            ):
+                if not window_entries:
+                    continue
 
-        return segment_summary_key
+                # [Step 1] 현재 데이터의 정확한 격자 시간 계산 (Alignment)
+                # 예: 10분 01초 데이터 -> 10분 00초 윈도우로 보정
+                first_log_ts = window_entries[0].timestamp
+                aligned_window_start = (first_log_ts // window_size) * window_size
+
+                # [Step 2] 이미 처리된 구간 Skip
+                if aligned_window_start < next_valid_start_time:
+                    continue
+
+                # [Step 3] 데이터 공백(Gap) 채우기 (핵심 로직)
+                # 스트림이 건너뛴 구간(5분)이 있다면 여기서 강제로 채워 넣습니다.
+                while next_valid_start_time < aligned_window_start:
+                    logger.info(f"Detected gap. Filling empty entry at {next_valid_start_time}")
+
+                    empty_entry = self._create_empty_segment_summary_entry(next_valid_start_time)
+                    await self.tmp_storage.append_jsonl(segment_summary_key, empty_entry.model_dump())
+
+                    # 빈 엔트리라도 컨텍스트는 이어져야 함
+                    previous_summary = empty_entry.content
+                    next_valid_start_time += window_size
+
+                # [Step 4] 현재 윈도우 처리
+                # 정상적인 데이터가 있는 구간 처리
+                new_entry = await self._process_segment_window(
+                    window_entries=window_entries,
+                    current_timestamp=aligned_window_start,  # 보정된 시간 사용
+                    platform_metadata_context=platform_metadata_context,
+                    channel_metadata_context=channel_metadata_context,
+                    previous_summary=previous_summary,
+                    prompt_path=prompt_path,
+                    output_key=segment_summary_key,
+                )
+
+                if new_entry:
+                    previous_summary = new_entry.content
+                    next_valid_start_time = new_entry.timestamp + window_size
+
+            step_status = VODPipelineStepStatus.COMPLETED
+            return segment_summary_key
+        except Exception as e:
+            logger.error(f"❌ Failed to generate segment summaries for vod_id={vod_id}: {e}")
+            await self._fail_pipeline(vod_id)
+            raise
+        finally:
+            await self._record_step_status(vod_id, pipeline_step, step_status, start_at, self._get_utc_now())
 
     async def _process_segment_window(
         self,
@@ -263,71 +287,91 @@ class LLMGenerationService(BasePipelineService):
         return SegmentSummaryEntry.from_generation_output(generation_output=empty_output, timestamp=timestamp)
 
     async def generate_chapter_summaries(self, platform: PlatformCode, channel_id: int, vod_id: int) -> str:
+        start_at = self._get_utc_now()
+        step_status = VODPipelineStepStatus.FAILED
+        pipeline_step = VODProcessingStep.GENERATE_CHAPTER_SUMMARY
+        chapter_summary_key = StoragePaths.get_chapter_summary_key(vod_id)
+
+        if await self._is_step_completed(vod_id, pipeline_step):
+            return chapter_summary_key
+
         logger.info(f"Starting chapter summary generation for VOD: {vod_id}")
 
-        # 1. Prompt Path 확인
-        llm_task = LLMTask.CHAPTER_SUMMARIZE
-        prompt_path = self.prompt_paths.get(llm_task)
-        if not prompt_path:
-            raise ValueError(f"Prompt path not found for task: {llm_task}")
+        try:
+            # 1. Prompt Path 확인
+            llm_task = LLMTask.CHAPTER_SUMMARIZE
+            prompt_path = self.prompt_paths.get(llm_task)
+            if not prompt_path:
+                raise ValueError(f"Prompt path not found for task: {llm_task}")
 
-        # 2. Resume 상태 복원
-        chapter_summary_key = StoragePaths.get_chapter_summary_key(vod_id)
-        last_entry = await self._recover_last_chapter_summary(vod_id)
+            # 2. Resume 상태 복원
+            last_entry = await self._recover_last_chapter_summary(vod_id)
 
-        window_size = self.window_config.chapter_size
+            window_size = self.window_config.chapter_size
 
-        if last_entry:
-            next_valid_start_time = last_entry.timestamp + window_size
-            logger.info(f"Resuming chapter generation. Next valid window starts at or after: {next_valid_start_time}")
-        else:
-            next_valid_start_time = 0
+            if last_entry:
+                next_valid_start_time = last_entry.timestamp + window_size
+                logger.info(
+                    f"Resuming chapter generation. Next valid window starts at or after: {next_valid_start_time}"
+                )
+            else:
+                next_valid_start_time = 0
 
-        # 3. 데이터 준비
-        platform_metadata_context, channel_metadata_context = await self._fetch_metadata_context(platform, channel_id)
-
-        # [중요] 세그먼트 요약 스트림 생성 (Source)
-        summary_iterators = await self._create_summary_stream_iterators(vod_id)
-
-        # 4. 윈도우 순회 (Main Loop)
-        async for window_entries in self.context_assembler.get_windows(
-            iterators=summary_iterators,
-            window_size_ms=window_size,
-        ):
-            if not window_entries:
-                continue
-
-            # [Step 1] 윈도우 정렬 (Alignment)
-            first_entry_ts = window_entries[0].timestamp
-            aligned_window_start = (first_entry_ts // window_size) * window_size
-
-            # [Step 2] Skip Check
-            if aligned_window_start < next_valid_start_time:
-                continue
-
-            # [Step 3] Gap Filling (방어 로직)
-            # Segment Summary가 완벽하다면 실행될 일은 없으나, 데이터 무결성을 위해 유지
-            while next_valid_start_time < aligned_window_start:
-                logger.warning(f"Detected gap in chapter stream. Filling empty entry at {next_valid_start_time}")
-                empty_entry = self._create_empty_chapter_summary_entry(next_valid_start_time)
-                await self.tmp_storage.append_jsonl(chapter_summary_key, empty_entry.model_dump())
-
-                next_valid_start_time += window_size
-
-            # [Step 4] 현재 윈도우 처리
-            new_entry = await self._process_chapter_window(
-                window_entries=window_entries,  # List[SegmentSummaryEntry]
-                current_timestamp=aligned_window_start,
-                platform_metadata_context=platform_metadata_context,
-                channel_metadata_context=channel_metadata_context,
-                prompt_path=prompt_path,
-                output_key=chapter_summary_key,
+            # 3. 데이터 준비
+            platform_metadata_context, channel_metadata_context = await self._fetch_metadata_context(
+                platform, channel_id
             )
 
-            if new_entry:
-                next_valid_start_time = new_entry.timestamp + window_size
+            # [중요] 세그먼트 요약 스트림 생성 (Source)
+            summary_iterators = await self._create_summary_stream_iterators(vod_id)
 
-        return chapter_summary_key
+            # 4. 윈도우 순회 (Main Loop)
+            async for window_entries in self.context_assembler.get_windows(
+                iterators=summary_iterators,
+                window_size_ms=window_size,
+            ):
+                if not window_entries:
+                    continue
+
+                # [Step 1] 윈도우 정렬 (Alignment)
+                first_entry_ts = window_entries[0].timestamp
+                aligned_window_start = (first_entry_ts // window_size) * window_size
+
+                # [Step 2] Skip Check
+                if aligned_window_start < next_valid_start_time:
+                    continue
+
+                # [Step 3] Gap Filling (방어 로직)
+                # Segment Summary가 완벽하다면 실행될 일은 없으나, 데이터 무결성을 위해 유지
+                while next_valid_start_time < aligned_window_start:
+                    logger.warning(f"Detected gap in chapter stream. Filling empty entry at {next_valid_start_time}")
+                    empty_entry = self._create_empty_chapter_summary_entry(next_valid_start_time)
+                    await self.tmp_storage.append_jsonl(chapter_summary_key, empty_entry.model_dump())
+
+                    next_valid_start_time += window_size
+
+                # [Step 4] 현재 윈도우 처리
+                new_entry = await self._process_chapter_window(
+                    window_entries=window_entries,  # List[SegmentSummaryEntry]
+                    current_timestamp=aligned_window_start,
+                    platform_metadata_context=platform_metadata_context,
+                    channel_metadata_context=channel_metadata_context,
+                    prompt_path=prompt_path,
+                    output_key=chapter_summary_key,
+                )
+
+                if new_entry:
+                    next_valid_start_time = new_entry.timestamp + window_size
+
+            step_status = VODPipelineStepStatus.COMPLETED
+
+            return chapter_summary_key
+        except Exception as e:
+            logger.error(f"❌ Failed to generate chapter summaries for vod_id={vod_id}: {e}")
+            await self._fail_pipeline(vod_id)
+            raise
+        finally:
+            await self._record_step_status(vod_id, pipeline_step, step_status, start_at, self._get_utc_now())
 
     # =========================================================================
     # Internal Logic: Chapter Processing

@@ -2,11 +2,11 @@ from sqlalchemy import select, update
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import joinedload
 from sqlalchemy.sql.expression import cast
 
 from chatzzk_core.constants import VODPipelineStatus
-from chatzzk_data_access.orm import VOD, VODPipelineLog
+from chatzzk_data_access.orm import VOD, Channel, VODPipelineLog
 
 
 class VODRepository:
@@ -56,7 +56,7 @@ class VODRepository:
         await session.execute(stmt)
 
     async def get_vod_with_channel(self, session: AsyncSession, vod_id: int) -> VOD:
-        stmt = select(VOD).options(selectinload(VOD.channel)).where(VOD.id == vod_id)
+        stmt = select(VOD).options(joinedload(VOD.channel)).where(VOD.id == vod_id)
         result = await session.execute(stmt)
         return result.scalar_one()
 
@@ -72,10 +72,17 @@ class VODRepository:
     async def get_vod_by_status(self, session: AsyncSession, status: VODPipelineStatus, limit: int) -> list[VOD]:
         stmt = (
             select(VOD)
+            .options(
+                # 1. innerjoin=True 옵션 추가
+                # VOD가 있으면 반드시 Channel/Platform이 존재한다는 가정 하에 Inner Join을 강제합니다.
+                joinedload(VOD.channel, innerjoin=True).joinedload(Channel.platform, innerjoin=True)
+            )
             .where(VOD.pipeline_status == status)
             .order_by(VOD.created_at.asc())
             .limit(limit)
-            .with_for_update(skip_locked=True)
+            # 2. of=VOD 옵션 추가
+            # 조인된 테이블(Channel, Platform)은 건드리지 않고, 'VOD' 테이블의 행만 락을 겁니다.
+            .with_for_update(skip_locked=True, of=VOD)
         )
         result = await session.execute(stmt)
         return result.scalars().all()

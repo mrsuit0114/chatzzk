@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from chatzzk_core.constants import VODPipelineStatus
+from chatzzk_core.schemas.internal.dto import VODDTO, ChannelDTO, PlatformDTO, TargetVODInfo
 from chatzzk_data_access.repositories import VODRepository
 
 
@@ -13,15 +14,13 @@ class VODDispatchService:
         self.vod_repo = vod_repo
         self.db_session_factory = db_session_factory
 
-    async def allocate_next_batch(self, batch_size: int = 5) -> list[int]:
+    async def allocate_next_batch(self, batch_size: int = 5) -> list[TargetVODInfo]:
         """
         [작업 할당]
-        PENDING 상태인 VOD를 batch_size만큼 가져와서
-        PROCESSING 상태로 변경한 후, 해당 VOD의 ID 리스트를 반환합니다.
-
-        이 메서드는 원자적(Atomic)으로 동작하여 중복 할당을 방지해야 합니다.
+        PENDING 상태인 VOD를 batch_size만큼 가져와서 - create_at asc - 오래된 순
+        PROCESSING 상태로 변경한 후, 해당 VOD, channel, platform를 반환합니다.
         """
-        target_vod_ids = []
+        target_vod_info = []
 
         async with self.db_session_factory() as session:
             async with session.begin():
@@ -33,7 +32,15 @@ class VODDispatchService:
                     return []
 
                 for vod in pending_vods:
-                    vod.pipeline_status = VODPipelineStatus.PROCESSING
-                    target_vod_ids.append(vod.id)
+                    target_vod_info.append(
+                        TargetVODInfo(
+                            vod=VODDTO.from_orm(vod),
+                            channel=ChannelDTO.from_orm(vod.channel),
+                            platform=PlatformDTO.from_orm(vod.channel.platform),
+                        )
+                    )
 
-        return target_vod_ids
+                for vod in pending_vods:
+                    vod.pipeline_status = VODPipelineStatus.PROCESSING
+
+        return target_vod_info
