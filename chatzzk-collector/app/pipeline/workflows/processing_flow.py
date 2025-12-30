@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 from prefect import flow, task
 from prefect.cache_policies import NO_CACHE
@@ -8,7 +9,7 @@ from chatzzk_core.constants import PlatformCode
 from chatzzk_core.schemas.config import Settings
 from chatzzk_core.schemas.internal import TargetVODInfo
 
-PROCESSING_BATCH_SIZE = 5
+PROCESSING_BATCH_SIZE = os.getenv("PROCESSING_BATCH_SIZE", 5)
 
 
 @task(cache_policy=NO_CACHE)

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: asr-inference-server
+  namespace: chatzzk
+spec:
+  replicas: 1 # GPU가 1개라면 반드시 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: asr-server
+  template:
+    metadata:
+      labels:
+        app: asr-server
+    spec:
+      containers:
+      - name: asr-container
+        image: chatzzk-asr-inference-server
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        resources:
+          limits:
+            nvidia.com/gpu: 1 # GPU 할당 핵심
+            memory: "6Gi"
+            cpu: "2"
+        volumeMounts:
+        - mountPath: /app/models
+          subPath: models
+          name: storage-volume
+      volumes:
+      - name: storage-volume
+        persistentVolumeClaim:
+          claimName: chatzzk-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: asr-service # 이 이름이 내부 도메인이 됩니다.
+  namespace: chatzzk
+spec:
+  selector:
+    app: asr-server
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: ClusterIP

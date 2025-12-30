@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chatzzk-pvc
+  namespace: chatzzk
+spec:
+  accessModes:
+    - ReadWriteOnce  # 노드가 하나 뿐 일 때는 문제 없으나 그렇지 않은 경우 rwx와 nfs를 사용해야함
+  resources:
+    requests:
+      storage: 500Gi

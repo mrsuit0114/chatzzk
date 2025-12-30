@@ -1,0 +1,61 @@
+# 1. 권한 설정 (Role & Binding)
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prefect-worker-sa
+  namespace: chatzzk
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: prefect-worker-role
+  namespace: chatzzk
+rules:
+- apiGroups: ["", "batch", "apps"]
+  resources: ["jobs", "pods", "pods/log"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: prefect-worker-role-binding
+  namespace: chatzzk
+subjects:
+- kind: ServiceAccount
+  name: prefect-worker-sa
+roleRef:
+  kind: Role
+  name: prefect-worker-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# 2. 워커 배포 (Deployment)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prefect-worker
+  namespace: chatzzk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prefect-worker
+  template:
+    metadata:
+      labels:
+        app: prefect-worker
+    spec:
+      serviceAccountName: prefect-worker-sa # 위에서 만든 권한 사용
+      containers:
+      - name: worker
+        image: prefecthq/prefect:3-latest # 공식 이미지
+        imagePullPolicy: IfNotPresent
+        command:
+        - /bin/bash
+        - -c
+        - |
+          # kubernetes-pool이라는 이름의 워크 풀을 바라보게 합니다.
+          prefect worker start --pool "kubernetes-pool" --type kubernetes
+        envFrom:
+        - secretRef:
+            name: chatzzk-secrets

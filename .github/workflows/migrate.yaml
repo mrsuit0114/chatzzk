@@ -1,0 +1,38 @@
+name: Database Migration
+
+on:
+  push:
+    branches:
+      - main  # main 브랜치에 코드가 병합될 때 실행
+    paths:
+      - 'chatzzk-collector/alembic/**'      # 마이그레이션 파일이 변경되었을 때만 실행 (효율성)
+      - 'chatzzk-collector/alembic.ini'
+      - 'chatzzk-collector/packages/data_access/src/chatzzk_data_access/orm/**' # 모델 정의가 있는 경로 (필요 시)
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          # alembic과 DB 드라이버(psycopg2 등) 설치
+          pip install alembic psycopg2-binary
+          # 또는 requirements.txt가 있다면: pip install -r requirements.txt
+
+      - name: Run Alembic Upgrade
+        env:
+          # Github Repo Settings > Secrets and variables > Actions에 등록된 값
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          # alembic.ini가 있는 위치에서 실행
+          cd chatzzk-collector
+          alembic upgrade head

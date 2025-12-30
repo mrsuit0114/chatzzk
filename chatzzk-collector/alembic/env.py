@@ -1,3 +1,4 @@
+import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
@@ -24,6 +25,12 @@ target_metadata = Base.metadata
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
+
+db_url = os.getenv("DATABASE_URL")
+
+if db_url:
+    # 환경변수가 있으면, alembic.ini의 sqlalchemy.url을 이걸로 덮어씁니다.
+    config.set_main_option("sqlalchemy.url", db_url)
 
 
 def run_migrations_offline() -> None:
