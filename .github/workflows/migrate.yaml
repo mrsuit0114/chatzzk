@@ -36,3 +36,10 @@ jobs:
           # alembic.ini가 있는 위치에서 실행
           cd chatzzk-collector
           alembic upgrade head
+
+      - name: Run Seed Script
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PYTHONPATH: ${{ github.workspace }}/chatzzk-collector
+        run: |
+          python scripts/seed_data.py
