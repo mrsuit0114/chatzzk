@@ -3,43 +3,48 @@ name: Database Migration
 on:
   push:
     branches:
-      - main  # main 브랜치에 코드가 병합될 때 실행
+      - main
     paths:
-      - 'chatzzk-collector/alembic/**'      # 마이그레이션 파일이 변경되었을 때만 실행 (효율성)
+      - 'chatzzk-collector/alembic/**'
       - 'chatzzk-collector/alembic.ini'
-      - 'chatzzk-collector/packages/data_access/src/chatzzk_data_access/orm/**' # 모델 정의가 있는 경로 (필요 시)
+      - 'chatzzk-collector/packages/data_access/src/chatzzk_data_access/orm/**'
+      - 'chatzzk-collector/scripts/**'
+      - 'chatzzk-collector/uv.lock'
 
 jobs:
   migrate:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./chatzzk-collector
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      # 1. uv 설치 (공식 액션 사용)
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
-          python-version: '3.11'
+          version: "latest"
+          enable-cache: true # 캐싱 자동 적용 (속도 향상)
 
+      # 2. 파이썬 설정 및 의존성 설치
+      # uv sync를 하면 pyproject.toml에 정의된 로컬 패키지도 자동으로 설치(연결)됩니다.
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          # alembic과 DB 드라이버(psycopg2 등) 설치
-          pip install alembic psycopg2-binary
-          # 또는 requirements.txt가 있다면: pip install -r requirements.txt
+          uv sync --frozen --package db-migration
 
       - name: Run Alembic Upgrade
         env:
-          # Github Repo Settings > Secrets and variables > Actions에 등록된 값
           DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
         run: |
-          # alembic.ini가 있는 위치에서 실행
-          cd chatzzk-collector
-          alembic upgrade head
+          uv run alembic upgrade head
 
       - name: Run Seed Script
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
           PYTHONPATH: ${{ github.workspace }}/chatzzk-collector
         run: |
-          python scripts/seed_data.py
+          uv run python scripts/seed_data.py
