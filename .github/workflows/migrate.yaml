@@ -11,6 +11,8 @@ on:
       - 'chatzzk-collector/scripts/**'
       - 'chatzzk-collector/uv.lock'
 
+    workflow_dispatch:
+
 jobs:
   migrate:
     runs-on: ubuntu-latest
