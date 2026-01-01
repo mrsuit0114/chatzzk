@@ -6,6 +6,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { HomePage } from "@/features/home/routes/HomePage";
 import { SearchPage } from "@/features/search/routes/SearchPage";
 import { PlatformPage } from "@/features/platform/routes/PlatformPage";
+import { ChannelPage } from "@/features/channel/routes/ChannelPage";
 // import { AnalysisPage } ...
 
 const router = createBrowserRouter(
@@ -21,7 +22,7 @@ const router = createBrowserRouter(
             <Route path="/search" element={<SearchPage />} />
 
             {/* 4. 채널 상세 */}
-            {/* <Route path="/channel/:channelId" element={<ChannelPage />} /> */}
+            <Route path="/channel/:channelId" element={<ChannelPage />} />
 
             {/* 5. 분석 상세 */}
             <Route path="/analysis/:vodId" element={<div>분석 페이지</div>} />

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { VodCardUI } from "../types";
+import { PLATFORM_COLORS, PLATFORM_LABELS } from "@/types";
 
 interface Props {
     data: VodCardUI;
@@ -22,12 +23,7 @@ export function VodCard({ data }: Props) {
         navigate(`/channel/${data.channelId}`);
     };
 
-    // 플랫폼별 배지 색상
-    const platformColors: Record<string, string> = {
-        chzzk: "bg-green-600 hover:bg-green-700",
-        youtube: "bg-red-600 hover:bg-red-700",
-    };
-    const badgeColor = platformColors[data.platform] || "bg-gray-600";
+    const badgeColor = PLATFORM_COLORS[data.platform] || "bg-gray-600";
 
     return (
         <Card
@@ -48,7 +44,7 @@ export function VodCard({ data }: Props) {
 
                 {/* 좌측 상단: 플랫폼 배지 */}
                 <Badge className={cn("absolute top-2 left-2 text-white border-none", badgeColor)}>
-                    {data.platform}
+                    {PLATFORM_LABELS[data.platform]}
                 </Badge>
 
                 {/* 우측 하단: 영상 길이 */}
