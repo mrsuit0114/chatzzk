@@ -10,7 +10,7 @@ export const MOCK_VOD_DATA: VodCardUI[] = [
         thumbnailUrl: "https://placehold.co/600x400", // 임시 이미지
         channelName: "침착맨",
         platform: "chzzk",
-        publishDate: "2024. 01. 01",
+        publishDate: "2024-01-01",
         duration: "3시간 10분",
     },
     {
@@ -19,7 +19,7 @@ export const MOCK_VOD_DATA: VodCardUI[] = [
         title: "배도라지 합방 하이라이트",
         channelName: "배도라지",
         platform: "youtube",
-        publishDate: "2023. 12. 25",
+        publishDate: "2023-12-25",
         duration: "45분 20초",
-    }
+    },
 ]
