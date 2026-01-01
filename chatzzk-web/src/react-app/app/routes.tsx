@@ -1,32 +1,35 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+// src/react-app/app/routes.tsx
+import { createBrowserRouter, Route, createRoutesFromElements, RouterProvider } from "react-router-dom";
+import { MainLayout } from "@/components/layout/MainLayout";
 
+// 각 Feature의 Route 컴포넌트 import
+import { HomePage } from "@/features/home/routes/HomePage";
+// import { PlatformPage } from "@/features/platform/routes/PlatformPage";
+// import { ChannelPage } from "@/features/channel/routes/ChannelPage";
+import { SearchPage } from "@/features/search/routes/SearchPage";
+// import { AnalysisPage } ...
 
-// 2. 기능별 페이지(Routes) 가져오기
-// (export const UserPage = ... 로 정의했다고 가정)
-import UserPage from "@/features/users/routes/UserPage";
-import MainPage from "@/features/main/routes/MainPage";
+const router = createBrowserRouter(
+    createRoutesFromElements(
+        <Route element={<MainLayout />}>
+            {/* 1. 홈 */}
+            <Route path="/" element={<HomePage />} />
+
+            {/* 2. 플랫폼별 VOD 리스트 (로컬 검색) */}
+            {/* <Route path="/platform/:platformId" element={<PlatformPage />} /> */}
+
+            {/* 3. 통합 검색 결과 (헤더 검색 시 이동) */}
+            <Route path="/search" element={<SearchPage />} />
+
+            {/* 4. 채널 상세 */}
+            {/* <Route path="/channel/:channelId" element={<ChannelPage />} /> */}
+
+            {/* 5. 분석 상세 */}
+            <Route path="/analysis/:vodId" element={<div>분석 페이지</div>} />
+        </Route>
+    )
+);
 
 export const AppRoutes = () => {
-    return (
-        <BrowserRouter>
-            <Routes>
-                {/* MainLayout으로 감싸진 라우트 그룹
-           이 안에 있는 모든 페이지는 헤더를 공유합니다.
-        */}
-
-                {/* 기본 경로(/)로 오면 /users로 리다이렉트 */}
-                <Route path="/" element={<MainPage />} />
-
-                {/* ✨ /users 경로에 UserPage 연결 */}
-                <Route path="/users" element={<UserPage />} />
-
-                {/* 나중에 채팅 기능이 추가된다면? */}
-                {/* <Route path="/chat" element={<ChatPage />} /> */}
-
-                {/* 레이아웃이 없는 페이지 (예: 로그인) */}
-                {/* <Route path="/login" element={<LoginPage />} /> */}
-
-            </Routes>
-        </BrowserRouter>
-    );
+    return <RouterProvider router={router} />;
 };

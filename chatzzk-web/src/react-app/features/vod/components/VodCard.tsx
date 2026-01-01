@@ -1,0 +1,80 @@
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { VodCardUI } from "../types";
+
+interface Props {
+    data: VodCardUI;
+}
+
+export function VodCard({ data }: Props) {
+    const navigate = useNavigate();
+
+    // 1. 카드 전체 클릭 -> 분석 페이지로 이동
+    const handleCardClick = () => {
+        navigate(`/analysis/${data.vodId}`);
+    };
+
+    // 2. 채널명 클릭 -> 채널 상세 페이지로 이동
+    const handleChannelClick = (e: React.MouseEvent) => {
+        e.stopPropagation(); // 🚨 핵심: 부모(카드) 클릭 이벤트가 발생하지 않도록 막음
+        navigate(`/channel/${data.channelId}`);
+    };
+
+    // 플랫폼별 배지 색상
+    const platformColors: Record<string, string> = {
+        chzzk: "bg-green-600 hover:bg-green-700",
+        youtube: "bg-red-600 hover:bg-red-700",
+    };
+    const badgeColor = platformColors[data.platform] || "bg-gray-600";
+
+    return (
+        <Card
+            className="cursor-pointer hover:shadow-lg transition-all group overflow-hidden border-border/60"
+            onClick={handleCardClick}
+        >
+            {/* 썸네일 영역 */}
+            <div className="relative aspect-video bg-muted">
+                {data.thumbnailUrl ? (
+                    <img
+                        src={data.thumbnailUrl}
+                        alt={data.title}
+                        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                    />
+                ) : (
+                    <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>
+                )}
+
+                {/* 좌측 상단: 플랫폼 배지 */}
+                <Badge className={cn("absolute top-2 left-2 text-white border-none", badgeColor)}>
+                    {data.platform}
+                </Badge>
+
+                {/* 우측 하단: 영상 길이 */}
+                <Badge className="absolute bottom-2 right-2 bg-black/80 text-white border-none pointer-events-none">
+                    {data.duration}
+                </Badge>
+            </div>
+
+            <CardHeader className="p-4 pb-2 space-y-1">
+                <div className="flex justify-between items-start">
+                    <span className="text-xs text-muted-foreground">{data.publishDate}</span>
+                </div>
+                <CardTitle className="text-base leading-tight line-clamp-2 h-[2.5rem]">
+                    {data.title}
+                </CardTitle>
+            </CardHeader>
+
+            <CardContent className="p-4 pt-0">
+                {/* 채널명 (클릭 시 전파 중단) */}
+                <button
+                    onClick={handleChannelClick}
+                    className="text-sm text-muted-foreground hover:text-primary hover:underline transition-colors text-left"
+                >
+                    {data.channelName}
+                </button>
+            </CardContent>
+        </Card>
+    );
+}
