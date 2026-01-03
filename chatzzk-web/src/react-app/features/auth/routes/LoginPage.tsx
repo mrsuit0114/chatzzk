@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import { PLATFORM_CODE, UserRole } from "@/types";
 export function LoginPage() {
     const navigate = useNavigate();
     const login = useAuthStore((state) => state.login); // Store 액션 가져오기
+    const location = useLocation();
 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -41,8 +42,11 @@ export function LoginPage() {
                 platformChannelUrl: "#", // 테스트용 빈 문자열
             });
 
-            // 메인으로 이동
-            navigate("/");
+            const from = location.state?.from?.pathname || "/";
+
+            console.log("Redirecting to:", from);
+            // replace: true를 사용하여 뒤로 가기 눌렀을 때 다시 로그인 페이지로 오지 않도록 함
+            navigate(from, { replace: true });
         } catch (err) {
             setError("아이디 또는 비밀번호가 일치하지 않습니다.");
         } finally {

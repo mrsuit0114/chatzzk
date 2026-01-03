@@ -14,7 +14,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Eye, EyeOff, Lock, Unlock, AlertTriangle } from "lucide-react";
+import { Lock, Unlock, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/lib/stores";
 import { USER_ROLE } from "@/types";
@@ -39,7 +39,7 @@ export function MyVodTab() {
     const [page, setPage] = useState(1);
 
     // ✅ 다이얼로그 상태 관리 (어떤 VOD를 변경하려고 하는지 저장)
-    const [targetVod, setTargetVod] = useState<{ id: number; currentStatus: boolean; title: string } | null>(null);
+    const [targetVod, setTargetVod] = useState<{ id: string; currentStatus: boolean; title: string } | null>(null);
 
     const filteredVods = vods.filter((item) => {
         // A. 공개/비공개 탭 필터
@@ -68,9 +68,9 @@ export function MyVodTab() {
     const currentPageItems = filteredVods.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
     // 1️⃣ [Trigger] 버튼 클릭 시 다이얼로그 열기
-    const handleInitiateToggle = (vodId: number, currentStatus: boolean, title: string) => {
+    const handleInitiateToggle = (videoNo: string, currentStatus: boolean, title: string) => {
         if (isEditor) return;
-        setTargetVod({ id: vodId, currentStatus, title });
+        setTargetVod({ id: videoNo, currentStatus, title });
     };
 
     // 2️⃣ [Action] 다이얼로그에서 확인 눌렀을 때 실행되는 실제 로직
@@ -83,7 +83,7 @@ export function MyVodTab() {
         // Optimistic Update
         setVods((prevVods) =>
             prevVods.map((vod) =>
-                vod.vodId === id ? { ...vod, isPublic: nextStatus } : vod
+                vod.videoNo === id ? { ...vod, isPublic: nextStatus } : vod
             )
         );
 
@@ -134,7 +134,7 @@ export function MyVodTab() {
             {currentPageItems.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {currentPageItems.map((item) => (
-                        <div key={item.vodId} className="relative group">
+                        <div key={item.videoNo} className="relative group">
 
                             {/* VOD 카드 */}
                             <div className={`transition-opacity duration-200 ${!item.isPublic ? "opacity-60 grayscale" : ""}`}>
@@ -152,7 +152,7 @@ export function MyVodTab() {
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         // 바로 변경하지 않고 확인 요청
-                                        handleInitiateToggle(item.vodId, item.isPublic, item.title);
+                                        handleInitiateToggle(item.videoNo, item.isPublic, item.title);
                                     }}
                                 >
                                     {item.isPublic ? (

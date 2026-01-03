@@ -27,7 +27,7 @@ export function HomePage() {
             bgClass: "group-hover:bg-red-50/50",
         },
         {
-            id: "afreeca",
+            id: "soop",
             label: "SOOP",
             description: "대한민국 대표 라이브 스트리밍",
             icon: MonitorPlay,
@@ -66,7 +66,7 @@ export function HomePage() {
                             platform.borderClass,
                             platform.bgClass
                         )}
-                        onClick={() => navigate(`/platform/${platform.id}`)} // 소문자 ID로 이동
+                        onClick={() => navigate(`/${platform.id}`)} // 소문자 ID로 이동
                     >
                         <CardContent className="flex flex-col items-center justify-center p-8 text-center space-y-4">
                             {/* 아이콘 */}

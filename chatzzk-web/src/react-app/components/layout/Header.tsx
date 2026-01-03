@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { User, LogOut, Settings } from "lucide-react";
 import {
@@ -15,7 +15,7 @@ import { useAuthStore } from "@/lib/stores";
 
 export function Header() {
     const navigate = useNavigate();
-
+    const location = useLocation();
     // ✅ 전역 로그인 상태 및 액션 구독
     const { isAuthenticated, user, logout } = useAuthStore();
 
@@ -70,7 +70,7 @@ export function Header() {
                     ) : (
                         // ✅ 로그아웃 상태: 로그인 버튼 표시
                         <Button asChild variant="default" size="sm">
-                            <Link to="/login">
+                            <Link to="/login" state={{ from: location }}>
                                 로그인
                             </Link>
                         </Button>

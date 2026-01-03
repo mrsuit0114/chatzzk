@@ -21,13 +21,13 @@ export function Footer() {
                         <h3 className="text-sm font-semibold tracking-wider uppercase">Platform</h3>
                         <ul className="space-y-2 text-sm text-muted-foreground">
                             <li>
-                                <Link to="/platform/chzzk" className="hover:text-foreground transition-colors">치지직</Link>
+                                <Link to="/chzzk" className="hover:text-foreground transition-colors">치지직</Link>
                             </li>
                             <li>
-                                <Link to="/platform/youtube" className="hover:text-foreground transition-colors">유튜브</Link>
+                                <Link to="/youtube" className="hover:text-foreground transition-colors">유튜브</Link>
                             </li>
                             <li>
-                                <Link to="/platform/afreeca" className="hover:text-foreground transition-colors">SOOP</Link>
+                                <Link to="/soop" className="hover:text-foreground transition-colors">SOOP</Link>
                             </li>
                         </ul>
                     </div>

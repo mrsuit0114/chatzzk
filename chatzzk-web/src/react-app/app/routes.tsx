@@ -19,10 +19,10 @@ const router = createBrowserRouter(
             <Route element={<MainLayout />}>
                 {/* 1. 홈 */}
                 <Route path="/" element={<HomePage />} />
-                <Route path="/platform/:platformId" element={<PlatformPage />} />
+                <Route path="/:platformId" element={<PlatformPage />} />
                 <Route path="/search" element={<SearchPage />} />
-                <Route path="/channel/:channelId" element={<ChannelPage />} />
-                <Route path="/analysis/:vodId" element={<div>분석 페이지</div>} />
+                <Route path="/:platformId/channel/:platformChannelId" element={<ChannelPage />} />
+                <Route path="/:platformId/video/:videoNo" element={<div>분석 페이지</div>} />
                 <Route element={<ProtectedRoute />}>
                     {/* 이 안에 있는 경로는 로그인해야만 접근 가능 */}
                     <Route path="/mypage" element={<MyPage />} />

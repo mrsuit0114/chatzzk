@@ -20,7 +20,7 @@ export function ChannelPage() {
     const filteredItems = MOCK_VOD_DATA.filter((item) => {
         // A. [필수] 현재 채널의 영상인가?
         // (Mock Data의 channelId는 number, URL param은 string이므로 형변환 주의)
-        const isChannelMatch = String(item.channelId) === channelId;
+        const isChannelMatch = String(item.platformChannelId) === channelId;
 
         // B. 검색어 (채널 내에서는 '제목'만 검색하면 됨)
         const isQueryMatch = !query || item.title.toLowerCase().includes(query.toLowerCase());
@@ -74,7 +74,7 @@ export function ChannelPage() {
                 {currentPageItems.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {currentPageItems.map((item) => (
-                            <VodCard key={item.vodId} data={item} />
+                            <VodCard key={item.videoNo} data={item} />
                         ))}
                     </div>
                 ) : (
