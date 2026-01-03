@@ -9,24 +9,28 @@ import { PlatformPage } from "@/features/platform/routes/PlatformPage";
 import { ChannelPage } from "@/features/channel/routes/ChannelPage";
 // import { AnalysisPage } ...
 
+import { LoginPage } from "@/features/auth/routes/LoginPage";
+import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
+import { MyPage } from "@/features/users/routes/MyPage";
+
 const router = createBrowserRouter(
     createRoutesFromElements(
-        <Route element={<MainLayout />}>
-            {/* 1. 홈 */}
-            <Route path="/" element={<HomePage />} />
+        <>
+            <Route element={<MainLayout />}>
+                {/* 1. 홈 */}
+                <Route path="/" element={<HomePage />} />
+                <Route path="/platform/:platformId" element={<PlatformPage />} />
+                <Route path="/search" element={<SearchPage />} />
+                <Route path="/channel/:channelId" element={<ChannelPage />} />
+                <Route path="/analysis/:vodId" element={<div>분석 페이지</div>} />
+                <Route element={<ProtectedRoute />}>
+                    {/* 이 안에 있는 경로는 로그인해야만 접근 가능 */}
+                    <Route path="/mypage" element={<MyPage />} />
+                </Route>
+            </Route>
 
-            {/* 2. 플랫폼별 VOD 리스트 (로컬 검색) */}
-            <Route path="/platform/:platformId" element={<PlatformPage />} />
-
-            {/* 3. 통합 검색 결과 (헤더 검색 시 이동) */}
-            <Route path="/search" element={<SearchPage />} />
-
-            {/* 4. 채널 상세 */}
-            <Route path="/channel/:channelId" element={<ChannelPage />} />
-
-            {/* 5. 분석 상세 */}
-            <Route path="/analysis/:vodId" element={<div>분석 페이지</div>} />
-        </Route>
+            <Route path="/login" element={<LoginPage />} />
+        </>
     )
 );
 

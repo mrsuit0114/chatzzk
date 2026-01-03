@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { Header } from "./Header";
 import { Footer } from "./Footer"; // 추가
+import { Toaster } from "sonner";
 
 export function MainLayout() {
     return (
@@ -20,6 +21,7 @@ export function MainLayout() {
 
             {/* 하단 푸터 */}
             <Footer />
+            <Toaster />
         </div>
     );
 }

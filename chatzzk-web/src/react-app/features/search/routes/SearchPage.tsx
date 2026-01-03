@@ -6,6 +6,7 @@ import { VodCard } from "@/features/vod/components/VodCard";
 import { MOCK_VOD_DATA } from "@/features/vod/api/mock";
 import { ChannelCard } from "@/features/channel/components/ChannelCard";
 import { MOCK_CHANNEL_DATA } from "@/features/channel/api/mock";
+import { PLATFORM_LABELS } from "@/types";
 
 export function SearchPage() {
     const [searchParams] = useSearchParams();
@@ -47,7 +48,7 @@ export function SearchPage() {
                     "{query}" 검색 결과
                 </h1>
                 <p className="text-muted-foreground text-sm mt-1">
-                    플랫폼: {platform === "all" ? "전체" : platform}
+                    플랫폼: {platform === "all" ? "전체" : PLATFORM_LABELS[platform]}
                 </p>
             </div>
 

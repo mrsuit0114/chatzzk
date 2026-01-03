@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import { PLATFORM_LABELS } from "@/types";
 
 export function GlobalSearchBar() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [searchParams] = useSearchParams();
 
     const getInitialPlatform = () => {
@@ -30,16 +31,15 @@ export function GlobalSearchBar() {
     const [isFocused, setIsFocused] = useState(false);
 
     useEffect(() => {
-        const qParam = searchParams.get("q");
-        setKeyword(qParam || "");
-
-        const pParam = searchParams.get("platform");
-        if (pParam) {
-            setPlatform(pParam.toLowerCase());
+        // 1. 현재 페이지가 '/search'인 경우에만 URL의 q를 검색창에 반영
+        if (location.pathname === "/search") {
+            const qParam = searchParams.get("q");
+            setKeyword(qParam || "");
         } else {
-            setPlatform("all");
+            // 2. 그 외 페이지(마이페이지 등)에서는 검색창을 비움 (독립 동작)
+            setKeyword("");
         }
-    }, [searchParams]);
+    }, [searchParams, location.pathname]);
 
     const handlePlatformChange = (value: string) => {
         setPlatform(value);

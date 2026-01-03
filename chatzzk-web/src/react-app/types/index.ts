@@ -21,3 +21,18 @@ export const PLATFORM_COLORS: Record<string, string> = {
     [PLATFORM_CODE.CHZZK]: "bg-green-600 hover:bg-green-700",
     [PLATFORM_CODE.YOUTUBE]: "bg-red-600 hover:bg-red-700",
 };
+
+export const USER_ROLE = {
+    OWNER: "owner",
+    EDITOR: "editor",
+} as const;
+
+export type UserRole = typeof USER_ROLE[keyof typeof USER_ROLE];
+
+export interface AuthUser {
+    id: string;
+    role: UserRole;    // 역할
+    channelName: string; // 담당 채널명 (주인: 본인채널, 편집자: 담당채널)
+    platform: PlatformCode; // 'chzzk' | 'youtube' ...
+    platformChannelUrl: string; // 실제 채널 링크
+}

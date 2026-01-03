@@ -14,23 +14,22 @@ export function useUrlParams() {
     const page = parseInt(searchParams.get("page") || "1", 10);
 
     // 쓰기 (Write) - 기존 파라미터 유지하면서 업데이트
-    const setParams = (newParams: Record<string, string | number | undefined | null>) => {
-        const nextParams = new URLSearchParams(searchParams);
+    const setParams = (newParams: Record<string, any>) => {
+        const currentParams = new URLSearchParams(searchParams);
 
         Object.entries(newParams).forEach(([key, value]) => {
             if (value === undefined || value === null || value === "") {
-                nextParams.delete(key);
+                currentParams.delete(key);
             } else {
-                nextParams.set(key, String(value));
+                currentParams.set(key, String(value));
             }
         });
 
-        // 필터 조건이 바뀌면 페이지는 항상 1로 리셋 (page 파라미터가 명시된 경우 제외)
         if (!newParams.page) {
-            nextParams.set("page", "1");
+            currentParams.set("page", "1");
         }
 
-        setSearchParams(nextParams);
+        setSearchParams(currentParams, { replace: true });
     };
 
     return {
