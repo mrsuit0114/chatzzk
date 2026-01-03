@@ -33,9 +33,9 @@ export function ChannelCard({ data }: Props) {
                         {data.platform}
                     </Badge>
                 </div>
-                {data.description && (
+                {data.platformChannelId && (
                     <p className="text-sm text-muted-foreground line-clamp-1">
-                        {data.description}
+                        {data.platformChannelId}
                     </p>
                 )}
             </div>

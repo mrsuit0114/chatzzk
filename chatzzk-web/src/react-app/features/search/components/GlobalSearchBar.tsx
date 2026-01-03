@@ -60,7 +60,10 @@ export function GlobalSearchBar() {
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === "Enter") handleSearch();
+        if (e.key === "Enter") {
+            e.preventDefault();
+            handleSearch();
+        }
     };
 
     return (
@@ -75,6 +78,7 @@ export function GlobalSearchBar() {
                     className="w-[110px] border-none shadow-none focus:ring-0 rounded-none bg-transparent h-10 gap-1 pl-3"
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
+                    onKeyDown={handleKeyDown}
                 >
                     {/* ✅ 2. 여기서 매핑 객체를 사용해 한글 이름 출력 */}
                     <SelectValue aria-label={platform}>
@@ -93,7 +97,7 @@ export function GlobalSearchBar() {
 
             <Input
                 type="text"
-                placeholder="채널명 또는 영상 제목 검색"
+                placeholder="채널명 또는 플랫폼 채널 ID 검색"
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 onKeyDown={handleKeyDown}
