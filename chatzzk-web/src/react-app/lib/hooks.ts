@@ -1,5 +1,9 @@
 import { useSearchParams } from "react-router-dom";
 
+interface SetParamsOptions {
+    replace?: boolean;
+}
+
 export function useUrlParams() {
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -14,7 +18,7 @@ export function useUrlParams() {
     const page = parseInt(searchParams.get("page") || "1", 10);
 
     // 쓰기 (Write) - 기존 파라미터 유지하면서 업데이트
-    const setParams = (newParams: Record<string, any>) => {
+    const setParams = (newParams: Record<string, any>, options?: SetParamsOptions) => {
         const currentParams = new URLSearchParams(searchParams);
 
         Object.entries(newParams).forEach(([key, value]) => {
@@ -29,7 +33,7 @@ export function useUrlParams() {
             currentParams.set("page", "1");
         }
 
-        setSearchParams(currentParams, { replace: true });
+        setSearchParams(currentParams, { replace: options?.replace || false });
     };
 
     return {

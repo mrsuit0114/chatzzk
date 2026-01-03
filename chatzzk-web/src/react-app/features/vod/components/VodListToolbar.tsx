@@ -50,6 +50,7 @@ export function VodListToolbar({ placeholder = "제목 또는 채널명 검색" 
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.nativeEvent.isComposing) return;
         if (e.key === "Enter") {
             e.preventDefault();
             handleSearch();

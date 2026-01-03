@@ -51,6 +51,7 @@ export function GlobalSearchBar() {
 
         const params = new URLSearchParams();
         params.set("q", keyword);
+        params.set("page", "1");
         // "all"이 아닐 때만 파라미터 추가
         if (platform !== "all") {
             params.set("platform", platform);
@@ -60,6 +61,7 @@ export function GlobalSearchBar() {
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.nativeEvent.isComposing) return;
         if (e.key === "Enter") {
             e.preventDefault();
             handleSearch();
@@ -95,6 +97,7 @@ export function GlobalSearchBar() {
 
             <div className="h-5 w-[1px] bg-border mx-1" />
 
+            {/* input과 버튼에서 둘 다 이벤트를 받아서 중복 검색을 수행하는 것은 아닌가? */}
             <Input
                 type="text"
                 placeholder="채널명 또는 플랫폼 채널 ID 검색"
