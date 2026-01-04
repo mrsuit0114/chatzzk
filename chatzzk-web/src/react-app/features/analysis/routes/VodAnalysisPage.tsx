@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { VodAnalysisHeader, ViewType } from "../components/header";
 import { useInsightAccess } from "../hooks/useInsightAccess";
+import { MOCK_SEGMENTS } from "../components/highlight/mock";
+import { BestMomentsSection } from "../components/highlight/best-moments/BestMomentsSection";
 
 export function VodAnalysisPage() {
     const [currentView, setCurrentView] = useState<ViewType>("highlight");
@@ -34,8 +36,6 @@ export function VodAnalysisPage() {
         },
         // ... 기타 데이터
     };
-    // 권한 체크 로직 (이전 대화 참고)
-    const canAccessInsight = false; // 테스트용
 
     const { isLocked, reason } = useInsightAccess({
         publishDate: MOCK_VOD_DATA.publishDate,
@@ -64,11 +64,11 @@ export function VodAnalysisPage() {
                 isInsightLocked={isLocked} // ✅ Hook 결과 전달
             />
 
-            <main className="container mx-auto py-6">
+            <main className="container mx-auto py-3">
                 {activeView === "highlight" ? (
-                    <div>
-                        하이라이트 뷰
-                    </div>
+
+                    <BestMomentsSection data={MOCK_SEGMENTS} />
+
                 ) : (
                     // 🔒 여기서도 한번 더 방어 (데이터 요청 자체를 안 보내도록)
                     !isLocked && <div>
