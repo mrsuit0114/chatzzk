@@ -14,13 +14,13 @@ export function VodCard({ data }: Props) {
 
     // 1. 카드 전체 클릭 -> 분석 페이지로 이동
     const handleCardClick = () => {
-        navigate(`/${data.platform}/video/${data.videoNo}`);
+        navigate(`/${data.platform}/analysis/${data.videoNo}`);
     };
 
     // 2. 채널명 클릭 -> 채널 상세 페이지로 이동
     const handleChannelClick = (e: React.MouseEvent) => {
         e.stopPropagation(); // 🚨 핵심: 부모(카드) 클릭 이벤트가 발생하지 않도록 막음
-        navigate(`/${data.platform}/channel/${data.platformChannelId}`);
+        navigate(`/${data.platform}/channel/${data.channelId}`);
     };
 
     const badgeColor = PLATFORM_COLORS[data.platform] || "bg-gray-600";

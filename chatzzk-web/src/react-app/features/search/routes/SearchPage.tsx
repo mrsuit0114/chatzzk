@@ -31,9 +31,9 @@ export function SearchPage() {
         // B. 검색어 체크 (이름 또는 플랫폼 ID 포함 여부)
         const lowerQuery = query.toLowerCase();
         const matchName = channel.name.toLowerCase().includes(lowerQuery);
-        // platformChannelId가 있는 경우(mock 데이터 구조 가정) 함께 검색
-        const matchId = channel.platformChannelId
-            ? channel.platformChannelId.toLowerCase() === lowerQuery
+        // channelId가 있는 경우(mock 데이터 구조 가정) 함께 검색
+        const matchId = channel.channelId
+            ? channel.channelId.toLowerCase() === lowerQuery
             : false;
 
         return matchName || matchId;
@@ -101,7 +101,7 @@ export function SearchPage() {
                     <>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {currentItems.map((channel) => (
-                                <ChannelCard key={channel.id} data={channel} />
+                                <ChannelCard key={`${channel.platform}-${channel.channelId}`} data={channel} />
                             ))}
                         </div>
 

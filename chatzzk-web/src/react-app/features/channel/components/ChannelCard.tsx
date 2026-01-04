@@ -12,7 +12,7 @@ export function ChannelCard({ data }: Props) {
     const navigate = useNavigate();
 
     const handleClick = () => {
-        navigate(`/channel/${data.id}`);
+        navigate(`/channel/${data.channelId}`);
     };
 
     return (
@@ -33,9 +33,9 @@ export function ChannelCard({ data }: Props) {
                         {data.platform}
                     </Badge>
                 </div>
-                {data.platformChannelId && (
+                {data.channelId && (
                     <p className="text-sm text-muted-foreground line-clamp-1">
-                        {data.platformChannelId}
+                        {data.channelId}
                     </p>
                 )}
             </div>

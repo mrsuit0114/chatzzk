@@ -2,7 +2,7 @@ import { PlatformCode } from "@/types";
 
 export interface VodCardUI {
     videoNo: string;
-    platformChannelId: string;
+    channelId: string;
     title: string;
     channelName: string;
     thumbnailUrl?: string;

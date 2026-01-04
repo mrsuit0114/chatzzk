@@ -14,13 +14,13 @@ export function ChannelPage() {
     const { query, fromDate, toDate, page, setParams } = useUrlParams();
 
     // 1. 채널 정보 찾기 (Mock Data에서 ID로 조회)
-    const channel = MOCK_CHANNEL_DATA.find((c) => c.id === Number(channelId));
+    const channel = MOCK_CHANNEL_DATA.find((c) => c.channelId === channelId);
 
     // 2. VOD 필터링 로직
     const filteredItems = MOCK_VOD_DATA.filter((item) => {
         // A. [필수] 현재 채널의 영상인가?
         // (Mock Data의 channelId는 number, URL param은 string이므로 형변환 주의)
-        const isChannelMatch = String(item.platformChannelId) === channelId;
+        const isChannelMatch = item.channelId === channelId;
 
         // B. 검색어 (채널 내에서는 '제목'만 검색하면 됨)
         const isQueryMatch = !query || item.title.toLowerCase().includes(query.toLowerCase());
