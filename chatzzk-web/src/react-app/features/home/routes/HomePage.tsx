@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tv, Youtube, MonitorPlay, BarChart3 } from "lucide-react";
+import { Tv, MonitorPlay, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function HomePage() {
@@ -21,7 +21,7 @@ export function HomePage() {
             id: "youtube",
             label: "유튜브",
             description: "글로벌 비디오 플랫폼",
-            icon: Youtube,
+            icon: Tv,
             colorClass: "group-hover:text-red-600",
             borderClass: "group-hover:border-red-600",
             bgClass: "group-hover:bg-red-50/50",

@@ -5,9 +5,9 @@ export interface PeakData {
     momentum: number;  // float
 }
 
-export interface SegmentSummaryData {
-    id: string;             // segment - timestamp 고유 ID
-    chapterId: string;      // chapter - timestamp 부모 챕터 ID (연결용)
+export interface SegmentSummaryData {  // 데이터에서 id는 동일해도되나 렌더링 시 prefix로 구분필요
+    id: string;             // 컴포넌트 + 역할, 페이지 단위 prefix, 케밥 표기법을 사용해서 page에서 로드할 때 적용해야겠네
+    chapterId: string;      // chapter - 1, 2, ...
     startTime: number;      // ms
     endTime: number;        // ms
 
@@ -30,3 +30,21 @@ export const SORT_OPTIONS = {
 } as const;
 
 export type SortOption = typeof SORT_OPTIONS[keyof typeof SORT_OPTIONS];
+
+
+export interface ChapterSummaryData {
+    id: string;             // Chapter ID
+    title: string;          // 챕터 제목 (예: "1부: 삼국지 개요")
+    summary: string;        // 챕터 전체 요약문
+    startTime: number;      // ms
+    endTime: number;        // ms
+}
+
+export const getAtmosphereColor = (attr: string) => {
+    switch (attr.toLowerCase()) {
+        case "funny": return "bg-orange-100 text-orange-700 border-orange-200";
+        case "tension": return "bg-purple-100 text-purple-700 border-purple-200";
+        case "touching": return "bg-pink-100 text-pink-700 border-pink-200";
+        default: return "bg-secondary text-secondary-foreground border-transparent";
+    }
+};

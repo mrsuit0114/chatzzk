@@ -29,9 +29,9 @@ export function AnalysisMetrics({ sentiments, avgScore }: AnalysisMetricsProps) 
                     <TooltipTrigger asChild>
                         <div className="flex flex-col justify-center gap-[1px] cursor-help">
                             {top3.map((item) => (
-                                <div key={item.label} className="flex items-center justify-between w-[6.5rem]">
+                                <div key={item.label} className="flex items-center justify-between w-[4.5rem]">
                                     <div className="flex items-center gap-1.5 overflow-hidden">
-                                        <span className={cn("flex-shrink-0 w-1.5 h-1.5 rounded-full", item.color.replace("text-", "bg-"))} />
+                                        <span className={cn("flex-shrink-0 h-1.5 rounded-full", item.color.replace("text-", "bg-"))} />
                                         <span className="text-[10px] text-muted-foreground truncate">{item.label}</span>
                                     </div>
                                     <span className="text-[10px] font-medium tabular-nums text-foreground">

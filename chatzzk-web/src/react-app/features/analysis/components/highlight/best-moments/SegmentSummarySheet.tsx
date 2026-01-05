@@ -16,7 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn, formatTime } from "@/lib/utils";
 
-import type { SegmentSummaryData } from "../types";
+import { getAtmosphereColor, type SegmentSummaryData } from "../types";
 
 
 interface SegmentSummarySheetProps {
@@ -27,15 +27,6 @@ interface SegmentSummarySheetProps {
 
 export function SegmentSummarySheet({ data, isOpen, onClose }: SegmentSummarySheetProps) {
     if (!data) return null;
-
-    const getAtmosphereColor = (attr: string) => {
-        switch (attr.toLowerCase()) {
-            case "funny": return "bg-orange-100 text-orange-700 border-orange-200";
-            case "tension": return "bg-purple-100 text-purple-700 border-purple-200";
-            case "touching": return "bg-pink-100 text-pink-700 border-pink-200";
-            default: return "bg-secondary text-secondary-foreground border-transparent";
-        }
-    };
 
     return (
         <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn, formatInterval, formatTime } from "@/lib/utils";
-import { SORT_OPTIONS, type SegmentSummaryData, type SortOption } from "../types";
+import { getAtmosphereColor, SORT_OPTIONS, type SegmentSummaryData, type SortOption } from "../types";
 
 
 
@@ -16,16 +16,6 @@ interface MomentCardProps {
 }
 
 export function MomentCard({ data, interval, sortBy, onClick }: MomentCardProps) {
-
-    // 1. Atmosphere 색상 매핑
-    const getAtmosphereColor = (attr: string) => {
-        switch (attr.toLowerCase()) {
-            case "funny": return "bg-orange-100 text-orange-700 border-orange-200";
-            case "tension": return "bg-purple-100 text-purple-700 border-purple-200";
-            case "touching": return "bg-pink-100 text-pink-700 border-pink-200";
-            default: return "bg-secondary text-secondary-foreground border-transparent";
-        }
-    };
 
     // 2. Footer에 보여줄 Peak 데이터 결정
     // - Momentum 정렬일 때만 mmtPeak(급상승 기준)를 보여주고,

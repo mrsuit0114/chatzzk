@@ -10,7 +10,7 @@ export function VodAnalysisHeader({
     isInsightLocked = false,
 }: VodAnalysisHeaderProps) {
     return (
-        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className="sticky top-14 z-40 w-full border-b bg-background">
             <div className="container mx-auto h-16 flex items-center justify-between gap-4">
 
                 {/* [Left] VOD Info */}
