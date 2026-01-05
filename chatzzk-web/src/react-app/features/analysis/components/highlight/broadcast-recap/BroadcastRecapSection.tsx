@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { ChapterList } from "./ChapterList";
 import { SegmentList } from "./SegmentList";
-import type { SegmentSummaryData, ChapterSummaryData } from "../../types";
+import type { SegmentSummaryData, ChapterSummaryData } from "../../../types";
 
 interface BroadcastRecapSectionProps {
     chapters: ChapterSummaryData[];

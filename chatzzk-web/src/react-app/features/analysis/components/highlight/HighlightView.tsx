@@ -1,6 +1,6 @@
 import { BestMomentsSection } from "./best-moments/BestMomentsSection";
 import { BroadcastRecapSection } from "./broadcast-recap/BroadcastRecapSection";
-import { SegmentSummaryData, ChapterSummaryData } from "../types";
+import { SegmentSummaryData, ChapterSummaryData } from "../../types";
 
 interface HighlightViewProps {
     segments: SegmentSummaryData[];

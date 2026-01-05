@@ -1,4 +1,4 @@
-import { VodAnalysisHeaderProps } from "../types";
+import { VodAnalysisHeaderProps } from "../../types";
 import { AnalysisMetrics } from "./AnalysisMetrics";
 import { ViewSwitcher } from "./ViewSwitcher";
 import { VodInfo } from "./VodInfo";

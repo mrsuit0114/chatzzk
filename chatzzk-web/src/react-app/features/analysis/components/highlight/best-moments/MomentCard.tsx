@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn, formatInterval, formatTime } from "@/lib/utils";
-import { getAtmosphereColor, SORT_OPTIONS, type SegmentSummaryData, type SortOption } from "../../types";
+import { getAtmosphereColor, SORT_OPTIONS, type SegmentSummaryData, type SortOption } from "../../../types";
 
 
 

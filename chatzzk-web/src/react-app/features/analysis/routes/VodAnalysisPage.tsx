@@ -4,7 +4,7 @@ import { MOCK_CHAPTERS, MOCK_SEGMENTS } from "../components/highlight/mock";
 import { SegmentTrendSection } from "../components/insight/trend/SegmentTrendSection";
 import { HighlightView } from "../components/highlight";
 import { VodAnalysisHeader } from "../components/header";
-import { ViewType } from "../components/types";
+import { ViewType } from "../types";
 
 export function VodAnalysisPage() {
     const [currentView, setCurrentView] = useState<ViewType>("highlight");

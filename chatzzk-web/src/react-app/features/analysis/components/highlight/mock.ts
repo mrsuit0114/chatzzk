@@ -1,5 +1,5 @@
 // features/vod/components/highlight/mock.ts
-import type { ChapterSummaryData, SegmentSummaryData } from "../types";
+import type { ChapterSummaryData, SegmentSummaryData } from "../../types";
 
 export const MOCK_SEGMENTS: SegmentSummaryData[] = [
     {

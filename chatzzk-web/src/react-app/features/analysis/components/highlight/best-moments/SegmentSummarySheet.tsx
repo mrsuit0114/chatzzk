@@ -16,7 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn, formatTime } from "@/lib/utils";
 
-import { getAtmosphereColor, type SegmentSummaryData } from "../../types";
+import { getAtmosphereColor, type SegmentSummaryData } from "../../../types";
 
 
 interface SegmentSummarySheetProps {
