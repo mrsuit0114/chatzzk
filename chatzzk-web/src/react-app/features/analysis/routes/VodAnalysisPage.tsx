@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { VodAnalysisHeader, ViewType } from "../components/header";
 import { useInsightAccess } from "../hooks/useInsightAccess";
 import { MOCK_CHAPTERS, MOCK_SEGMENTS } from "../components/highlight/mock";
-import { BestMomentsSection } from "../components/highlight/best-moments/BestMomentsSection";
-import { BroadcastRecapSection } from "../components/highlight/broadcast-recap/BroadcastRecapSection";
+import { SegmentTrendSection } from "../components/insight/trend/SegmentTrendSection";
+import { HighlightView } from "../components/highlight";
+import { VodAnalysisHeader } from "../components/header";
+import { ViewType } from "../components/types";
 
 export function VodAnalysisPage() {
     const [currentView, setCurrentView] = useState<ViewType>("highlight");
@@ -67,8 +68,9 @@ export function VodAnalysisPage() {
 
             <main className="container mx-auto py-3">
                 {activeView === "highlight" ? (
-
-                    <><BestMomentsSection data={MOCK_SEGMENTS} /><BroadcastRecapSection chapters={MOCK_CHAPTERS} allSegments={MOCK_SEGMENTS} /></>
+                    <HighlightView
+                        segments={MOCK_SEGMENTS}
+                        chapters={MOCK_CHAPTERS} />
 
                 ) : (
                     // 🔒 여기서도 한번 더 방어 (데이터 요청 자체를 안 보내도록)

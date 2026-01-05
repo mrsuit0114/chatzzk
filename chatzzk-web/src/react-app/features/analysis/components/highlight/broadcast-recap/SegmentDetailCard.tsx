@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn, formatTime } from "@/lib/utils";
-import { getAtmosphereColor, type SegmentSummaryData } from "../types";
+import { getAtmosphereColor, type SegmentSummaryData } from "../../types";
 
 interface SegmentDetailCardProps {
     data: SegmentSummaryData;
@@ -12,7 +12,7 @@ interface SegmentDetailCardProps {
 export function SegmentDetailCard({ data }: SegmentDetailCardProps) {
 
     return (
-        <Card className="border-border shadow-sm hover:border-primary/50 transition-colors">
+        <Card className="border-border shadow-sm">
             {/* Header */}
             <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">

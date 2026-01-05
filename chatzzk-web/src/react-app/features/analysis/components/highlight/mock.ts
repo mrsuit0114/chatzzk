@@ -1,10 +1,10 @@
 // features/vod/components/highlight/mock.ts
-import type { ChapterSummaryData, SegmentSummaryData } from "./types";
+import type { ChapterSummaryData, SegmentSummaryData } from "../types";
 
 export const MOCK_SEGMENTS: SegmentSummaryData[] = [
     {
-        id: "broadcast-recap-seg-1",
-        chapterId: "broadcast-recap-ch-1",
+        id: "seg-1",
+        chapterId: "ch-1",
         startTime: 300000, // 00:02:05
         endTime: 600000,
         atmosphere: "Funny",
@@ -17,8 +17,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 390000, volume: 0.33, momentum: 2.81 },
     },
     {
-        id: "broadcast-recap-seg-2",
-        chapterId: "broadcast-recap-ch-2",
+        id: "seg-2",
+        chapterId: "ch-2",
         startTime: 4500000, // 00:07:30
         endTime: 4800000,
         atmosphere: "Tension",
@@ -31,8 +31,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 4650000, volume: 0.31, momentum: 3.34 },
     },
     {
-        id: "broadcast-recap-seg-12",
-        chapterId: "broadcast-recap-ch-1",
+        id: "seg-12",
+        chapterId: "ch-1",
         startTime: 300000, // 00:02:05
         endTime: 600000,
         atmosphere: "Funny",
@@ -45,8 +45,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 390000, volume: 0.33, momentum: 2.81 },
     },
     {
-        id: "broadcast-recap-seg-22",
-        chapterId: "broadcast-recap-ch-2",
+        id: "seg-22",
+        chapterId: "ch-2",
         startTime: 4500000, // 00:07:30
         endTime: 4800000,
         atmosphere: "Tension",
@@ -59,8 +59,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 4650000, volume: 0.31, momentum: 3.34 },
     },
     {
-        id: "broadcast-recap-seg-13",
-        chapterId: "broadcast-recap-ch-1",
+        id: "seg-13",
+        chapterId: "ch-1",
         startTime: 300000, // 00:02:05
         endTime: 600000,
         atmosphere: "Funny",
@@ -73,8 +73,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 390000, volume: 0.33, momentum: 2.81 },
     },
     {
-        id: "broadcast-recap-seg-23",
-        chapterId: "broadcast-recap-ch-2",
+        id: "seg-23",
+        chapterId: "ch-2",
         startTime: 4500000, // 00:07:30
         endTime: 4800000,
         atmosphere: "Tension",
@@ -87,8 +87,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 4650000, volume: 0.31, momentum: 3.34 },
     },
     {
-        id: "broadcast-recap-seg-14",
-        chapterId: "broadcast-recap-ch-1",
+        id: "seg-14",
+        chapterId: "ch-1",
         startTime: 300000, // 00:02:05
         endTime: 600000,
         atmosphere: "Funny",
@@ -101,8 +101,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 390000, volume: 0.33, momentum: 2.81 },
     },
     {
-        id: "broadcast-recap-seg-24",
-        chapterId: "broadcast-recap-ch-2",
+        id: "seg-24",
+        chapterId: "ch-2",
         startTime: 4500000, // 00:07:30
         endTime: 4800000,
         atmosphere: "Tension",
@@ -115,8 +115,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 4650000, volume: 0.31, momentum: 3.34 },
     },
     {
-        id: "broadcast-recap-seg-15",
-        chapterId: "broadcast-recap-ch-1",
+        id: "seg-15",
+        chapterId: "ch-1",
         startTime: 300000, // 00:02:05
         endTime: 600000,
         atmosphere: "Funny",
@@ -129,8 +129,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 390000, volume: 0.33, momentum: 2.81 },
     },
     {
-        id: "broadcast-recap-seg-25",
-        chapterId: "broadcast-recap-ch-2",
+        id: "seg-25",
+        chapterId: "ch-2",
         startTime: 4500000, // 00:07:30
         endTime: 4800000,
         atmosphere: "Tension",
@@ -143,8 +143,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 4650000, volume: 0.31, momentum: 3.34 },
     },
     {
-        id: "broadcast-recap-seg-16",
-        chapterId: "broadcast-recap-ch-1",
+        id: "seg-16",
+        chapterId: "ch-1",
         startTime: 300000, // 00:02:05
         endTime: 600000,
         atmosphere: "Funny",
@@ -157,8 +157,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 390000, volume: 0.33, momentum: 2.81 },
     },
     {
-        id: "broadcast-recap-seg-26",
-        chapterId: "broadcast-recap-ch-2",
+        id: "seg-26",
+        chapterId: "ch-2",
         startTime: 4500000, // 00:07:30
         endTime: 4800000,
         atmosphere: "Tension",
@@ -171,8 +171,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 4650000, volume: 0.31, momentum: 3.34 },
     },
     {
-        id: "broadcast-recap-seg-17",
-        chapterId: "broadcast-recap-ch-1",
+        id: "seg-17",
+        chapterId: "ch-1",
         startTime: 300000, // 00:02:05
         endTime: 600000,
         atmosphere: "Funny",
@@ -185,8 +185,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 390000, volume: 0.33, momentum: 2.81 },
     },
     {
-        id: "broadcast-recap-seg-27",
-        chapterId: "broadcast-recap-ch-2",
+        id: "seg-27",
+        chapterId: "ch-2",
         startTime: 4500000, // 00:07:30
         endTime: 4800000,
         atmosphere: "Tension",
@@ -199,8 +199,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 4650000, volume: 0.31, momentum: 3.34 },
     },
     {
-        id: "broadcast-recap-seg-18",
-        chapterId: "broadcast-recap-ch-1",
+        id: "seg-18",
+        chapterId: "ch-1",
         startTime: 300000, // 00:02:05
         endTime: 600000,
         atmosphere: "Funny",
@@ -213,8 +213,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 390000, volume: 0.33, momentum: 2.81 },
     },
     {
-        id: "broadcast-recap-seg-28",
-        chapterId: "broadcast-recap-ch-2",
+        id: "seg-28",
+        chapterId: "ch-2",
         startTime: 4500000, // 00:07:30
         endTime: 4800000,
         atmosphere: "Tension",
@@ -227,8 +227,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 4650000, volume: 0.31, momentum: 3.34 },
     },
     {
-        id: "broadcast-recap-seg-19",
-        chapterId: "broadcast-recap-ch-1",
+        id: "seg-19",
+        chapterId: "ch-1",
         startTime: 300000, // 00:02:05
         endTime: 600000,
         atmosphere: "Funny",
@@ -241,8 +241,8 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
         mmtPeak: { timestamp: 390000, volume: 0.33, momentum: 2.81 },
     },
     {
-        id: "broadcast-recap-seg-29",
-        chapterId: "broadcast-recap-ch-2",
+        id: "seg-29",
+        chapterId: "ch-2",
         startTime: 4500000, // 00:07:30
         endTime: 4800000,
         atmosphere: "Tension",
@@ -258,56 +258,56 @@ export const MOCK_SEGMENTS: SegmentSummaryData[] = [
 
 export const MOCK_CHAPTERS: ChapterSummaryData[] = [
     {
-        id: "broadcast-recap-ch-1",
+        id: "ch-1",
         title: "1부: 오프닝 및 근황 토크",
         summary: "방송 시작과 함께 한 주간의 근황을 나누고, 오늘 플레이할 삼국지 게임에 대한 기대감을 이야기하는 시간.",
         startTime: 0,
         endTime: 3600000, // 1시간
     },
     {
-        id: "broadcast-recap-ch-2",
+        id: "ch-2",
         title: "2부: 삼국지 유비 플레이 시작",
         summary: "본격적인 게임 시작. 유비 캐릭터를 생성하고 초반 시나리오를 진행하며 시청자들과 캐릭터 커스터마이징을 논의함.",
         startTime: 3600000,
         endTime: 7200000, // 2시간
     },
     {
-        id: "broadcast-recap-ch-3",
+        id: "ch-3",
         title: "1부: 오프닝 및 근황 토크",
         summary: "방송 시작과 함께 한 주간의 근황을 나누고, 오늘 플레이할 삼국지 게임에 대한 기대감을 이야기하는 시간.",
         startTime: 7200000,
         endTime: 10800000,
     },
     {
-        id: "broadcast-recap-ch-4",
+        id: "ch-4",
         title: "2부: 삼국지 유비 플레이 시작2부: 삼국지 유비 플레이 시작2부: 삼국지 유비 플레이 시작2부: 삼국지 유비 플레이 시작2부: 삼국지 유비 플레이 시작2부: 삼국지 유비 플레이 시작",
         summary: "본격적인 게임 시작. 유비 캐릭터를 생성하고 초반 시나리오를 진행하며 시청자들과 캐릭터 커스터마이징을 논의함.",
         startTime: 10800000,
         endTime: 14400000,
     },
     {
-        id: "broadcast-recap-ch-5",
+        id: "ch-5",
         title: "1부: 오프닝 및 근황 토크",
         summary: "방송 시작과 함께 한 주간의 근황을 나누고, 오늘 플레이할 삼국지 게임에 대한 기대감을 이야기하는 시간.",
         startTime: 14400000,
         endTime: 18000000,
     },
     {
-        id: "broadcast-recap-ch-6",
+        id: "ch-6",
         title: "2부: 삼국지 유비 플레이 시작2부: 삼국지 유비 플레이 시작2부: 삼국지 유비 플레이 시작2부: 삼국지 유비 플레이 시작2부: 삼국지 유비 플레이 시작2부: 삼국지 유비 플레이 시작",
         summary: "본격적인 게임 시작. 유비 캐릭터를 생성하고 초반 시나리오를 진행하며 시청자들과 캐릭터 커스터마이징을 논의함.",
         startTime: 18000000,
         endTime: 21600000,
     },
     {
-        id: "broadcast-recap-ch-7",
+        id: "ch-7",
         title: "1부: 오프닝 및 근황 토크",
         summary: "방송 시작과 함께 한 주간의 근황을 나누고, 오늘 플레이할 삼국지 게임에 대한 기대감을 이야기하는 시간.",
         startTime: 21600000,
         endTime: 25200000,
     },
     {
-        id: "broadcast-recap-ch-8",
+        id: "ch-8",
         title: "2부: 삼국지 유비 플레이 시작2부: 삼국지 유비 플레이 시작2부: 삼국지 유비 플레이 시작2부: 삼국지 유비 플레이 시작2부: 삼국지 유비 플레이 시작2부: 삼국지 유비 플레이 시작",
         summary: "본격적인 게임 시작. 유비 캐릭터를 생성하고 초반 시나리오를 진행하며 시청자들과 캐릭터 커스터마이징을 논의함.본격적인 게임 시작. 유비 캐릭터를 생성하고 초반 시나리오를 진행하며 시청자들과 캐릭터 커스터마이징을 논의함.본격적인 게임 시작. 유비 캐릭터를 생성하고 초반 시나리오를 진행하며 시청자들과 캐릭터 커스터마이징을 논의함.본격적인 게임 시작. 유비 캐릭터를 생성하고 초반 시나리오를 진행하며 시청자들과 캐릭터 커스터마이징을 논의함.",
         startTime: 25200000,

@@ -9,7 +9,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { Sentiment } from "./types";
+import { Sentiment } from "../types";
 
 interface AnalysisMetricsProps {
     sentiments: Sentiment[];

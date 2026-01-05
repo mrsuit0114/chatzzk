@@ -16,7 +16,7 @@ import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn, formatTime } from "@/lib/utils";
 
-import { getAtmosphereColor, type SegmentSummaryData } from "../types";
+import { getAtmosphereColor, type SegmentSummaryData } from "../../types";
 
 
 interface SegmentSummarySheetProps {
@@ -30,7 +30,7 @@ export function SegmentSummarySheet({ data, isOpen, onClose }: SegmentSummaryShe
 
     return (
         <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <SheetContent className="w-full sm:max-w-md flex flex-col p-0 gap-0">
+            <SheetContent className="w-full sm:max-w-md flex flex-col p-0 gap-0" aria-describedby={undefined}>
 
                 {/* 1. Header Area */}
                 <SheetHeader className="p-6 pb-4 border-b bg-muted/10">

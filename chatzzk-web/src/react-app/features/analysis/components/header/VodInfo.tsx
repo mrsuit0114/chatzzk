@@ -13,7 +13,8 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import type { VodHeaderData } from "./types";
+import { VodHeaderData } from "../types";
+
 
 interface VodInfoProps {
     data: VodHeaderData;

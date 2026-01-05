@@ -2,7 +2,7 @@
 
 import { Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { VIEW_TYPE, type ViewType } from "./types";
+import { ViewType, VIEW_TYPE } from "../types";
 
 
 interface ViewSwitcherProps {

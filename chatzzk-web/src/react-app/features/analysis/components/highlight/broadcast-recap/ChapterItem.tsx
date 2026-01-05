@@ -1,7 +1,7 @@
 import { Clock } from "lucide-react";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn, formatTime } from "@/lib/utils";
-import type { ChapterSummaryData } from "../types";
+import type { ChapterSummaryData } from "../../types";
 
 interface ChapterItemProps {
     chapter: ChapterSummaryData;

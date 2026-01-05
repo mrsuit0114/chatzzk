@@ -1,5 +1,5 @@
+import { VodAnalysisHeaderProps } from "../types";
 import { AnalysisMetrics } from "./AnalysisMetrics";
-import { VodAnalysisHeaderProps } from "./types";
 import { ViewSwitcher } from "./ViewSwitcher";
 import { VodInfo } from "./VodInfo";
 
