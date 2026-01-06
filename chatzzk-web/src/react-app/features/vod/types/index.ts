@@ -1,4 +1,4 @@
-import { PlatformCode } from "@/types";
+import { PlatformCode } from "@/constants";
 
 export interface VodUI {
     videoNo: string;

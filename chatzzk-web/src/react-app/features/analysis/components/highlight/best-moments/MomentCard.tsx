@@ -3,9 +3,10 @@ import { Flame, Zap, Star, Clock, Timer } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { getAtmosphereColor, SORT_OPTIONS, type SegmentSummaryData, type SortOption } from "../../../types";
 import { cn } from "@/lib/utils";
-import { formatTime, formatInterval } from "@/features/analysis/utils";
+import { formatTime, formatInterval, getBadgeClasses } from "@/features/analysis/utils";
+import { SORT_OPTIONS, SortOption } from "@/features/analysis/constants";
+import { SegmentSummaryData } from "@/features/analysis/types";
 
 
 
@@ -55,7 +56,7 @@ export function MomentCard({ data, interval, sortBy, onClick }: MomentCardProps)
                         <Star className={cn("h-3 w-3", sortBy === SORT_OPTIONS.SCORE ? "fill-yellow-500 text-yellow-500" : "")} />
                         {data.score.toFixed(1)}
                     </div>
-                    <Badge variant="outline" className={cn("text-[10px] font-bold px-2 py-0.5", getAtmosphereColor(data.atmosphere))}>
+                    <Badge variant="outline" className={cn("text-[10px] font-bold px-2 py-0.5", getBadgeClasses(data.atmosphere))}>
                         {data.atmosphere}
                     </Badge>
                 </div>

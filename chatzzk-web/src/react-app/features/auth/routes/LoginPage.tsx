@@ -6,8 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, LogIn } from "lucide-react";
 import { useAuthStore } from "@/stores/auth.store";
-import { PLATFORM_CODE } from "@/constants";
-import { UserRole } from "@/types";
+import { PLATFORM_CODE, UserRole } from "@/constants";
 
 export function LoginPage() {
     const navigate = useNavigate();

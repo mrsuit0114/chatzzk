@@ -14,9 +14,9 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatTime } from "@/features/analysis/utils";
+import { formatTime, getBadgeClasses } from "@/features/analysis/utils";
 
-import { getAtmosphereColor, type SegmentSummaryData } from "../../../types";
+import { type SegmentSummaryData } from "../../../types";
 import { cn } from "@/lib/utils";
 
 
@@ -56,7 +56,7 @@ export function SegmentSummarySheet({ data, isOpen, onClose }: SegmentSummaryShe
                                 <span className="text-xs tabular-nums">{data.score.toFixed(1)}</span>
                             </div>
                             {/* Atmosphere */}
-                            <Badge variant="outline" className={cn("px-2.5 py-1 text-xs font-bold", getAtmosphereColor(data.atmosphere))}>
+                            <Badge variant="outline" className={cn("px-2.5 py-1 text-xs font-bold", getBadgeClasses(data.atmosphere))}>
                                 {data.atmosphere}
                             </Badge>
                         </div>

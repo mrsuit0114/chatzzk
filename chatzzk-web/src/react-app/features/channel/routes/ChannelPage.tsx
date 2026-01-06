@@ -6,8 +6,8 @@ import { ChannelProfile } from "../components/ChannelProfile";
 import { VodListToolbar } from "@/features/vod/components/VodListToolbar";
 import { BasePagination } from "@/components/ui/base-pagination"; // 파일명 수정 반영
 import { useUrlParams } from "@/hooks/use-url-params";
+import { ITEMS_PER_PAGE } from "../constants";
 
-const ITEMS_PER_PAGE = 12;
 
 export function ChannelPage() {
     const { channelId } = useParams<{ channelId: string }>();

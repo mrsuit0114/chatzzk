@@ -19,7 +19,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
-import { SORT_OPTIONS, type SortOption } from "../../../types";
+import { type SortOption } from "../../../types";
+import { SORT_OPTIONS } from "@/features/analysis/constants";
 
 interface MomentsToolbarProps {
     // Atmosphere Filter Props

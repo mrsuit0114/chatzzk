@@ -1,5 +1,5 @@
 import { ChapterSummaryData, SegmentSummaryData } from "../types";
-import type { RawDashboardResponse } from "../types/raw";
+import type { RawDashboardResponse } from "../types/external";
 
 export function mapRawDataToViewData(raw: RawDashboardResponse) {
     const { segmentStep, chapterStep } = raw.metaInfo.intervals;

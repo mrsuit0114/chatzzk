@@ -2,8 +2,8 @@ import { Clock, Star, Flame, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { formatTime } from "@/features/analysis/utils";
-import { getAtmosphereColor, type SegmentSummaryData } from "../../../types";
+import { formatTime, getBadgeClasses } from "@/features/analysis/utils";
+import { type SegmentSummaryData } from "../../../types";
 import { cn } from "@/lib/utils";
 
 interface SegmentDetailCardProps {
@@ -27,7 +27,7 @@ export function SegmentDetailCard({ data }: SegmentDetailCardProps) {
                         <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
                         <span className="text-xs tabular-nums">{data.score.toFixed(1)}</span>
                     </div>
-                    <Badge variant="outline" className={cn("px-2 py-1 text-xs font-bold", getAtmosphereColor(data.atmosphere))}>
+                    <Badge variant="outline" className={cn("px-2 py-1 text-xs font-bold", getBadgeClasses(data.atmosphere))}>
                         {data.atmosphere}
                     </Badge>
                 </div>

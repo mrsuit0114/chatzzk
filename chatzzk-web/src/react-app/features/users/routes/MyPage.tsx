@@ -49,6 +49,7 @@ export function MyPage() {
             <Tabs
                 value={currentTab}
                 onValueChange={handleTabChange}
+                activationMode="manual"
                 className="w-full"
             >
                 <TabsList className={`grid w-full max-w-[600px] ${isEditor ? "grid-cols-2" : "grid-cols-3"}`}>

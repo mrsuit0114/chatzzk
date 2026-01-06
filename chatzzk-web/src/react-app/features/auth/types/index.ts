@@ -1,4 +1,4 @@
-import { UserRole, PlatformCode } from "@/types";
+import { UserRole, PlatformCode } from "@/constants";
 
 
 export interface AuthUser {

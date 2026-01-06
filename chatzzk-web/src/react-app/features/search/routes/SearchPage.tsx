@@ -6,9 +6,7 @@ import { ChannelCard } from "@/features/channel/components/ChannelCard";
 import { BasePagination } from "@/components/ui/base-pagination";
 import { MOCK_CHANNEL_DATA } from "@/features/channel/api/mock";
 import { PLATFORM_LABELS } from "@/constants";
-
-
-const ITEMS_PER_PAGE = 18; // 한 페이지당 보여줄 채널 수
+import { ITEMS_PER_PAGE } from "../constants";
 
 export function SearchPage() {
     const [searchParams, setSearchParams] = useSearchParams();

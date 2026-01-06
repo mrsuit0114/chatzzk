@@ -5,11 +5,8 @@ import { useUrlParams } from "@/hooks/use-url-params";
 import { BasePagination } from "@/components/ui/base-pagination";
 import { VodListToolbar } from "@/features/vod/components/VodListToolbar";
 import { PLATFORM_LABELS } from "@/constants";
+import { ITEMS_PER_PAGE } from "../constants";
 
-
-// ✅ [설정] 페이지 당 카드 개수 관리
-// 나중에 전역 상수로 뺄 수도 있습니다.
-const ITEMS_PER_PAGE = 12; // Grid 4열 기준 3줄이 보기 좋음
 
 export function PlatformPage() {
     const { platformId } = useParams<{ platformId: string }>();

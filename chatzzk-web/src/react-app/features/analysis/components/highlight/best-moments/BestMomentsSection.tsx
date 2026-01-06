@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { MomentsToolbar } from "./MomentsToolbar";
 import { MomentCard } from "./MomentCard";
-import { SORT_OPTIONS, type SegmentSummaryData, type SortOption } from "../../../types";
 import { SegmentSummarySheet } from "./SegmentSummarySheet";
+import { SORT_OPTIONS, SortOption } from "@/features/analysis/constants";
+import { SegmentSummaryData } from "@/features/analysis/types";
 
 function HorizontalScrollContainer({ children }: { children: React.ReactNode }) {
     return (
