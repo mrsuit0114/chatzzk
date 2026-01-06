@@ -1,8 +1,9 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { USER_ROLE, PLATFORM_COLORS, PLATFORM_LABELS } from "@/constants";
+import { AuthUser } from "@/features/auth/types";
 import { cn } from "@/lib/utils";
-import { AuthUser, PLATFORM_COLORS, PLATFORM_LABELS, USER_ROLE } from "@/types";
 import { ExternalLink, UserCog, ShieldCheck } from "lucide-react";
 
 interface Props {

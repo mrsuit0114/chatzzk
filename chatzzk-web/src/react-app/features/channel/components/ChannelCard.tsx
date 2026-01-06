@@ -2,17 +2,17 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { ChannelCardUI } from "../types";
+import { ChannelUI } from "../types";
 
 interface Props {
-    data: ChannelCardUI;
+    data: ChannelUI;
 }
 
 export function ChannelCard({ data }: Props) {
     const navigate = useNavigate();
 
     const handleClick = () => {
-        navigate(`/channel/${data.channelId}`);
+        navigate(`/${data.platform}/channel/${data.channelId}`);
     };
 
     return (

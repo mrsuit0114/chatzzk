@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { useInsightAccess } from "../hooks/useInsightAccess";
+import { useInsightAccess } from "../hooks/use-insight-access";
 import { MOCK_CHAPTERS, MOCK_SEGMENTS } from "../components/highlight/mock";
-import { SegmentTrendSection } from "../components/insight/trend/SegmentTrendSection";
 import { HighlightView } from "../components/highlight";
 import { VodAnalysisHeader } from "../components/header";
 import { ViewType } from "../types";
+import { InsightView } from "../components/insight/InsightView";
 
 export function VodAnalysisPage() {
     const [currentView, setCurrentView] = useState<ViewType>("highlight");

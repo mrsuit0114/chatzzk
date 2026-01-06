@@ -1,8 +1,8 @@
-import { VodCardUI } from "../types";
+import { VodUI } from "../types";
 
 
 // 실제로는 API에서 받아올 데이터 형태입니다.
-export const MOCK_VOD_DATA: VodCardUI[] = [
+export const MOCK_VOD_DATA: VodUI[] = [
     {
         videoNo: "a1b2c3d4e5f6g7h8i9j0",
         channelId: "chzzk_official",

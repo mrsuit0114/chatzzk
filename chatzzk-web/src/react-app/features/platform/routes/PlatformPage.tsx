@@ -1,10 +1,11 @@
 import { useParams } from "react-router-dom";
 import { VodCard } from "@/features/vod/components/VodCard";
 import { MOCK_VOD_DATA } from "@/features/vod/api/mock";
-import { useUrlParams } from "@/lib/hooks";
-import { PLATFORM_LABELS } from "@/types";
+import { useUrlParams } from "@/hooks/use-url-params";
 import { BasePagination } from "@/components/ui/base-pagination";
 import { VodListToolbar } from "@/features/vod/components/VodListToolbar";
+import { PLATFORM_LABELS } from "@/constants";
+
 
 // ✅ [설정] 페이지 당 카드 개수 관리
 // 나중에 전역 상수로 뺄 수도 있습니다.

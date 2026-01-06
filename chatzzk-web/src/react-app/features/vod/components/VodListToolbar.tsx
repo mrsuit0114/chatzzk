@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Search, Calendar, RotateCcw } from "lucide-react"; // RotateCcw 아이콘 추가
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useUrlParams } from "@/lib/hooks";
+import { useUrlParams } from "@/hooks/use-url-params";
 
 interface Props {
     placeholder?: string;

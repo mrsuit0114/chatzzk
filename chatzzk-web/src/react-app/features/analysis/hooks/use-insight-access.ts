@@ -1,6 +1,7 @@
 import { addDays, isAfter, isBefore } from "date-fns"; // npm install date-fns
-import { useAuthStore } from "@/lib/stores";
-import { USER_ROLE } from "@/types";
+import { useAuthStore } from "@/stores/auth.store";
+import { USER_ROLE } from "@/constants";
+
 
 interface InsightAccessParams {
     publishDate: Date | string;    // VOD 게시일

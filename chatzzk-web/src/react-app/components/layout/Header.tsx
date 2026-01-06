@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { GlobalSearchBar } from "@/features/search/components/GlobalSearchBar";
-import { useAuthStore } from "@/lib/stores";
+import { useAuthStore } from "@/stores/auth.store";
 
 export function Header() {
     const navigate = useNavigate();

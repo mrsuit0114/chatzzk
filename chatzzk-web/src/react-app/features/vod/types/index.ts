@@ -1,6 +1,6 @@
 import { PlatformCode } from "@/types";
 
-export interface VodCardUI {
+export interface VodUI {
     videoNo: string;
     channelId: string;
     title: string;

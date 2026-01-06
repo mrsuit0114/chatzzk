@@ -10,8 +10,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { PLATFORM_LABELS } from "@/constants";
 import { cn } from "@/lib/utils";
-import { PLATFORM_LABELS } from "@/types";
+
 
 export function GlobalSearchBar() {
     const navigate = useNavigate();

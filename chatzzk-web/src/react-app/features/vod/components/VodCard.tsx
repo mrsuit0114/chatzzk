@@ -1,12 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { VodUI } from "../types";
+import { PLATFORM_COLORS, PLATFORM_LABELS } from "@/constants";
 import { cn } from "@/lib/utils";
-import { VodCardUI } from "../types";
-import { PLATFORM_COLORS, PLATFORM_LABELS } from "@/types";
+
 
 interface Props {
-    data: VodCardUI;
+    data: VodUI;
 }
 
 export function VodCard({ data }: Props) {

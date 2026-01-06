@@ -1,5 +1,3 @@
-// src/features/vod/components/header/ViewSwitcher.tsx
-
 import { Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ViewType, VIEW_TYPE } from "../../types";

@@ -1,6 +1,6 @@
 import { PlatformCode } from "@/types";
 
-export interface ChannelCardUI {
+export interface ChannelUI {
     name: string;
     platform: PlatformCode;
     channelId: string;

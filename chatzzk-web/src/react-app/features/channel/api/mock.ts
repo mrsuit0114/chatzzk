@@ -1,6 +1,6 @@
-import { ChannelCardUI } from "../types";
+import { ChannelUI } from "../types";
 
-export const MOCK_CHANNEL_DATA: ChannelCardUI[] = [
+export const MOCK_CHANNEL_DATA: ChannelUI[] = [
     {
         name: "침착맨",
         profileUrl: "https://placehold.co/100x100/png?text=Chim",

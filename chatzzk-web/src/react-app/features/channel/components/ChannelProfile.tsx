@@ -2,13 +2,14 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { PLATFORM_COLORS, PLATFORM_LABELS } from "@/types";
-import { ChannelCardUI } from "../types";
+import { ChannelUI } from "../types";
+import { PLATFORM_COLORS, PLATFORM_LABELS } from "@/constants";
 import { cn } from "@/lib/utils";
 
 
+
 interface Props {
-    channel: ChannelCardUI;
+    channel: ChannelUI;
 }
 
 export function ChannelProfile({ channel }: Props) {

@@ -13,12 +13,13 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-} from "@/components/ui/alert-dialog"; // ✅ Import 추가
+} from "@/components/ui/alert-dialog";
 import { Save, Info, RotateCcw, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { StringListInput } from "./StringListInput";
-import { useAuthStore } from "@/lib/stores";
-import { USER_ROLE } from "@/types";
+import { useAuthStore } from "@/stores/auth.store";
+import { USER_ROLE } from "@/constants";
+
 
 // 데이터 타입 정의
 interface ChannelInfoData {

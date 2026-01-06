@@ -3,8 +3,9 @@ import { Flame, Zap, Star, Clock, Timer } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { cn, formatInterval, formatTime } from "@/lib/utils";
 import { getAtmosphereColor, SORT_OPTIONS, type SegmentSummaryData, type SortOption } from "../../../types";
+import { cn } from "@/lib/utils";
+import { formatTime, formatInterval } from "@/features/analysis/utils";
 
 
 
@@ -29,7 +30,6 @@ export function MomentCard({ data, interval, sortBy, onClick }: MomentCardProps)
                 "group relative cursor-pointer overflow-hidden transition-all flex flex-col border-border",
                 "hover:shadow-md hover:border-primary/50",
                 // ✅ [수정] 고정 사이즈 부여
-                // w-[300px] ~ w-[340px] 정도가 적당합니다.
                 // shrink-0을 주어 Flex 컨테이너 안에서 찌그러지지 않게 합니다.
                 "w-[320px] h-[270px] shrink-0"
             )}

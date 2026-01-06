@@ -14,9 +14,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn, formatTime } from "@/lib/utils";
+import { formatTime } from "@/features/analysis/utils";
 
 import { getAtmosphereColor, type SegmentSummaryData } from "../../../types";
+import { cn } from "@/lib/utils";
 
 
 interface SegmentSummarySheetProps {

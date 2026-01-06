@@ -16,9 +16,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Lock, Unlock, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { useAuthStore } from "@/lib/stores";
-import { USER_ROLE } from "@/types";
-import { useUrlParams } from "@/lib/hooks";
+import { useAuthStore } from "@/stores/auth.store";
+import { useUrlParams } from "@/hooks/use-url-params";
+import { USER_ROLE } from "@/constants";
+
 
 const ITEMS_PER_PAGE = 8; // 페이지 당 8개
 
@@ -194,18 +195,28 @@ export function MyVodTab() {
                             <AlertTriangle className="h-5 w-5 text-orange-500" />
                             공개 설정 변경
                         </AlertDialogTitle>
-                        <AlertDialogDescription>
-                            다음 영상의 공개 설정을 변경하시겠습니까?
-                            <br />
-                            <span className="font-semibold text-foreground block mt-2 p-2 bg-muted rounded-md">
-                                {targetVod?.title}
-                            </span>
-                            <div className="mt-2 text-sm">
-                                현재 상태: <span className="font-bold">{targetVod?.currentStatus ? "공개 (Public)" : "비공개 (Private)"}</span>
-                                <br />
-                                변경 후: <span className={`font-bold ${!targetVod?.currentStatus ? "text-green-600" : "text-orange-600"}`}>
-                                    {!targetVod?.currentStatus ? "공개 (Public)" : "비공개 (Private)"}
-                                </span>
+                        <AlertDialogDescription asChild>
+                            <div className="text-sm text-muted-foreground space-y-2">
+                                <p>다음 영상의 공개 설정을 변경하시겠습니까?</p>
+
+                                <div className="font-semibold text-foreground p-2 bg-muted rounded-md">
+                                    {targetVod?.title}
+                                </div>
+
+                                <div className="text-sm">
+                                    현재 상태:{" "}
+                                    <span className="font-bold">
+                                        {targetVod?.currentStatus ? "공개 (Public)" : "비공개 (Private)"}
+                                    </span>
+                                    <br />
+                                    변경 후:{" "}
+                                    <span
+                                        className={`font-bold ${!targetVod?.currentStatus ? "text-green-600" : "text-orange-600"
+                                            }`}
+                                    >
+                                        {!targetVod?.currentStatus ? "공개 (Public)" : "비공개 (Private)"}
+                                    </span>
+                                </div>
                             </div>
                         </AlertDialogDescription>
                     </AlertDialogHeader>

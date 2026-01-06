@@ -65,6 +65,20 @@ export const SORT_OPTIONS = {
 
 export type SortOption = typeof SORT_OPTIONS[keyof typeof SORT_OPTIONS];
 
+export const METRIC_TYPES = {
+    SUMMARY: "summary",
+    VOL_PEAK: "volPeak",
+    MMT_PEAK: "mmtPeak",
+} as const;
+
+export type MetricType = typeof METRIC_TYPES[keyof typeof METRIC_TYPES];
+
+export const CHART_KEYS = {
+    VOLUME: "volume",
+    MOMENTUM: "momentum",
+}
+
+export type ChartKey = typeof CHART_KEYS[keyof typeof CHART_KEYS];
 
 export interface ChapterSummaryData {
     id: string;             // Chapter ID
@@ -74,6 +88,7 @@ export interface ChapterSummaryData {
     endTime: number;        // ms
 }
 
+// util로 옮길 것
 export const getAtmosphereColor = (attr: string) => {
     switch (attr.toLowerCase()) {
         case "funny": return "bg-orange-100 text-orange-700 border-orange-200";

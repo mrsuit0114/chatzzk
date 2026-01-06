@@ -2,8 +2,9 @@ import { Clock, Star, Flame, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { cn, formatTime } from "@/lib/utils";
+import { formatTime } from "@/features/analysis/utils";
 import { getAtmosphereColor, type SegmentSummaryData } from "../../../types";
+import { cn } from "@/lib/utils";
 
 interface SegmentDetailCardProps {
     data: SegmentSummaryData;

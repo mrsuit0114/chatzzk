@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tv, MonitorPlay, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+
 export function HomePage() {
     const navigate = useNavigate();
 
