@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useInsightAccess } from "../hooks/use-insight-access";
 import { MOCK_CHAPTERS, MOCK_SEGMENTS } from "../components/highlight/mock";
 import { HighlightView } from "../components/highlight";
 import { VodAnalysisHeader } from "../components/header";
-import { ViewType } from "../types";
 import { InsightView } from "../components/insight/InsightView";
+import { ViewType } from "../constants";
 
 export function VodAnalysisPage() {
     const [currentView, setCurrentView] = useState<ViewType>("highlight");
@@ -75,7 +75,7 @@ export function VodAnalysisPage() {
                 ) : (
                     // 🔒 여기서도 한번 더 방어 (데이터 요청 자체를 안 보내도록)
                     !isLocked && <div>
-                        인사이트 뷰
+                        <InsightView />
                     </div>
                 )}
             </main>

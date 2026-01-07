@@ -51,3 +51,14 @@ export const KOREAN_TO_ATMOSPHERE: Record<string, Atmosphere> = {
     "기대": ATMOSPHERE.ANTICIPATION,
     "격려": ATMOSPHERE.ENCOURAGEMENT,
 } as const;
+
+export const ATMOSPHERE_LABELS: Record<Atmosphere, string> = {
+    [ATMOSPHERE.NEUTRAL]: "중립",
+    [ATMOSPHERE.HILARIOUS]: "폭소",
+    [ATMOSPHERE.SADNESS]: "슬픔",
+    [ATMOSPHERE.ANGER]: "분노",
+    [ATMOSPHERE.BOOING]: "야유",
+    [ATMOSPHERE.ADMIRATION]: "감탄",
+    [ATMOSPHERE.ANTICIPATION]: "기대",
+    [ATMOSPHERE.ENCOURAGEMENT]: "격려",
+} as const;

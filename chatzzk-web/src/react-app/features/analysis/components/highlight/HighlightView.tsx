@@ -9,7 +9,7 @@ interface HighlightViewProps {
 
 export function HighlightView({ segments, chapters }: HighlightViewProps) {
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col p-4">
             <BestMomentsSection data={segments} />
             <BroadcastRecapSection chapters={chapters} allSegments={segments} />
         </div>

@@ -1,7 +1,7 @@
-import { ATMOSPHERE, Atmosphere } from "@/constants";
+import { ATMOSPHERE } from "@/constants";
 
 // 추후에 분위기에 따라 constants 정의한 값으로 사용해야함
-export const getBadgeClasses = (attr: Atmosphere) => {
+export const getBadgeClasses = (attr: string) => {
     switch (attr) {
         case ATMOSPHERE.NEUTRAL: return "bg-gray-100 text-gray-700 border-gray-200";
         case ATMOSPHERE.HILARIOUS: return "bg-yellow-100 text-yellow-700 border-yellow-200";
@@ -15,21 +15,21 @@ export const getBadgeClasses = (attr: Atmosphere) => {
     }
 };
 
-export const getBarColor = (attr: Atmosphere) => {
+export const getBarColor = (attr: string) => {
     switch (attr) {
-        case ATMOSPHERE.NEUTRAL: return "bg-gray-500/70 hover:bg-gray-600/80";
-        case ATMOSPHERE.HILARIOUS: return "bg-yellow-500/70 hover:bg-yellow-600/80";
-        case ATMOSPHERE.SADNESS: return "bg-blue-500/70 hover:bg-blue-600/80";
-        case ATMOSPHERE.ANGER: return "bg-red-500/70 hover:bg-red-600/80";
-        case ATMOSPHERE.BOOING: return "bg-gray-500/70 hover:bg-gray-600/80";
-        case ATMOSPHERE.ADMIRATION: return "bg-green-500/70 hover:bg-green-600/80";
-        case ATMOSPHERE.ANTICIPATION: return "bg-purple-500/70 hover:bg-purple-600/80";
-        case ATMOSPHERE.ENCOURAGEMENT: return "bg-orange-500/70 hover:bg-orange-600/80";
-        default: return "bg-secondary/70 hover:bg-secondary/80";
+        case ATMOSPHERE.NEUTRAL: return "#9CA3AF"; // Gray
+        case ATMOSPHERE.HILARIOUS: return "#FBBF24"; // Yellow
+        case ATMOSPHERE.SADNESS: return "#3B82F6"; // Blue
+        case ATMOSPHERE.ANGER: return "#EF4444"; // Red
+        case ATMOSPHERE.BOOING: return "#6B7280"; // Gray
+        case ATMOSPHERE.ADMIRATION: return "#10B981"; // Green
+        case ATMOSPHERE.ANTICIPATION: return "#8B5CF6"; // Purple
+        case ATMOSPHERE.ENCOURAGEMENT: return "#F97316"; // Orange
+        default: return "#da8946ff"; // Default Gray
     }
 }
 
-export const getAtmosphereColor = (attr: Atmosphere) => {
+export const getAtmosphereColor = (attr: string) => {
     switch (attr) {
         case ATMOSPHERE.NEUTRAL: return "text-gray-600";
         case ATMOSPHERE.HILARIOUS: return "text-yellow-600";

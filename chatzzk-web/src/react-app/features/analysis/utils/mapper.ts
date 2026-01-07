@@ -1,3 +1,4 @@
+import { KOREAN_TO_ATMOSPHERE } from "@/constants";
 import { ChapterSummaryData, SegmentSummaryData } from "../types";
 import type { RawDashboardResponse } from "../types/external";
 
@@ -41,7 +42,7 @@ export function mapRawDataToViewData(raw: RawDashboardResponse) {
             summary: seg.txt,
             keywords: seg.kwd,
             score: seg.sc,
-            atmosphere: seg.atmo,
+            atmosphere: KOREAN_TO_ATMOSPHERE[seg.atmo],
 
             // 그래프 데이터 (stats 배열에서 인덱스로 조회)
             volume: raw.stats.segment.volume[idx] || 0,
