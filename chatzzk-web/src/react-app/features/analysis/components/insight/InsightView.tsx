@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { SegmentTrendSection } from "./trend/SegmentTrendSection";
 import { RawDashboardResponse } from "../../types/external";
 import { mapRawDataToViewData } from "../../utils/mapper";
+import { StructureListSection } from "./structure/StructureListSection";
 
 
 export function InsightView() {
@@ -34,7 +35,7 @@ export function InsightView() {
     }, [rawData]);
 
     // 3. 상태 관리: 현재 포커스된 타임스탬프
-    const [focusedTimestamp, setFocusedTimestamp] = useState<number | null>(0);
+    const [focusedTimestamp, setFocusedTimestamp] = useState<number | null>(null);
 
     const handleTrendClick = (timestamp: number) => {
         setFocusedTimestamp(timestamp);
@@ -58,12 +59,16 @@ export function InsightView() {
             />
 
             {/* Bottom Layout */}
-            <div className="grid grid-cols-12 gap-6 h-[600px]">
-                <div className="col-span-4 border rounded p-4">
-                    Structure List Area (Coming Soon)
-                    {/* <StructureListSection ... /> */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[60vh] max-h-[800px]">
+                <div className="col-span-6 border h-full overflow-hidden">
+                    <StructureListSection
+                        data={viewData.segments}
+                        chapters={viewData.chapters}
+                        focusedTimestamp={focusedTimestamp}
+                        onSeek={handleTrendClick}
+                    />
                 </div>
-                <div className="col-span-8 border rounded p-4">
+                <div className="col-span-6 border h-full overflow-hidden rounded p-4">
                     Clip Detail Area (Coming Soon)
                     {/* <ClipDetailSection ... /> */}
                 </div>

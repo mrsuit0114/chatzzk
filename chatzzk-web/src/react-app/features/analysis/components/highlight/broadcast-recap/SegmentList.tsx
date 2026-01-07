@@ -1,5 +1,5 @@
-import { SegmentDetailCard } from "./SegmentDetailCard";
-import type { SegmentSummaryData } from "../../../types";
+import { SegmentSummaryData } from "@/features/analysis/types";
+import { SegmentDetailCard } from "../../common/SegmentDetailCard";
 
 interface SegmentListProps {
     segments: SegmentSummaryData[];

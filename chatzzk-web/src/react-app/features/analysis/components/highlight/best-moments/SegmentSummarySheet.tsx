@@ -15,8 +15,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatTime, getBadgeClasses } from "@/features/analysis/utils";
+import { SegmentSummaryData } from "@/features/analysis/types";
 
-import { type SegmentSummaryData } from "../../../types";
 import { cn } from "@/lib/utils";
 
 

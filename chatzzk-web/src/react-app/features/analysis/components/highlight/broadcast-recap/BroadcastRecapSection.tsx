@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { ChapterList } from "./ChapterList";
 import { SegmentList } from "./SegmentList";
-import type { SegmentSummaryData, ChapterSummaryData } from "../../../types";
+import { ChapterSummaryData, SegmentSummaryData } from "@/features/analysis/types";
 
 interface BroadcastRecapSectionProps {
     chapters: ChapterSummaryData[];
@@ -10,13 +10,6 @@ interface BroadcastRecapSectionProps {
 
 export function BroadcastRecapSection({ chapters, allSegments }: BroadcastRecapSectionProps) {
     const [selectedChapterId, setSelectedChapterId] = useState<string>("");
-
-    // 초기 로드 시 첫 번째 챕터 자동 선택
-    useEffect(() => {
-        if (chapters.length > 0 && !selectedChapterId) {
-            setSelectedChapterId(chapters[0].id);
-        }
-    }, [chapters, selectedChapterId]);
 
     // 선택된 챕터에 해당하는 세그먼트 필터링
     const currentSegments = useMemo(() => {
@@ -36,7 +29,7 @@ export function BroadcastRecapSection({ chapters, allSegments }: BroadcastRecapS
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-[80vh] min-h-[600px]">
 
                 {/* [Left] Chapter List Container */}
-                <div className="md:col-span-4 lg:col-span-4 h-full border-r pr-4 overflow-hidden">
+                <div className="md:col-span-6 lg:col-span-6 h-full border-r pr-4 overflow-hidden">
                     <ChapterList
                         chapters={chapters}
                         selectedChapterId={selectedChapterId}
@@ -45,7 +38,7 @@ export function BroadcastRecapSection({ chapters, allSegments }: BroadcastRecapS
                 </div>
 
                 {/* [Right] Segment List Container */}
-                <div className="md:col-span-8 lg:col-span-8 h-full overflow-hidden">
+                <div className="md:col-span-6 lg:col-span-6 h-full overflow-hidden">
                     <SegmentList segments={currentSegments} />
                 </div>
 

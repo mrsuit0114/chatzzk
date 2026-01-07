@@ -1,8 +1,8 @@
 import { Clock } from "lucide-react";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { formatTime } from "@/features/analysis/utils";
-import type { ChapterSummaryData } from "../../../types";
 import { cn } from "@/lib/utils";
+import { ChapterSummaryData } from "@/features/analysis/types";
 
 interface ChapterItemProps {
     chapter: ChapterSummaryData;
@@ -39,7 +39,9 @@ export function ChapterItem({ chapter, isSelected, isOpen, onSelect }: ChapterIt
                         <Clock className="h-3 w-3" />
                         {formatTime(chapter.startTime)} ~ {formatTime(chapter.endTime)}
                     </span>
-                    <span className="font-semibold text-sm">{chapter.title}</span>
+                    <span className="font-semibold text-sm line-clamp-2 break-keep group-data-[state=open]:line-clamp-none transition-all">
+                        {chapter.title}
+                    </span>
                 </div>
             </AccordionTrigger>
 

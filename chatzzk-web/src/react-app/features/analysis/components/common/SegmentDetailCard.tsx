@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatTime, getBadgeClasses } from "@/features/analysis/utils";
-import { type SegmentSummaryData } from "../../../types";
+import { SegmentSummaryData } from "../../types";
 import { cn } from "@/lib/utils";
 
 interface SegmentDetailCardProps {

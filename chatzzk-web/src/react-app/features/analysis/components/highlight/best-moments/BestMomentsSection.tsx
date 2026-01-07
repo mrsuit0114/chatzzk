@@ -1,20 +1,11 @@
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { MomentsToolbar } from "./MomentsToolbar";
 import { MomentCard } from "./MomentCard";
 import { SegmentSummarySheet } from "./SegmentSummarySheet";
 import { SORT_OPTIONS, SortOption } from "@/features/analysis/constants";
 import { SegmentSummaryData } from "@/features/analysis/types";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
-function HorizontalScrollContainer({ children }: { children: React.ReactNode }) {
-    return (
-        // overflow-x-auto: 가로 스크롤 허용
-        // pb-4: 스크롤바와 카드 사이의 여백 및 그림자 잘림 방지
-        // snap-x: 스크롤 시 카드가 딱딱 맞춰서 멈추도록 (Carousel 느낌)
-        <div className="flex overflow-x-auto pb-4 gap-4 snap-x snap-mandatory scrollbar-hide md:scrollbar-default">
-            {children}
-        </div>
-    );
-}
 interface BestMomentsSectionProps {
     data: SegmentSummaryData[];
 }
@@ -82,20 +73,28 @@ export function BestMomentsSection({ data }: BestMomentsSectionProps) {
 
             {/* ✅ [수정] Horizontal Scroll View */}
             {processedData.length > 0 ? (
-                <HorizontalScrollContainer>
-                    {processedData.map((item) => (
-                        <div key={item.id} className="snap-start">
-                            <MomentCard
-                                data={item}
-                                interval={item.endTime - item.startTime}
-                                sortBy={currentSort}
-                                onClick={() => handleCardClick(item)}
-                            />
-                        </div>
-                    ))}
-                    {/* 우측 끝 여백 확보용 더미 요소 (선택사항) */}
-                    <div className="w-1 shrink-0" />
-                </HorizontalScrollContainer>
+                <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+                    {/* flex: 가로 배치
+                        w-max: 자식 요소들의 너비만큼 늘어나도록 설정 (가로 스크롤 핵심)
+                        space-x-4: 아이템 간 간격
+                        p-4: 패딩
+                    */}
+                    <div className="flex w-max space-x-4 p-4">
+                        {processedData.map((item) => (
+                            // shrink-0: 공간이 부족해도 카드가 찌그러지지 않도록 설정
+                            <div key={item.id} className="shrink-0">
+                                <MomentCard
+                                    data={item}
+                                    interval={item.endTime - item.startTime}
+                                    sortBy={currentSort}
+                                    onClick={() => handleCardClick(item)}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    {/* 가로 스크롤바 명시 */}
+                    <ScrollBar orientation="horizontal" />
+                </ScrollArea>
             ) : (
                 <div className="py-20 text-center text-muted-foreground border-2 border-dashed rounded-xl bg-secondary/10">
                     조건에 맞는 하이라이트가 없습니다. 필터를 변경해보세요.

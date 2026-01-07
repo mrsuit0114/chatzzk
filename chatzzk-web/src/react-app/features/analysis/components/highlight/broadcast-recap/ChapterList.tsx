@@ -3,7 +3,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { Accordion } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { ChapterItem } from "./ChapterItem"; // 분리된 컴포넌트 임포트
-import type { ChapterSummaryData } from "../../../types";
+import { ChapterSummaryData } from "@/features/analysis/types";
 
 interface ChapterListProps {
     chapters: ChapterSummaryData[];
