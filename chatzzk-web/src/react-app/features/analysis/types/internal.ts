@@ -55,8 +55,21 @@ export interface SegmentSummaryData {  // 데이터에서 id는 동일해도되�
 
 export interface ChapterSummaryData {
     id: string;             // Chapter ID
-    title: string;          // 챕터 제목 (예: "1부: 삼국지 개요")
+    title: string;          // 챕터 제목
     summary: string;        // 챕터 전체 요약문
     startTime: number;      // ms
     endTime: number;        // ms
+}
+
+export interface ClipData {
+    startTime: number;      // ms
+    endTime: number;        // ms
+    volume: number;
+    momentum: number;
+}
+
+export interface AnalysisIntervals {
+    segmentStep: number; // ms
+    chapterStep: number; // ms
+    clipStep: number;    // ms
 }

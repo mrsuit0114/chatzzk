@@ -1,33 +1,31 @@
 import { KOREAN_TO_ATMOSPHERE } from "@/constants";
-import { ChapterSummaryData, SegmentSummaryData } from "../types";
+import { AnalysisIntervals, ChapterSummaryData, ClipData, SegmentSummaryData } from "../types";
 import type { RawDashboardResponse } from "../types/external";
 
 export function mapRawDataToViewData(raw: RawDashboardResponse) {
-    const { segmentStep, chapterStep } = raw.metaInfo.intervals;
-
-    const intervals = raw.metaInfo.intervals;
+    const intervals: AnalysisIntervals = raw.metaInfo.intervals;
 
     // 1. Chapter Mapping
     const chapters: ChapterSummaryData[] = raw.chapters.map((ch, idx) => {
-        const startTime = idx * chapterStep;
+        const startTime = idx * intervals.chapterStep;
         return {
             id: `ch-${idx}`,
             title: ch.title,
             summary: ch.txt,
             startTime: startTime,
-            endTime: startTime + chapterStep,
+            endTime: startTime + intervals.chapterStep,
         };
     });
 
     // 2. Segment Mapping
     // stats.segment 리스트와 segments 리스트를 병합(Zip)해야 함
     const segments: SegmentSummaryData[] = raw.segments.map((seg, idx) => {
-        const startTime = idx * segmentStep;
-        const endTime = startTime + segmentStep;
+        const startTime = idx * intervals.segmentStep;
+        const endTime = startTime + intervals.segmentStep;
 
         // 현재 세그먼트가 속한 챕터 ID 찾기
         // (단순 계산: startTime이 어떤 챕터 범위에 속하는지)
-        const chapterIndex = Math.floor(startTime / chapterStep);
+        const chapterIndex = Math.floor(startTime / intervals.chapterStep);
         const chapterId = `ch-${chapterIndex}`;
 
         return {
@@ -62,6 +60,12 @@ export function mapRawDataToViewData(raw: RawDashboardResponse) {
         };
     });
 
+    const clips: ClipData[] = raw.stats.clip.volume.map((vol, idx) => ({
+        startTime: idx * intervals.clipStep,
+        endTime: (idx + 1) * intervals.clipStep,
+        volume: vol,
+        momentum: raw.stats.clip.momentum[idx] || 0
+    }));
 
-    return { chapters, segments, rawStats: raw.stats, intervals };
+    return { chapters, segments, clips, intervals };
 }

@@ -98,7 +98,7 @@ export function StructureListSection({
 
     return (
         <ScrollArea className="flex flex-col h-full border bg-card shadow-sm overflow-hidden" ref={scrollAreaRef}>
-            <div className="p-4">
+            <div className="p-2">
                 <Accordion
                     type="single"
                     collapsible

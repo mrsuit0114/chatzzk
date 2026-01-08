@@ -3,6 +3,7 @@ import { SegmentTrendSection } from "./trend/SegmentTrendSection";
 import { RawDashboardResponse } from "../../types/external";
 import { mapRawDataToViewData } from "../../utils/mapper";
 import { StructureListSection } from "./structure/StructureListSection";
+import { DetailSection } from "./detail/DetailSection";
 
 
 export function InsightView() {
@@ -60,7 +61,7 @@ export function InsightView() {
 
             {/* Bottom Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[60vh] max-h-[800px]">
-                <div className="col-span-6 border h-full overflow-hidden">
+                <div className="col-span-6 border h-full overflow-hidden rounded">
                     <StructureListSection
                         data={viewData.segments}
                         chapters={viewData.chapters}
@@ -68,9 +69,13 @@ export function InsightView() {
                         onSeek={handleTrendClick}
                     />
                 </div>
-                <div className="col-span-6 border h-full overflow-hidden rounded p-4">
-                    Clip Detail Area (Coming Soon)
-                    {/* <ClipDetailSection ... /> */}
+                <div className="col-span-6 border h-full overflow-hidden rounded">
+                    <DetailSection
+                        intervals={viewData.intervals}
+                        clips={viewData.clips}
+                        focusedTimestamp={focusedTimestamp}
+                        onSeek={handleTrendClick}
+                    />
                 </div>
             </div>
         </div>

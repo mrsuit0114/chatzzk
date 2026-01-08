@@ -39,3 +39,4 @@ export type ChartKey = typeof CHART_KEYS[keyof typeof CHART_KEYS];
 // ui constants
 export const TREND_CHART_X_AXIS_HEIGHT = 20;
 export const TREND_CHART_MARGIN = { top: 10, right: 0, left: 0, bottom: 10 } as const;
+export const DETAIL_CHART_HEIGHT = 150;

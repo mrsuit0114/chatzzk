@@ -160,7 +160,12 @@ export function TrendToolbar({
                                 <BarChart3 className="h-3.5 w-3.5 text-orange-500 mt-0.5" />
                                 <div>
                                     <span className="font-bold text-slate-800">Volume (막대)</span>
-                                    <p className="text-slate-500 mt-0.5">채팅 및 후원의 발생 횟수(화력)를 의미합니다. 0은 방송에서 가장 적은 활동 구간을 나타내고 1은 방송에서 가장 활발한 활동 구간을 나타냅니다. 0.5는 해당 방송의 평균값을 의미합니다.</p>
+                                    <p className="text-slate-500 mt-0.5">채팅 및 후원의 발생 횟수(화력)를 의미합니다.</p>
+                                    <p className="text-slate-500 mt-1">
+                                        0 → 방송에서 가장 덤덤한 시점<br />
+                                        0.5 → 평균<br />
+                                        1 → 방송에서 가장 활발한 시점
+                                    </p>
                                 </div>
 
                                 <LineChart className="h-3.5 w-3.5 text-blue-600 mt-0.5" />
