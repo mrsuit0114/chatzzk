@@ -44,3 +44,22 @@ export const scaleMomentum = (value: number) => {
     // 2. Scale: (-3 -> 0), (0 -> 0.5), (3 -> 1)
     return (clipped + 3) / 6;
 };
+
+export function findLogIndex(logs: { timestamp: number }[], targetTime: number): number {
+    let left = 0;
+    let right = logs.length - 1;
+    let result = -1;
+
+    while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        if (logs[mid].timestamp >= targetTime) {
+            result = mid;
+            right = mid - 1;
+        } else {
+            left = mid + 1;
+        }
+    }
+
+    // 만약 타겟보다 큰 값이 없다면 리스트의 끝으로, 있다면 해당 위치 반환
+    return result === -1 ? logs.length - 1 : result;
+}

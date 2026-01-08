@@ -137,7 +137,7 @@ export function DetailChart({
                     <Line
                         type="monotone"
                         dataKey="scaledMomentum"
-                        stroke="#2564eb"
+                        stroke="#2564eba1"
                         strokeWidth={1.5}
                         dot={false}
                         isAnimationActive={false}

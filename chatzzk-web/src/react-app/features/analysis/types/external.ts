@@ -52,6 +52,13 @@ export interface RawChapterItem {
     txt: string;
 }
 
+export interface RawStreamLogItem {
+    ts: number;
+    ty: number;
+    c: string;
+    u?: string;
+}
+
 // 4. 최종 응답 구조
 export interface RawDashboardResponse {
     version: "1.0";
@@ -59,4 +66,9 @@ export interface RawDashboardResponse {
     stats: RawDashboardStats;
     segments: RawSegmentItem[];
     chapters: RawChapterItem[];
+}
+
+export interface StreamLogResponse {
+    version: "1.0";
+    streamLogs: RawStreamLogItem[];
 }

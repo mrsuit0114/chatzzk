@@ -1,6 +1,6 @@
 import { KOREAN_TO_ATMOSPHERE } from "@/constants";
-import { AnalysisIntervals, ChapterSummaryData, ClipData, SegmentSummaryData } from "../types";
-import type { RawDashboardResponse } from "../types/external";
+import { AnalysisIntervals, ChapterSummaryData, ClipData, SegmentSummaryData, StreamLogData } from "../types";
+import type { RawDashboardResponse, StreamLogResponse } from "../types/external";
 
 export function mapRawDataToViewData(raw: RawDashboardResponse) {
     const intervals: AnalysisIntervals = raw.metaInfo.intervals;
@@ -68,4 +68,15 @@ export function mapRawDataToViewData(raw: RawDashboardResponse) {
     }));
 
     return { chapters, segments, clips, intervals };
+}
+
+export function mapRawStreamLogs(rawLogs: StreamLogResponse): StreamLogData[] {
+    const streamLogs = rawLogs.streamLogs.map(log => ({
+        timestamp: log.ts,
+        type: log.ty,
+        user: log.u ?? undefined,
+        content: log.c
+    }));
+
+    return streamLogs;
 }

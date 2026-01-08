@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { DetailChart } from "./DetailChart";
 import { ClipData, AnalysisIntervals } from "../../../types";
 import { DETAIL_CHART_HEIGHT } from "@/features/analysis/constants";
+import { StreamLogsViewer } from "./StreamLogsViewer";
 
 interface DetailSectionProps {
     intervals: AnalysisIntervals;
@@ -24,7 +25,8 @@ export function DetailSection({
     const currentChapterRange = useMemo(() => {
         const start = Math.floor(currentTimestamp / intervals.chapterStep) * intervals.chapterStep;
         const end = start + intervals.chapterStep;
-        return { start, end };
+        const chapterIndex = start / intervals.chapterStep;
+        return { start, end, chapterIndex };
     }, [currentTimestamp, intervals.chapterStep]);
 
     // 2. [필터링] 현재 Chapter 범위에 속하는 Clip만 추출
@@ -35,7 +37,7 @@ export function DetailSection({
             clip.startTime >= currentChapterRange.start &&
             clip.startTime < currentChapterRange.end
         );
-    }, [currentChapterRange, clips]);
+    }, [currentChapterRange, focusedTimestamp, clips]);
 
     // 3. [계산] 현재 Segment 범위 계산 (ReferenceArea용)
     const currentSegmentRange = useMemo(() => {
@@ -49,7 +51,7 @@ export function DetailSection({
 
 
     return (
-        <section className="flex flex-col h-full border rounded-lg bg-card shadow-sm overflow-hidden">
+        <section className="flex flex-col h-full border bg-card shadow-sm overflow-hidden">
             <div className="border-b bg-white/50 w-full p-2" style={{ height: DETAIL_CHART_HEIGHT + 10 }}>
                 {focusedTimestamp !== null ? (
                     <DetailChart
@@ -69,10 +71,18 @@ export function DetailSection({
             </div>
 
             {/* Stream Logs Area (Placeholder) */}
-            <div className="flex-1 bg-slate-50 min-h-0 p-2">
-                <div className="inset-0 flex items-center justify-center text-muted-foreground text-sm">
-                    Stream Logs (Coming Soon)
-                </div>
+            <div className="flex-1 bg-slate-50 min-h-0 overflow-hidden p-2">
+                {focusedTimestamp !== null ? (
+                    <StreamLogsViewer
+                        focusedTimestamp={focusedTimestamp}
+                        chapterIndex={currentChapterRange.chapterIndex}
+                    />
+                ) : (
+                    // ✅ [초기 상태] 데이터 로드 전 안내 문구
+                    <div className="flex h-full items-center justify-center text-muted-foreground text-sm select-none opacity-50">
+                        Logs will appear here...
+                    </div>
+                )}
             </div>
         </section>
     );

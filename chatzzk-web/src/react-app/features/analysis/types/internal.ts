@@ -73,3 +73,16 @@ export interface AnalysisIntervals {
     chapterStep: number; // ms
     clipStep: number;    // ms
 }
+
+export enum StreamLogType {
+    CHAT = 1,
+    DONATION = 2,
+    ASR = 3,
+}
+
+export interface StreamLogData {
+    timestamp: number; // ms
+    type: StreamLogType;
+    content: string;
+    user?: string;
+}
