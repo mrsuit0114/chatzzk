@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { formatTime, getBadgeClasses } from "@/features/analysis/utils";
 import { SegmentSummaryData } from "../../types";
 import { cn } from "@/lib/utils";
+import { ATMOSPHERE_LABELS } from "@/constants";
 
 interface SegmentDetailCardProps {
     data: SegmentSummaryData;
@@ -28,7 +29,7 @@ export function SegmentDetailCard({ data }: SegmentDetailCardProps) {
                         <span className="text-xs tabular-nums">{data.score.toFixed(1)}</span>
                     </div>
                     <Badge variant="outline" className={cn("px-2 py-1 text-xs font-bold", getBadgeClasses(data.atmosphere))}>
-                        {data.atmosphere}
+                        {ATMOSPHERE_LABELS[data.atmosphere]}
                     </Badge>
                 </div>
             </CardHeader>
