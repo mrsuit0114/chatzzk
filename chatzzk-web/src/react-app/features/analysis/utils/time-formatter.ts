@@ -1,3 +1,6 @@
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
+
 export const formatVideoTime = (ms: number): string => {
     const totalSeconds = Math.floor(ms / 1000);
     const h = Math.floor(totalSeconds / 3600);
@@ -20,3 +23,8 @@ export const formatInterval = (ms: number) => {
     const minutes = Math.floor(ms / 60000);
     return `${minutes}min`;
 };
+
+export const formatDateKo = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return format(date, "yyyy.MM.dd", { locale: ko });
+}

@@ -12,7 +12,6 @@ import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
-    DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -20,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 import { SORT_OPTIONS, SortOption } from "@/features/analysis/constants";
+import { ATMOSPHERE_LABELS } from "@/constants";
 
 interface MomentsToolbarProps {
     // Atmosphere Filter Props
@@ -74,11 +74,11 @@ export function MomentsToolbar({
                 <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
                     Best Moments
                     <Badge variant="secondary" className="text-xs font-normal text-muted-foreground">
-                        Top {topN}
+                        {topN === 0 ? "all" : `Top ${topN}`}
                     </Badge>
                 </h2>
                 <p className="text-sm text-muted-foreground max-w-md break-keep">
-                    채팅 화력과 급상승 지표를 분석하여 선정한 하이라이트 구간입니다.
+                    시청자 참여도의 화력과 급상승 지표를 분석하여 선정한 하이라이트 구간입니다. 평점은 내부 지표에 따라 AI가 산출한 값입니다.
                 </p>
             </div>
 
@@ -92,7 +92,7 @@ export function MomentsToolbar({
                     <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm" className="h-9 border-dashed">
                             <ListFilter className="mr-2 h-4 w-4" />
-                            Atmosphere
+                            분위기
                             {/* 선택된 개수 뱃지 표시 */}
                             {selectedAtmospheres.length > 0 && selectedAtmospheres.length < availableAtmospheres.length && (
                                 <>
@@ -108,7 +108,7 @@ export function MomentsToolbar({
                                         ) : (
                                             selectedAtmospheres.map((attr) => (
                                                 <Badge variant="secondary" key={attr} className="rounded-sm px-1 font-normal">
-                                                    {attr}
+                                                    {ATMOSPHERE_LABELS[attr as keyof typeof ATMOSPHERE_LABELS]}
                                                 </Badge>
                                             ))
                                         )}
@@ -118,15 +118,13 @@ export function MomentsToolbar({
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-[200px]">
-                        <DropdownMenuLabel>Filter by Atmosphere</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
 
                         {/* Select All Option */}
                         <DropdownMenuCheckboxItem
                             checked={isAllSelected}
                             onCheckedChange={handleSelectAll}
                         >
-                            <span className={isAllSelected ? "font-bold" : ""}>Select All</span>
+                            <span className={isAllSelected ? "font-bold" : ""}>전체 선택</span>
                         </DropdownMenuCheckboxItem>
                         <DropdownMenuSeparator />
 
@@ -137,7 +135,7 @@ export function MomentsToolbar({
                                 checked={selectedAtmospheres.includes(attr)}
                                 onCheckedChange={(checked) => handleAtmosphereToggle(attr, checked)}
                             >
-                                {attr}
+                                {ATMOSPHERE_LABELS[attr as keyof typeof ATMOSPHERE_LABELS]}
                             </DropdownMenuCheckboxItem>
                         ))}
                     </DropdownMenuContent>
@@ -160,17 +158,16 @@ export function MomentsToolbar({
 
                 {/* 3. Top N Select */}
                 <Select value={topN.toString()} onValueChange={(val) => onTopNChange(parseInt(val))}>
-                    <SelectTrigger className="h-9 w-[90px] text-xs">
+                    <SelectTrigger className="h-9 w-[100px] text-xs">
                         <div className="flex items-center gap-2">
                             <Layers className="h-3.5 w-3.5 text-muted-foreground" />
-                            <span className="truncate">Show: {topN}</span>
+                            <span className="truncate">{topN === 0 ? "all" : `Top ${topN}`}</span>
                         </div>
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="3">Top 3</SelectItem>
-                        <SelectItem value="6">Top 6</SelectItem>
-                        <SelectItem value="9">Top 9</SelectItem>
-                        <SelectItem value="12">Top 12</SelectItem>
+                        <SelectItem value="5">Top 5</SelectItem>
+                        <SelectItem value="10">Top 10</SelectItem>
+                        <SelectItem value="0">all</SelectItem>
                     </SelectContent>
                 </Select>
 

@@ -12,7 +12,7 @@ interface BestMomentsSectionProps {
 
 export function BestMomentsSection({ data }: BestMomentsSectionProps) {
     // 1. 상태 관리
-    const [topN, setTopN] = useState(6);
+    const [topN, setTopN] = useState(5);
     const [currentSort, setCurrentSort] = useState<SortOption>(SORT_OPTIONS.VOLUME);
     // 초기에는 모든 분위기 선택 (빈 배열([])은 '모두 선택'으로 간주하거나, 아래 useEffect로 초기화 가능)
     // 여기서는 로직 단순화를 위해 '초기값 = 전체 목록' 전략을 사용
@@ -55,7 +55,9 @@ export function BestMomentsSection({ data }: BestMomentsSectionProps) {
         });
 
         // C. Limit (Top N)
-        return result.slice(0, topN);
+        if (topN > 0)
+            return result.slice(0, topN);
+        return result;
     }, [data, selectedAtmospheres, currentSort, topN]);
 
     return (
@@ -73,7 +75,7 @@ export function BestMomentsSection({ data }: BestMomentsSectionProps) {
 
             {/* ✅ [수정] Horizontal Scroll View */}
             {processedData.length > 0 ? (
-                <ScrollArea className="w-full whitespace-nowrap rounded-md border">
+                <ScrollArea className="w-full rounded-md border">
                     {/* flex: 가로 배치
                         w-max: 자식 요소들의 너비만큼 늘어나도록 설정 (가로 스크롤 핵심)
                         space-x-4: 아이템 간 간격

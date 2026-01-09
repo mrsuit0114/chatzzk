@@ -27,7 +27,7 @@ export interface RawStatSeries {
 export interface RawDashboardStats {
     clip: RawStatSeries;
     segment: RawStatSeries; // segments 배열과 1:1 매핑됨 (인덱스 기준)
-    atmosphere: Record<string, number>;
+    atmosphereRatio: Record<string, number>;
     avgScore: number;
 }
 

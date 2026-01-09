@@ -1,23 +1,18 @@
 import { Atmosphere, PlatformCode } from "@/constants";
 import { ViewType } from "../constants";
 
-export interface Sentiment {
-    label: string;
-    score: number; // Float (0.0 ~ 100.0)
-    color: string; // Tailwind class (e.g. "text-green-500")
-}
-
 export interface VodHeaderData {
     title: string;
+    videoNo: string;
     vodUrl: string;
     platform: PlatformCode
     platformChannelUrl: string;
     channelName: string;
     channelId: string;
-    publishDate: string | Date;
-    duration: string;
+    publishDate: string;
+    duration: number;
     avgScore: number;
-    sentiments: Sentiment[];
+    atmosphereRatio: Record<Atmosphere, number>;
 }
 
 export interface VodAnalysisHeaderProps {
@@ -85,4 +80,24 @@ export interface StreamLogData {
     type: StreamLogType;
     content: string;
     user?: string;
+}
+
+export interface VodMetadata {
+    platform: PlatformCode;
+    title: string;
+    channelId: string;
+    channelName: string;
+    videoNo: string;
+    publishDate: string; // yyyy-mm-dd
+    duration: number; // seconds
+    intervals: AnalysisIntervals;
+    avgScore: number;
+    atmosphereRatio: Record<Atmosphere, number>;
+}
+
+export interface AnalysisViewData {
+    chapters: ChapterSummaryData[];
+    segments: SegmentSummaryData[];
+    clips: ClipData[];
+    metaInfo: VodMetadata;
 }

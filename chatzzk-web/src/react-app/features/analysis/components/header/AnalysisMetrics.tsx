@@ -9,21 +9,34 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { Sentiment } from "../../types";
+import { Atmosphere, ATMOSPHERE_LABELS } from "@/constants";
+import { getAtmosphereColor } from "../../utils";
 
 interface AnalysisMetricsProps {
-    sentiments: Sentiment[];
+    atmosphereRatio: Record<Atmosphere, number>;
     avgScore: number;
 }
 
-export function AnalysisMetrics({ sentiments, avgScore }: AnalysisMetricsProps) {
+export function AnalysisMetrics({ atmosphereRatio, avgScore }: AnalysisMetricsProps) {
     // 점수 높은 순 정렬 후 Top 3 추출
-    const sortedSentiments = [...sentiments].sort((a, b) => b.score - a.score);
-    const top3 = sortedSentiments.slice(0, 3);
+    const sortedAtmospheres = Object.entries(atmosphereRatio)
+        .map(([type, score]) => {
+            const atmosphere = type as Atmosphere;
+
+            return {
+                type: atmosphere,
+                score,
+                label: ATMOSPHERE_LABELS[atmosphere],
+                color: getAtmosphereColor(atmosphere),
+            };
+        })
+        .sort((a, b) => b.score - a.score);
+    const top3 = sortedAtmospheres.slice(0, 3);
 
     return (
         <div className="flex items-center gap-3 bg-secondary/10 px-3 py-1 rounded-lg border border-border/50 h-15">
             {/* 1. 분위기 비율 (수직 배치) */}
+            {/* TODO: 추후에 분위기 별 색상을 옆에 표시할 것 */}
             <TooltipProvider delayDuration={100}>
                 <Tooltip>
                     <TooltipTrigger asChild>
@@ -45,10 +58,9 @@ export function AnalysisMetrics({ sentiments, avgScore }: AnalysisMetricsProps) 
                     <TooltipContent side="bottom" className="p-3 z-50">
                         <div className="space-y-2">
                             <p className="font-semibold text-xs mb-2 text-muted-foreground">전체 분위기 분석</p>
-                            {sortedSentiments.map((item) => (
+                            {sortedAtmospheres.map((item) => (
                                 <div key={item.label} className="flex items-center justify-between gap-8 text-sm">
                                     <div className="flex items-center gap-2">
-                                        <span className={cn("w-2 h-2 rounded-full", item.color.replace("text-", "bg-"))} />
                                         <span>{item.label}</span>
                                     </div>
                                     <span className="font-bold tabular-nums">{item.score.toFixed(2)}%</span>

@@ -1,33 +1,17 @@
 import { useState } from "react";
 import { useInsightAccess } from "../hooks/use-insight-access";
-import { MOCK_CHAPTERS, MOCK_SEGMENTS } from "../components/highlight/mock";
 import { HighlightView } from "../components/highlight";
 import { VodAnalysisHeader } from "../components/header";
 import { InsightView } from "../components/insight/InsightView";
 import { ViewType } from "../constants";
 
-export function VodAnalysisPage() {
-    const [currentView, setCurrentView] = useState<ViewType>("highlight");
+import { Loader2 } from "lucide-react";
+import { useAnalysisData } from "../hooks/use-analysis-data";
+import { VodMetadataToVodHeaderData } from "../utils/adapter";
 
-    // Mock Data
-    const headerData = {
-        title: "침착맨의 삼국지 완전 정복 1부 [풀버전]",
-        vodUrl: "https://chzzk.naver.com/video/...",
-        platform: "chzzk" as const,
-        platformChannelUrl: "https://chzzk.naver.com/...",
-        channelName: "침착맨",
-        channelId: "chzzk_channel_001",
-        publishDate: "2024-01-01",
-        duration: "04:12:30",
-        avgScore: 8.5,
-        sentiments: [
-            { label: "재미", score: 41.3, color: "text-blue-500" },
-            { label: "감동", score: 22.5, color: "text-pink-500" },
-            { label: "지루함", score: 5, color: "text-gray-500" },
-            { label: "분노", score: 13.4, color: "text-red-500" },
-            { label: "흥미", score: 17.8, color: "text-green-500" },
-        ]
-    };
+export function VodAnalysisPage() {
+    const { viewData, isLoading, error } = useAnalysisData();
+    const [currentView, setCurrentView] = useState<ViewType>("highlight");
 
     const MOCK_VOD_DATA = {
         title: "침착맨 삼국지",
@@ -57,6 +41,28 @@ export function VodAnalysisPage() {
         setCurrentView(view);
     };
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background">
+                <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <p>분석 데이터를 불러오는 중입니다...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // ✅ 3. 에러 처리
+    if (error || !viewData) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-background text-destructive">
+                <p>데이터를 불러오는데 실패했습니다.</p>
+            </div>
+        );
+    }
+
+    const headerData = VodMetadataToVodHeaderData(viewData.metaInfo);
+
     return (
         <div className="min-h-screen bg-background">
             <VodAnalysisHeader
@@ -69,14 +75,15 @@ export function VodAnalysisPage() {
             <main className="container mx-auto py-3">
                 {activeView === "highlight" ? (
                     <HighlightView
-                        segments={MOCK_SEGMENTS}
-                        chapters={MOCK_CHAPTERS} />
-
+                        // ✅ 로딩이 끝났으므로 viewData 안전하게 사용 가능
+                        segments={viewData.segments}
+                        chapters={viewData.chapters}
+                    />
                 ) : (
-                    // 🔒 여기서도 한번 더 방어 (데이터 요청 자체를 안 보내도록)
-                    !isLocked && <div>
-                        <InsightView />
-                    </div>
+                    !isLocked && (
+                        // ✅ InsightView에 viewData 전체 전달
+                        <InsightView viewData={viewData} intervals={viewData.metaInfo.intervals} />
+                    )
                 )}
             </main>
         </div>

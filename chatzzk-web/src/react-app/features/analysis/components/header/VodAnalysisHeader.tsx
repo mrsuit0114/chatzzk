@@ -21,7 +21,7 @@ export function VodAnalysisHeader({
                     {/* 1. Metrics Component */}
                     <div className="hidden lg:block">
                         <AnalysisMetrics
-                            sentiments={data.sentiments}
+                            atmosphereRatio={data.atmosphereRatio}
                             avgScore={data.avgScore}
                         />
                     </div>

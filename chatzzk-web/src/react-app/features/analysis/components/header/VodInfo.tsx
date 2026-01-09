@@ -1,7 +1,6 @@
 // src/features/vod/components/header/VodInfo.tsx
 
 import { Link } from "react-router-dom";
-import { format } from "date-fns";
 import { ExternalLink, Calendar, Clock } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -12,8 +11,10 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
 import { VodHeaderData } from "../../types";
+import { getBadgeClasses } from "@/utils/ui";
+import { PLATFORM_LABELS } from "@/constants";
+import { formatDateKo, formatTime } from "../../utils";
 
 
 interface VodInfoProps {
@@ -22,7 +23,7 @@ interface VodInfoProps {
 
 export function VodInfo({ data }: VodInfoProps) {
     return (
-        <div className="flex items-center gap-4 min-w-0 flex-1">
+        <div className="flex items-center gap-4 min-w-0 flex-1 ps-4">
             {/* 1. Platform Badge (Link to Platform Channel) */}
             <a
                 href={data.platformChannelUrl}
@@ -30,11 +31,8 @@ export function VodInfo({ data }: VodInfoProps) {
                 rel="noreferrer"
                 className="flex-shrink-0"
             >
-                <Badge variant="outline" className={cn(
-                    "uppercase px-2 py-1 text-xs font-bold hover:bg-secondary transition-colors cursor-pointer",
-                    data.platform === "chzzk" ? "text-green-600 border-green-200" : "text-red-600 border-red-200"
-                )}>
-                    {data.platform}
+                <Badge variant="outline" className={getBadgeClasses(data.platform)}>
+                    {PLATFORM_LABELS[data.platform]}
                 </Badge>
             </a>
 
@@ -77,7 +75,7 @@ export function VodInfo({ data }: VodInfoProps) {
                     {/* Date */}
                     <div className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        <span>{format(new Date(data.publishDate), "yyyy.MM.dd")}</span>
+                        <span>{formatDateKo(data.publishDate)}</span>
                     </div>
 
                     <span>•</span>
@@ -85,7 +83,7 @@ export function VodInfo({ data }: VodInfoProps) {
                     {/* Duration */}
                     <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        <span>{data.duration}</span>
+                        <span>{formatTime(data.duration * 1000)}</span>
                     </div>
                 </div>
             </div>

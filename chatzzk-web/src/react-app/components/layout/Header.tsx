@@ -30,8 +30,8 @@ export function Header() {
 
                 {/* 1. 로고 */}
                 <div className="flex items-center">
-                    <Link to="/" className="mr-6 flex items-center space-x-2">
-                        <span className="text-xl font-bold whitespace-nowrap">Stream Analytics</span>
+                    <Link to="/" className="mr-6 flex items-center ps-2 space-x-2">
+                        <span className="text-xl font-bold whitespace-nowrap">CHATZZK</span>
                     </Link>
                 </div>
 

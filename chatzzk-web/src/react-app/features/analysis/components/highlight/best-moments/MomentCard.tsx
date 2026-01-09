@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { formatTime, formatInterval, getBadgeClasses } from "@/features/analysis/utils";
 import { SORT_OPTIONS, SortOption } from "@/features/analysis/constants";
 import { SegmentSummaryData } from "@/features/analysis/types";
+import { ATMOSPHERE_LABELS } from "@/constants";
 
 
 
@@ -57,7 +58,7 @@ export function MomentCard({ data, interval, sortBy, onClick }: MomentCardProps)
                         {data.score.toFixed(1)}
                     </div>
                     <Badge variant="outline" className={cn("text-[10px] font-bold px-2 py-0.5", getBadgeClasses(data.atmosphere))}>
-                        {data.atmosphere}
+                        {ATMOSPHERE_LABELS[data.atmosphere]}
                     </Badge>
                 </div>
             </CardHeader>

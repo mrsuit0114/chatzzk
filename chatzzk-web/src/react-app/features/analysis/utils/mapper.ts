@@ -1,12 +1,47 @@
-import { KOREAN_TO_ATMOSPHERE } from "@/constants";
-import { AnalysisIntervals, ChapterSummaryData, ClipData, SegmentSummaryData, StreamLogData } from "../types";
+import { Atmosphere, KOREAN_TO_ATMOSPHERE, PlatformCode } from "@/constants";
+import { AnalysisIntervals, ChapterSummaryData, ClipData, SegmentSummaryData, StreamLogData, VodMetadata } from "../types";
 import type { RawDashboardResponse, StreamLogResponse } from "../types/external";
 
-export function mapRawDataToViewData(raw: RawDashboardResponse) {
-    const intervals: AnalysisIntervals = raw.metaInfo.intervals;
+function mapKoreanAtmosphereRatio(
+    raw: Record<string, number>
+): Partial<Record<Atmosphere, number>> {
+    const result: Partial<Record<Atmosphere, number>> = {};
 
-    // 1. Chapter Mapping
-    const chapters: ChapterSummaryData[] = raw.chapters.map((ch, idx) => {
+    for (const [korean, value] of Object.entries(raw)) {
+        const atmosphere = KOREAN_TO_ATMOSPHERE[korean];
+        if (!atmosphere) continue; // ❗ 알 수 없는 키는 무시
+
+        // 값 검증
+        if (typeof value !== "number" || Number.isNaN(value)) continue;
+
+        result[atmosphere] = value;
+    }
+
+    return result;
+}
+
+function mapRawDashboardMetaInfo(
+    raw: RawDashboardResponse
+): VodMetadata {
+    return {
+        platform: raw.metaInfo.platform as PlatformCode,
+        title: raw.metaInfo.title,
+        channelId: raw.metaInfo.channelId,
+        channelName: raw.metaInfo.channelName,
+        videoNo: raw.metaInfo.videoNo,
+        publishDate: raw.metaInfo.publishDate.slice(0, 10),
+        duration: raw.metaInfo.duration,
+        intervals: raw.metaInfo.intervals,
+        atmosphereRatio: mapKoreanAtmosphereRatio(raw.stats.atmosphereRatio) as Record<Atmosphere, number>,
+        avgScore: raw.stats.avgScore,
+    };
+}
+
+function mapRawChapters(
+    raw: RawDashboardResponse,
+    intervals: AnalysisIntervals
+): ChapterSummaryData[] {
+    return raw.chapters.map((ch, idx) => {
         const startTime = idx * intervals.chapterStep;
         return {
             id: `ch-${idx}`,
@@ -16,15 +51,16 @@ export function mapRawDataToViewData(raw: RawDashboardResponse) {
             endTime: startTime + intervals.chapterStep,
         };
     });
+}
 
-    // 2. Segment Mapping
-    // stats.segment 리스트와 segments 리스트를 병합(Zip)해야 함
-    const segments: SegmentSummaryData[] = raw.segments.map((seg, idx) => {
+function mapRawSegments(
+    raw: RawDashboardResponse,
+    intervals: AnalysisIntervals
+): SegmentSummaryData[] {
+    return raw.segments.map((seg, idx) => {
         const startTime = idx * intervals.segmentStep;
         const endTime = startTime + intervals.segmentStep;
 
-        // 현재 세그먼트가 속한 챕터 ID 찾기
-        // (단순 계산: startTime이 어떤 챕터 범위에 속하는지)
         const chapterIndex = Math.floor(startTime / intervals.chapterStep);
         const chapterId = `ch-${chapterIndex}`;
 
@@ -59,15 +95,34 @@ export function mapRawDataToViewData(raw: RawDashboardResponse) {
             }
         };
     });
+}
 
-    const clips: ClipData[] = raw.stats.clip.volume.map((vol, idx) => ({
+function mapRawClips(
+    raw: RawDashboardResponse,
+    intervals: AnalysisIntervals
+): ClipData[] {
+    return raw.stats.clip.volume.map((vol, idx) => ({
         startTime: idx * intervals.clipStep,
         endTime: (idx + 1) * intervals.clipStep,
         volume: vol,
         momentum: raw.stats.clip.momentum[idx] || 0
     }));
+}
 
-    return { chapters, segments, clips, intervals };
+export function mapRawDataToViewData(raw: RawDashboardResponse) {
+    const metaInfo = mapRawDashboardMetaInfo(raw);
+
+    const intervals: AnalysisIntervals = raw.metaInfo.intervals;
+
+    // 1. Chapter Mapping
+    const chapters: ChapterSummaryData[] = mapRawChapters(raw, intervals);
+
+    // 2. Segment Mapping
+    const segments: SegmentSummaryData[] = mapRawSegments(raw, intervals);
+
+    const clips: ClipData[] = mapRawClips(raw, intervals);
+
+    return { chapters, segments, clips, metaInfo };
 }
 
 export function mapRawStreamLogs(rawLogs: StreamLogResponse): StreamLogData[] {
