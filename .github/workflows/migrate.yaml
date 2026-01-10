@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - develop  # 개발 브랜치 추가
     paths:
       - 'chatzzk-collector/alembic/**'
       - 'chatzzk-collector/alembic.ini'
@@ -11,11 +12,16 @@ on:
       - 'chatzzk-collector/scripts/**'
       - 'chatzzk-collector/uv.lock'
 
-    workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
   migrate:
     runs-on: ubuntu-latest
+
+    # 브랜치에 따라 사용할 DB 시크릿을 결정합니다.
+    # main이면 PROD_DB_URL, 그 외(develop 등)는 DEV_DB_URL을 사용합니다.
+    env:
+      TARGET_DB_URL: ${{ github.ref == 'refs/heads/main' && secrets.PROD_DB_URL || secrets.DEV_DB_URL }}
 
     defaults:
       run:
@@ -25,28 +31,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1. uv 설치 (공식 액션 사용)
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
           version: "latest"
-          enable-cache: true # 캐싱 자동 적용 (속도 향상)
+          enable-cache: true
 
-      # 2. 파이썬 설정 및 의존성 설치
-      # uv sync를 하면 pyproject.toml에 정의된 로컬 패키지도 자동으로 설치(연결)됩니다.
       - name: Install dependencies
         run: |
           uv sync --frozen --package db-migration
 
+      # 1. 공통 Alembic 마이그레이션 실행
       - name: Run Alembic Upgrade
         env:
-          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          DATABASE_URL: ${{ env.TARGET_DB_URL }}
         run: |
           uv run alembic upgrade head
 
+      # 2. 시드 데이터 (개발 환경에서만 실행하거나, 필요시 운영에서도 실행)
+      # 만약 개발 환경에서만 시드가 필요하다면 아래 if 조건을 사용하세요.
       - name: Run Seed Script
+        if: github.ref == 'refs/heads/develop'
         env:
-          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+          DATABASE_URL: ${{ env.TARGET_DB_URL }}
           PYTHONPATH: ${{ github.workspace }}/chatzzk-collector
         run: |
           uv run python scripts/seed_data.py

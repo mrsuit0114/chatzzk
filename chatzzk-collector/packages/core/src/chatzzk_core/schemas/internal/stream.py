@@ -26,6 +26,28 @@ class BaseStreamEntry(BaseModel):
         return self
 
 
+def preprocess_chat(content: str) -> str:
+    def find_repeating_pattern(text: str) -> str:
+        match = re.fullmatch(r"(.+?)\1+", text)
+
+        if match:
+            return match.group(1)  # 반복되는 패턴 반환 (예: "겜 켜 ")
+
+        # 2단계: 띄어쓰기가 불규칙한 경우 (공백 제거 후 검사)
+        clean_text = text.replace(" ", "")
+        match_clean = re.fullmatch(r"(.+?)\1+", clean_text)
+
+        if match_clean:
+            return match_clean.group(1)  # 공백 제외 핵심 단어 반환 (예: "대리사")
+
+        return text
+
+    content = find_repeating_pattern(content)
+    content = re.sub(r"\s+", " ", content).strip()
+    content = re.sub(r"(\S)\1{2,}", r"\1\1", content)
+    return content
+
+
 class ChatEntry(BaseStreamEntry):
     entry_type: Literal[EntryType.CHAT, EntryType.DONATION]
     nickname: str | None = Field(default=None, description="특수 권한 유저 닉네임 (일반 유저는 None)")
@@ -38,10 +60,7 @@ class ChatEntry(BaseStreamEntry):
 
     # 기본 sanitize는 공통적인 처리(공백 제거 등)만 수행
     def sanitize(self) -> "ChatEntry":
-        content = re.sub(r"(\S)\1{2,}", r"\1\1", self.content)  # 반복 문자 축소
-        content = re.sub(r"\s+", " ", content).strip()
-        # Pydantic 모델은 기본적으로 불변이 아니므로 필드 수정 가능
-        self.content = content
+        self.content = preprocess_chat(self.content)
         return self
 
 
@@ -51,12 +70,9 @@ class ChzzkChatEntry(ChatEntry):
     """
 
     def sanitize(self) -> "ChzzkChatEntry":
-        # 1. 부모의 기본 정규화 수행 (반복 문자 등)
-        super().sanitize()
-
-        # 2. 치지직 전용 이모지 제거 ({:emoji:})
         self.content = re.sub(r"\{:[^}]*:\}", "", self.content).strip()
 
+        super().sanitize()
         return self
 
     @classmethod

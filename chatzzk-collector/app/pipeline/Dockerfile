@@ -14,6 +14,6 @@ COPY app/ app/
 COPY packages/ packages/
 
 RUN uv python install 3.11 && \
-    uv sync --frozen --no-dev --package asr-inference-server --extra whisperx
+    uv sync --frozen --no-dev --extra pipeline
 
 ENV PATH="/app/.venv/bin:$PATH"

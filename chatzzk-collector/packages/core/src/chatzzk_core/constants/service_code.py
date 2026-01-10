@@ -5,7 +5,13 @@ from enum import IntEnum, StrEnum
 class PlatformCode(StrEnum):
     CHZZK = "chzzk"
     YOUTUBE = "youtube"
-    SOOP = "sooplive"
+    SOOP = "soop"
+
+
+class UserRole(StrEnum):
+    ADMIN = "admin"
+    OWNER = "owner"
+    EDITOR = "editor"
 
 
 class VODPipelineStatus(StrEnum):
@@ -32,6 +38,7 @@ class VODPipelineStepStatus(StrEnum):
 
 # -------------- db init value -------------------------
 class DBDefault:
+    IS_ACTIVE = "true"
     IS_COLLECTION_ENABLED = "true"
     VOD_EXPOSURE_DELAY_HOURS = 0
 
@@ -83,10 +90,11 @@ ASR_HALLUCINATION_KEYWORDS = [
     "고맙습니다",
     "감사합니다",
     "세계였습니다",
-    "MBC",
+    "MBC 뉴스",
     "다음 영상에서 만나요",
     "다음 주에 만나요",
     "자막 제공",
+    "날씨였습니다",
 ]
 
 

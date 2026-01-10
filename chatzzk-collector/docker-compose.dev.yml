@@ -1,0 +1,38 @@
+services:
+  # chatzzk-collector-dev: 디버깅을 위해 로컬에서 수행
+  #   image: chatzzk/chatzzk-collector-dev
+  #   build:
+  #     context: .
+  #     dockerfile: app/pipeline/Dockerfile
+  #   env_file:
+  #     - dev.env
+
+  asr-inference-server-dev:
+    image: chatzzk/asr-inference-server-dev
+    build:
+      context: .
+      dockerfile: app/servers/asr_inference_server/Dockerfile
+    ports:
+      - 8000:8000 # 로컬 수행 용
+    volumes:
+      - dev-models:/app/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+
+  llm-proxy-server-dev:
+    image: chatzzk/llm-proxy-server-dev
+    build:
+      context: .
+      dockerfile: app/servers/llm_proxy_server/Dockerfile
+    ports:
+      - "4000:4000" # 로컬 수행 용
+    env_file:
+      - dev.env
+
+volumes:
+  dev-models:

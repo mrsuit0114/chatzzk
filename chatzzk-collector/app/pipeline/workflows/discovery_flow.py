@@ -66,7 +66,7 @@ async def task_save_discovery_results(
 
 
 @flow(name="VOD Discovery", log_prints=True)
-async def vod_discovery_flow():
+async def discovery_flow():
     platform_codes = await task_list_platform_codes()
     print(platform_codes)
 
@@ -79,4 +79,4 @@ async def vod_discovery_flow():
 
 
 if __name__ == "__main__":
-    asyncio.run(vod_discovery_flow())
+    asyncio.run(discovery_flow())

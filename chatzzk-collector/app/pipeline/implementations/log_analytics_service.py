@@ -18,6 +18,7 @@ from chatzzk_core.constants import (
     EntryTypeCode,
     PlatformCode,
     StoragePaths,
+    StreamAtmosphere,
     StreamWindowConstant,
     VODPipelineStepStatus,
     VODProcessingStep,
@@ -84,19 +85,11 @@ class LogAnalyticsService(BasePipelineService):
             duration=vod["duration"],
         )
 
-        # 2. 통계 정보 조립 (StatSeries 재사용)
-        stats = DashboardStats(
-            clip=StatSeries(volume=stats_clip["volume"], momentum=stats_clip["momentum"]),
-            segment=StatSeries(volume=stats_seg["volume"], momentum=stats_seg["momentum"]),
-            atmosphere=atmo,
-        )
-
-        # 3. 리스트 데이터 매핑 (List Comprehension 활용)
-        # Raw Dict -> Schema Model 변환
         segment_items = []
+        total_score_sum = 0.0
+
         for seg in segments:
             raw_scores = seg.get("scores", {})
-
             avg_score = self.calculator.calculate_avg_score(raw_scores)
 
             item = SegmentItem(
@@ -108,12 +101,25 @@ class LogAnalyticsService(BasePipelineService):
                 mmt_peak=seg.get("mmt_peak", {}),
             )
             segment_items.append(item)
+            total_score_sum += avg_score
+
+        # 3. 전체 평균 점수 계산 (Segment가 없는 경우 대비)
+        overall_avg_score = 0.0
+        if segment_items:
+            overall_avg_score = round(total_score_sum / len(segment_items), 1)
+
+        # 4. 통계 정보 조립 (계산된 overall_avg_score 반영)
+        stats = DashboardStats(
+            clip=StatSeries(volume=stats_clip["volume"], momentum=stats_clip["momentum"]),
+            segment=StatSeries(volume=stats_seg["volume"], momentum=stats_seg["momentum"]),
+            atmosphere_ratio=atmo,
+            avg_score=overall_avg_score,
+        )
 
         chapter_items = [ChapterItem(title=chap["title"], txt=chap["content"]) for chap in chapters]
 
-        # 4. 최종 Root 모델 반환
+        # 5. 최종 Root 모델 반환
         return DashboardResponse(
-            # version 필드는 모델 내부 기본값("1.0") 사용
             meta_info=meta_info,
             stats=stats,
             segments=segment_items,
@@ -144,6 +150,10 @@ class LogAnalyticsService(BasePipelineService):
         stats_clip_raw = self.calculator.calculate_stream_metrics(chat_entries, duration_offseted, clip_step, sigma=1.0)
         stats_seg_raw = self.calculator.calculate_stream_metrics(chat_entries, duration_offseted, seg_step, sigma=1.0)
         atmo_raw = self.calculator.calculate_atmosphere_ratio(segment_summary_entries)
+
+        for at in StreamAtmosphere:
+            if at not in atmo_raw:
+                atmo_raw[at] = 0.0
 
         self.calculator.attach_peaks_to_segments(
             segments=segment_summary_entries,
@@ -185,6 +195,14 @@ class LogAnalyticsService(BasePipelineService):
             padding_ms=StreamWindowConstant.STREAM_LOG_PADDING_SIZE,
             preprocess_chat=False,
         ):
+            current_chapter_start = stream_logs_index * StreamWindowConstant.CHAPTER_SIZE
+
+            # 윈도우 내 가장 마지막 데이터조차 현재 챕터 시작 시간보다 이전이라면,
+            # 이 윈도우는 순수하게 이전 챕터의 '뒤쪽 패딩' 데이터로만 구성된 중복 윈도우입니다.
+            if not window_entries or window_entries[-1].timestamp < current_chapter_start:
+                logger.info(f"[Skip Log] Window {stream_logs_index} is purely composed of padding. Breaking loop.")
+                break
+
             stream_logs_key = StoragePaths.get_stream_logs_key(vod_id, stream_logs_index)
             stream_logs = []
             for entry in window_entries:

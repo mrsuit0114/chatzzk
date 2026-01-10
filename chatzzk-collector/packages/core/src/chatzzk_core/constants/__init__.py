@@ -28,6 +28,7 @@ from .service_code import (
     StoragePaths,
     StreamAtmosphere,
     StreamWindowConstant,
+    UserRole,
     VODPipelineStatus,
     VODPipelineStepStatus,
     VODProcessingStep,
@@ -65,4 +66,5 @@ __all__ = [
     "VODPipelineStepStatus",
     "VODProcessingStep",
     "ScoreCategory",
+    "UserRole",
 ]

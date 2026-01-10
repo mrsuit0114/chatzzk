@@ -29,10 +29,13 @@ class ChannelMetadataContext(BaseModel):
         channel_lines = []
 
         # 따옴표(")로 감싸서 고유명사임을 명확히 함
-        nicknames = ", ".join(f'"{name}"' for name in self.streamer_nicknames)
-        channel_lines.append(f"- 스트리머 호칭: {nicknames}")
+        if self.streamer_nicknames:
+            nicknames = ", ".join(f'"{name}"' for name in self.streamer_nicknames)
+            channel_lines.append(f"- 스트리머 호칭: {nicknames}")
 
-        channel_lines.append(f"- 성별: {self.streamer_sex}")
+        if self.streamer_sex:
+            channel_lines.append(f"- 성별: {self.streamer_sex}")
+
         if self.fan_nicknames:
             fan_names = ", ".join(f'"{name}"' for name in self.fan_nicknames)
             channel_lines.append(f"- 팬 호칭: {fan_names}")

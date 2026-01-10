@@ -62,14 +62,18 @@ class StreamStatsCalculator:
         else:
             volume_norm = (metrics_values - min_v) / (max_v - min_v)
 
-        # 5. Metric 2: Momentum (Central Difference -> Z-Score)
+        # 5. Metric 2: Momentum (Central Difference -> Local Z-Score)
         gradients = np.gradient(metrics_values)
-        grad_mean, grad_std = np.mean(gradients), np.std(gradients)
 
-        if grad_std == 0:
-            momentum_z = np.zeros_like(gradients)
-        else:
-            momentum_z = (gradients - grad_mean) / grad_std
+        # Pandas Series로 변환하여 Rolling 연산 수행 (k=5)
+        # min_periods=1을 주어 데이터가 적은 초기 구간도 계산되도록 함
+        grad_series = pd.Series(gradients)
+        rolling_mean = grad_series.rolling(window=11, center=True, min_periods=1).mean()
+        rolling_std = grad_series.rolling(window=11, center=True, min_periods=1).std()
+
+        # Local Z-Score 계산 (std가 0인 경우 0으로 처리)
+        momentum_z = (grad_series - rolling_mean) / rolling_std
+        momentum_z = momentum_z.fillna(0).replace([np.inf, -np.inf], 0)
 
         # 6. 포맷팅
         return {"volume": np.round(volume_norm, 2).tolist(), "momentum": np.round(momentum_z, 2).tolist()}

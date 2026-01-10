@@ -17,7 +17,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.ext.mutable import MutableDict
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
-from chatzzk_core.constants import DBDefault, PlatformCode, VODPipelineStatus
+from chatzzk_core.constants import DBDefault, PlatformCode, UserRole, VODPipelineStatus
 
 
 class Base(DeclarativeBase):
@@ -33,11 +33,17 @@ class User(Base):
     # 웹 서비스에서 로그인 성공 시, 이 값을 기준으로 우리 DB의 유저를 찾습니다.
     supabase_uid: Mapped[str] = mapped_column(UUID(as_uuid=True), unique=True, index=True)
 
-    email: Mapped[str] = mapped_column(String(255))
-    nickname: Mapped[str] = mapped_column(String(50))
+    user_name: Mapped[str | None] = mapped_column(String(DBDefault.Len.NAME), unique=True, index=True)
+    role: Mapped[UserRole] = mapped_column(Enum(UserRole))
+    is_active: Mapped[bool] = mapped_column(Boolean, server_default=DBDefault.IS_ACTIVE)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    channels: Mapped[list["Channel"]] = relationship(back_populates="owner")
+    owned_channel: Mapped["Channel"] = relationship(
+        "Channel", back_populates="owner", foreign_keys=lambda: [Channel.user_id], uselist=False
+    )
+    editor_channel: Mapped["Channel"] = relationship(
+        "Channel", back_populates="editor", foreign_keys=lambda: [Channel.editor_id], uselist=False
+    )
 
 
 class Platform(Base):
@@ -58,6 +64,7 @@ class Channel(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", name="channels_user_id_fkey"))
+    editor_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", name="channels_editor_id_fkey"))
     platform_id: Mapped[int] = mapped_column(ForeignKey("platforms.id"))
 
     platform_channel_id: Mapped[str] = mapped_column(String(DBDefault.Len.ID), index=True)
@@ -76,7 +83,16 @@ class Channel(Base):
 
     __table_args__ = (UniqueConstraint("platform_id", "platform_channel_id", name="uq_channel_platform_identifier"),)
 
-    owner: Mapped["User"] = relationship(back_populates="channels")
+    owner: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[user_id],
+        back_populates="owned_channel",
+    )
+    editor: Mapped["User"] = relationship(
+        "User",
+        foreign_keys=[editor_id],
+        back_populates="editor_channel",
+    )
     platform: Mapped["Platform"] = relationship(back_populates="channels")
     vods: Mapped[list["VOD"]] = relationship(back_populates="channel", cascade="all, delete-orphan")
     channel_metadata: Mapped["ChannelMetadata"] = relationship(

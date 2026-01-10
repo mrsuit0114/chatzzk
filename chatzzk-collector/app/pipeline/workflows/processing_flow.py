@@ -129,7 +129,7 @@ async def process_single_vod(vod_info: TargetVODInfo):
 
 
 @flow(name="VOD Processing Entrypoint", log_prints=True)
-async def vod_processing_flow():
+async def processing_flow():
     vod_info_list = await task_dispatch_vod_info()
 
     if not vod_info_list:
@@ -162,4 +162,4 @@ async def vod_processing_flow():
 
 
 if __name__ == "__main__":
-    asyncio.run(vod_processing_flow())
+    asyncio.run(processing_flow())
