@@ -1,36 +1,32 @@
-import { AuthUser } from "@/features/auth/types";
-import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { create } from 'zustand';
+import { User, Session } from '@supabase/supabase-js';
 
 interface AuthState {
-    user: AuthUser | null;
-    isAuthenticated: boolean;
-    login: (userInfo: AuthUser) => void;
-    logout: () => void;
+    user: User | null;
+    session: Session | null;
+    isInitialized: boolean; // 처음에 로그인 여부를 확인했는지 체크
+    setSession: (session: Session | null) => void;
+    clearSession: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-    persist(
-        (set) => ({
-            user: null,
-            isAuthenticated: false,
+export const useAuthStore = create<AuthState>((set) => ({
+    user: null,
+    session: null,
+    isInitialized: false, // 앱이 켜지고 아직 Supabase 확인 전임
 
-            // 로그인 액션 (Mock: 실제로는 API 통신 후 토큰 저장)
-            login: (userInfo: AuthUser) => {
-                set({
-                    user: userInfo,
-                    isAuthenticated: true
-                });
-            },
-
-            // 로그아웃 액션
-            logout: () => {
-                set({ user: null, isAuthenticated: false });
-            },
+    // 로그인 시 세션 저장
+    setSession: (session) =>
+        set({
+            session,
+            user: session?.user ?? null,
+            isInitialized: true,
         }),
-        {
-            name: "auth-storage", // 로컬 스토리지 키 이름
-            storage: createJSONStorage(() => localStorage),
-        }
-    )
-);
+
+    // 로그아웃 시 초기화
+    clearSession: () =>
+        set({
+            session: null,
+            user: null,
+            isInitialized: true,
+        }),
+}));

@@ -1,127 +1,130 @@
-import { useState } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, LogIn } from "lucide-react";
-import { useAuthStore } from "@/stores/auth.store";
-import { PLATFORM_CODE, UserRole } from "@/constants";
+import { useState } from 'react';
+import { supabase } from '@/lib/supabase';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { AUTH_DOMAIN, ID_REGEX } from '@shared/constant';
 
-export function LoginPage() {
+export const LoginPage = () => {
     const navigate = useNavigate();
-    const login = useAuthStore((state) => state.login); // Store 액션 가져오기
     const location = useLocation();
 
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    // 로그인 후 이동할 페이지 (기본값: 홈)
+    const from = location.state?.from?.pathname || '/';
 
-    // 이메일 -> 아이디(username)으로 변경
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
+    // 1. 입력값 관리 (이메일, 비번)
+    const [userName, setUserName] = useState('');
+    const [password, setPassword] = useState('');
 
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setError(null);
+    // 2. 현재 모드 (true면 회원가입 화면, false면 로그인 화면)
+    const [isSignUpMode, setIsSignUpMode] = useState(false);
+
+    // 3. 에러 메시지 관리
+    const [errorMsg, setErrorMsg] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    // 통합 처리 함수
+    const handleAuth = async (e: React.FormEvent) => {
+        e.preventDefault(); // 폼 제출 시 새로고침 방지
+        setLoading(true);
+        setErrorMsg('');
+
+        if (!ID_REGEX.test(userName)) {
+            setErrorMsg('아이디는 영문 소문자와 숫자만 사용할 수 있습니다.');
+            setLoading(false);
+            return;
+        }
 
         try {
-            await new Promise((resolve) => setTimeout(resolve, 800));
+            if (isSignUpMode) {
+                const { error } = await supabase.auth.signUp({
+                    email: `${userName.trim()}${AUTH_DOMAIN}`,
+                    password,
+                    options: {
+                        data: {
+                            user_name: userName.trim(),
+                        },
+                    },
+                });
+                if (error) throw error;
 
-            // ✅ [테스트 로직] 아이디가 'editor'로 시작하면 편집자로 간주
-            const role: UserRole = username.startsWith("editor")
-                ? "editor"
-                : "owner";
+                alert('회원가입 성공! (이메일 확인이 필요할 수 있습니다)');
+            } else {
+                const { error } = await supabase.auth.signInWithPassword({
+                    email: `${userName.trim()}${AUTH_DOMAIN}`,
+                    password,
+                });
+                if (error) throw error;
 
-            // 스토어 업데이트
-            login({
-                id: username,
-                role: role,
-                channelName: "테스트 채널", // 테스트용 빈 문자열
-                platform: PLATFORM_CODE.CHZZK, // 기본 플랫폼 설정
-                platformChannelUrl: "#", // 테스트용 빈 문자열
-            });
-
-            const from = location.state?.from?.pathname || "/";
-
-            console.log("Redirecting to:", from);
-            // replace: true를 사용하여 뒤로 가기 눌렀을 때 다시 로그인 페이지로 오지 않도록 함
-            navigate(from, { replace: true });
-        } catch (err) {
-            setError("아이디 또는 비밀번호가 일치하지 않습니다.");
+                // 로그인 성공 시 페이지 이동 (App.tsx 감지기가 상태 업데이트 함)
+                navigate(from, { replace: true });
+            }
+        } catch (error: any) {
+            setErrorMsg(error.message || '오류가 발생했습니다.');
         } finally {
-            setIsLoading(false);
+            setLoading(false);
         }
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-muted/40 px-4">
-            <Card className="w-full max-w-sm border-none shadow-lg">
-                <CardHeader className="space-y-1 text-center">
-                    <CardTitle className="text-2xl font-bold">로그인</CardTitle>
-                    <CardDescription>
-                        테스트 팁: 'editor'로 시작하는 ID를 입력하면 편집자 권한으로 로그인됩니다.
-                    </CardDescription>
-                </CardHeader>
+        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+            <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
+                <h2 className="text-2xl font-bold text-center mb-6">
+                    {isSignUpMode ? '회원가입' : '로그인'}
+                </h2>
 
-                <form onSubmit={handleLogin}>
-                    <CardContent className="grid gap-4">
-                        {error && (
-                            <div className="text-sm text-red-500 bg-red-50 p-2 rounded text-center">
-                                {error}
-                            </div>
-                        )}
+                <form onSubmit={handleAuth} className="flex flex-col gap-4">
+                    {/* 이메일 입력 */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">아이디</label>
+                        <input
+                            type="text"
+                            required
+                            className="mt-1 w-full p-2 border rounded-md"
+                            value={userName}
+                            onChange={(e) => setUserName(e.target.value)}
+                        />
+                    </div>
 
-                        {/* ✅ 아이디 입력 필드로 변경 */}
-                        <div className="grid gap-2">
-                            <Label htmlFor="username">아이디</Label>
-                            <Input
-                                id="username"
-                                type="text"
-                                placeholder="아이디를 입력하세요"
-                                required
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                disabled={isLoading}
-                            />
-                        </div>
+                    {/* 비밀번호 입력 */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700">비밀번호</label>
+                        <input
+                            type="password"
+                            required
+                            minLength={6}
+                            className="mt-1 w-full p-2 border rounded-md"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </div>
 
-                        <div className="grid gap-2">
-                            <Label htmlFor="password">비밀번호</Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                required
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                disabled={isLoading}
-                            />
-                        </div>
-                    </CardContent>
+                    {errorMsg && <div className="text-red-500 text-sm text-center">{errorMsg}</div>}
 
-                    <CardFooter className="flex flex-col gap-4">
-                        <Button className="w-full" type="submit" disabled={isLoading}>
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    로그인 중...
-                                </>
-                            ) : (
-                                <>
-                                    <LogIn className="mr-2 h-4 w-4" />
-                                    로그인
-                                </>
-                            )}
-                        </Button>
-
-                        <div className="text-center text-sm text-muted-foreground">
-                            <Link to="/" className="hover:text-primary underline underline-offset-4">
-                                메인으로 돌아가기
-                            </Link>
-                        </div>
-                    </CardFooter>
+                    {/* 제출 버튼 */}
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    >
+                        {loading ? '처리 중...' : (isSignUpMode ? '가입하기' : '로그인')}
+                    </button>
                 </form>
-            </Card>
+
+                {/* 모드 전환 버튼 */}
+                <div className="mt-4 text-center text-sm">
+                    <span className="text-gray-600">
+                        {isSignUpMode ? '이미 계정이 있으신가요?' : '계정이 없으신가요?'}
+                    </span>
+                    <button
+                        onClick={() => {
+                            setIsSignUpMode(!isSignUpMode);
+                            setErrorMsg('');
+                        }}
+                        className="ml-2 text-blue-600 hover:underline font-medium"
+                    >
+                        {isSignUpMode ? '로그인하기' : '회원가입하기'}
+                    </button>
+                </div>
+            </div>
         </div>
     );
-}
+};

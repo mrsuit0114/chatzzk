@@ -1,15 +1,18 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useAuthStore } from "@/stores/auth.store";
 
-export function ProtectedRoute() {
-    const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+export const ProtectedRoute = () => {
+    const { user, isInitialized } = useAuthStore();
     const location = useLocation();
 
-    if (!isAuthenticated) {
+    // 1. 아직 로그인 체크가 안 끝났으면 아무것도 안 보여줌 (App.tsx의 로딩이 처리하겠지만 안전장치)
+    if (!isInitialized) {
+        return null;
+    }
+
+    if (!user) {
         // 로그인 안 된 경우, 현재 위치(location)를 state에 담아 로그인 페이지로 보냄
         return <Navigate to="/login" state={{ from: location }} replace />;
     }
-
-    // 라우터에서 <Route element={<ProtectedRoute />}> 안에 넣은 자식 라우트들이 여기에 표시됨
     return <Outlet />;
 }

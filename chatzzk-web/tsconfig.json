@@ -23,6 +23,9 @@
 			],
 			"@worker/*": [
 				"./src/worker/*"
+			],
+			"@shared/*": [
+				"./src/shared/*"
 			]
 		}
 	}
