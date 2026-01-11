@@ -1,7 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState } from "react";
 import { SegmentTrendSection } from "./trend/SegmentTrendSection";
-import { RawDashboardResponse } from "../../types/external";
-import { mapRawDataToViewData } from "../../utils/mapper";
 import { StructureListSection } from "./structure/StructureListSection";
 import { DetailSection } from "./detail/DetailSection";
 import { AnalysisIntervals, AnalysisViewData } from "../../types";

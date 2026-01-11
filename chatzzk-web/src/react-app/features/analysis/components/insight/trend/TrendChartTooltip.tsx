@@ -2,7 +2,7 @@ import { ATMOSPHERE_LABELS } from "@/constants";
 import { formatVideoTime, getBarColor } from "@/features/analysis/utils";
 
 
-export const TrendChartTooltip = ({ active, payload, label }: any) => {
+export const TrendChartTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
         // payload[0].payload에 우리가 주입한 chartData 객체 전체가 들어있습니다.
         const data = payload[0].payload;

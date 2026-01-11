@@ -1,19 +1,7 @@
 // 구분하기에는 적기 때문에 현재는 index.ts 파일에 모두 작성합니다.
 // 상수에서 파생된 type은 함께 관리할 것
-export const PLATFORM_CODE = {
-    CHZZK: "chzzk",
-    YOUTUBE: "youtube",
-    SOOP: "soop",
-} as const;
-
-export type PlatformCode = typeof PLATFORM_CODE[keyof typeof PLATFORM_CODE];
-
-export const USER_ROLE = {
-    OWNER: "owner",
-    EDITOR: "editor",
-} as const;
-
-export type UserRole = typeof USER_ROLE[keyof typeof USER_ROLE];
+import { PLATFORM_CODE, PlatformCode, USER_ROLE, UserRole } from '@shared/constant';
+export { PLATFORM_CODE, USER_ROLE, type PlatformCode, type UserRole };
 
 export const PLATFORM_LABELS: Record<string | "all", string> = {
     all: "전체",

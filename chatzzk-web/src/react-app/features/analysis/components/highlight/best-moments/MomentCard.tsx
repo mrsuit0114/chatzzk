@@ -77,7 +77,7 @@ export function MomentCard({ data, interval, sortBy, onClick }: MomentCardProps)
                 {/* 2. Keywords (Fixed Position relative to bottom content) */}
                 {/* mt-2로 상단(Summary)과의 최소 간격 유지 */}
                 <div className="flex flex-wrap gap-1.5 mt-2 mb-3 h-[16px] overflow-hidden">
-                    {data.keywords.slice(0, 3).map((keyword) => (
+                    {data.keywords.map((keyword) => (
                         <span key={keyword} className="text-[10px] px-1.5 py-0.5 bg-secondary/50 rounded text-muted-foreground whitespace-nowrap">
                             #{keyword}
                         </span>
