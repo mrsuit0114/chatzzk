@@ -58,6 +58,8 @@ export function PlatformPage() {
             {/* 로딩 중일 때 UI 처리 (Skeleton 등 사용 가능) */}
             {isLoading ? (
                 <div className="py-20 text-center">로딩 중...</div>
+            ) : isError ? (
+                <div className="py-4 text-center text-red-500">데이터를 불러오는 중에 오류가 발생했습니다.</div>
             ) : (
                 <>
                     {vods.length > 0 ? (
@@ -73,9 +75,6 @@ export function PlatformPage() {
                     )}
                 </>
             )}
-            {isError ? (
-                <div className="py-4 text-center text-red-500">데이터를 불러오는 중에 오류가 발생했습니다.</div>
-            ) : null}
 
             {totalPages > 1 && (
                 <BasePagination

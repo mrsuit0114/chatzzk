@@ -1,4 +1,4 @@
-import { PlatformCode } from "@/constants";
+import { PlatformCode } from "@shared/constants/service_codes";
 
 export interface VodData {
     videoNo: string;

@@ -1,0 +1,49 @@
+import { Hono } from 'hono';
+import { createClient } from '@supabase/supabase-js';
+import { Variables } from 'hono/types';
+import { ChannelData, ChannelDataSchema } from '@shared/types/channel';
+import { SEARCH_ITEMS_PER_PAGE } from '@shared/constants/ui';
+
+const app = new Hono<{ Bindings: Env, Variables: Variables }>();
+
+app.get('/', async (c) => {
+    // 1. 파라미터 파싱
+    const platformParam = c.req.query('platform')?.toUpperCase() || 'ALL'; // 기본값 ALL
+    const page = parseInt(c.req.query('page') || '1');
+    const query = c.req.query('query') || '';
+    const pageSize = SEARCH_ITEMS_PER_PAGE; // 한 페이지에 보여줄 카드 수
+
+    const supabase = createClient(c.env.SUPABASE_URL, c.env.SUPABASE_ANON_KEY);
+
+    // 2. RPC 호출
+    const { data, error } = await supabase
+        .rpc('search_channels', {
+            p_platform_code: platformParam,
+            p_query: query,
+            p_page: page,
+            p_page_size: pageSize
+        });
+
+    if (error) {
+        return c.json({ error: error.message }, 500);
+    }
+
+    const channels = data || [];
+    const totalCount = channels.length > 0 ? Number(channels[0].total_count) : 0;
+
+    const channelsData: ChannelData[] = channels.map((item: any) => {
+        return ChannelDataSchema.parse(item);
+    });
+
+    return c.json({
+        data: channelsData,
+        meta: {
+            total: totalCount,
+            page: page,
+            pageSize: pageSize,
+            totalPages: Math.ceil(totalCount / pageSize)
+        }
+    });
+});
+
+export default app;

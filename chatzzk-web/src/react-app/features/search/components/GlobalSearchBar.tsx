@@ -85,7 +85,7 @@ export function GlobalSearchBar() {
                 >
                     {/* ✅ 2. 여기서 매핑 객체를 사용해 한글 이름 출력 */}
                     <SelectValue aria-label={platform}>
-                        {PLATFORM_LABELS[platform] || "전체"}
+                        {PLATFORM_LABELS[platform.toUpperCase()] || "전체"}
                     </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -98,7 +98,6 @@ export function GlobalSearchBar() {
 
             <div className="h-5 w-[1px] bg-border mx-1" />
 
-            {/* input과 버튼에서 둘 다 이벤트를 받아서 중복 검색을 수행하는 것은 아닌가? */}
             <Input
                 type="text"
                 placeholder="채널명 또는 플랫폼 채널 ID 검색"

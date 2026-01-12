@@ -1,10 +1,7 @@
-import { PlatformCode } from "@/constants";
+import { PlatformCode } from "@shared/constants/service_codes";
 
-export interface ChannelUI {
-    name: string;
+export interface ChannelData {
+    channelName: string;
     platform: PlatformCode;
     channelId: string;
-
-    profileUrl?: string; // 프로필 이미지
-    description?: string;
 }
