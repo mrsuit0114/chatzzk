@@ -7,7 +7,7 @@ import { ViewType } from "../constants";
 
 import { Loader2 } from "lucide-react";
 import { useAnalysisData } from "../hooks/use-analysis-data";
-import { VodMetadataToVodHeaderData } from "../utils/adapter";
+import { VodMetadataToVodHeaderData } from "../utils";
 
 export function VodAnalysisPage() {
     const { viewData, isLoading, error } = useAnalysisData();

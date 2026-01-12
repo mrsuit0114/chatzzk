@@ -1,5 +1,6 @@
 import { ATMOSPHERE_LABELS } from "@/constants";
-import { formatVideoTime, getBarColor } from "@/features/analysis/utils";
+import { getBarColor } from "@/features/analysis/utils";
+import { formatVideoTime } from "@/utils/time-formatter";
 
 
 export const TrendChartTooltip = ({ active, payload }: any) => {

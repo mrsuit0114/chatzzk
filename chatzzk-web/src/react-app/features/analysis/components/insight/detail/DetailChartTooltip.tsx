@@ -1,4 +1,4 @@
-import { formatTime } from "@/features/analysis/utils";
+import { formatTime } from "@/utils/time-formatter";
 
 export const DetailChartTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {

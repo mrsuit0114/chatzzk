@@ -1,8 +1,8 @@
 import React from "react";
 import { StreamLogData, StreamLogType } from "../../../types";
-import { formatTime } from "@/features/analysis/utils";
 import { cn } from "@/lib/utils";
 import { User, Mic, DollarSign, Crown } from "lucide-react";
+import { formatTime } from "@/utils/time-formatter";
 
 interface StreamLogItemProps {
     log: StreamLogData;

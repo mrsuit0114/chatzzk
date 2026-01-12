@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { ChapterSummaryData } from "../../../types";
-import { formatVideoTime } from "@/features/analysis/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { formatVideoTime } from "@/utils/time-formatter";
 
 interface ChapterBlockRowProps {
     chapters: ChapterSummaryData[];

@@ -4,10 +4,11 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { formatTime, formatInterval, getBadgeClasses } from "@/features/analysis/utils";
+import { getBadgeClasses } from "@/features/analysis/utils";
 import { SORT_OPTIONS, SortOption } from "@/features/analysis/constants";
 import { SegmentSummaryData } from "@/features/analysis/types";
 import { ATMOSPHERE_LABELS } from "@/constants";
+import { formatTime, formatInterval } from "@/utils/time-formatter";
 
 
 

@@ -1,11 +1,12 @@
 import { TREND_CHART_MARGIN, TREND_CHART_X_AXIS_HEIGHT } from "@/features/analysis/constants";
-import { formatVideoTime, getBarColor } from "@/features/analysis/utils";
+import { getBarColor } from "@/features/analysis/utils";
 import {
     ComposedChart, Line, Bar, XAxis, YAxis, Tooltip,
     Cell, ReferenceArea,
     ReferenceLine
 } from "recharts";
 import { TrendChartTooltip } from "./TrendChartTooltip";
+import { formatVideoTime } from "@/utils/time-formatter";
 
 interface TrendChartProps {
     data: any[];

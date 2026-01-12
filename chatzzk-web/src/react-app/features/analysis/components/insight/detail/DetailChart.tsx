@@ -11,10 +11,11 @@ import {
     Cell,
     ReferenceLine
 } from "recharts";
-import { formatTime, scaleMomentum } from "@/features/analysis/utils";
+import { scaleMomentum } from "@/features/analysis/utils";
 import { ClipData } from "../../../types";
 import { DetailChartTooltip } from "./DetailChartTooltip";
 import { DETAIL_CHART_HEIGHT } from "@/features/analysis/constants";
+import { formatTime } from "@/utils/time-formatter";
 
 interface DetailChartProps {
     data: ClipData[];

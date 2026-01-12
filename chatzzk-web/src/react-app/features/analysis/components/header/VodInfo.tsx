@@ -14,7 +14,7 @@ import {
 import { VodHeaderData } from "../../types";
 import { getBadgeClasses } from "@/utils/ui";
 import { PLATFORM_LABELS } from "@/constants";
-import { formatDateKo, formatTime } from "../../utils";
+import { formatDateKo, formatTime } from "@/utils/time-formatter";
 
 
 interface VodInfoProps {

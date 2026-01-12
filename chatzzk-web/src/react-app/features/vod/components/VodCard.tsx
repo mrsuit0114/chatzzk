@@ -1,13 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { VodUI } from "../types";
+import { VodData } from "../types";
 import { PLATFORM_COLORS, PLATFORM_LABELS } from "@/constants";
 import { cn } from "@/lib/utils";
+import { formatDateKo, formatTime } from "@/utils/time-formatter";
 
 
 interface Props {
-    data: VodUI;
+    data: VodData;
 }
 
 export function VodCard({ data }: Props) {
@@ -50,13 +51,13 @@ export function VodCard({ data }: Props) {
 
                 {/* 우측 하단: 영상 길이 */}
                 <Badge className="absolute bottom-2 right-2 bg-black/80 text-white border-none pointer-events-none">
-                    {data.duration}
+                    {formatTime(data.duration * 1000)}
                 </Badge>
             </div>
 
             <CardHeader className="p-4 pb-2 space-y-1">
                 <div className="flex justify-between items-start">
-                    <span className="text-xs text-muted-foreground">{data.publishDate}</span>
+                    <span className="text-xs text-muted-foreground">{formatDateKo(data.publishDate)}</span>
                 </div>
                 <CardTitle className="text-base leading-tight line-clamp-2 h-[2.5rem]">
                     {data.title}
