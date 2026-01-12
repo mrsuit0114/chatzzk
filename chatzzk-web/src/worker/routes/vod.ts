@@ -2,11 +2,12 @@ import { Hono } from 'hono';
 import { createClient } from '@supabase/supabase-js';
 import { PLATFORM_ITEMS_PER_PAGE } from '@shared/constants/ui';
 import { Variables } from 'hono/types';
+import { VodData, VodDataSchema } from '@shared/types/vod';
 
 const app = new Hono<{ Bindings: Env, Variables: Variables }>();
 
 app.get('/', async (c) => {
-    const platformParam = c.req.query('platform');
+    const platformParam = c.req.query('platform')?.toUpperCase();
     const page = parseInt(c.req.query('page') || '1');
     const query = c.req.query('query') || '';
     const fromDate = c.req.query('from') || null;
@@ -21,7 +22,7 @@ app.get('/', async (c) => {
 
     const { data, error } = await supabase
         .rpc('search_vods', {
-            p_platform_code: platformParam.toUpperCase(),
+            p_platform_code: platformParam,
             p_query: query,
             p_page: page,
             p_page_size: pageSize,
@@ -36,19 +37,17 @@ app.get('/', async (c) => {
     const vods = data || [];
     const totalCount = vods.length > 0 ? Number(vods[0].total_count) : 0;
 
-    const formattedData = vods.map((item: any) => {
-        return {
-            videoNo: item.video_no,
-            title: item.video_title,
-            channelName: item.channel_name,
-            publishDate: item.publish_date,
-            platform: platformParam,
-            duration: item.duration,
-        };
+    const vodsData: VodData[] = vods.map((item: any) => {
+        const rawData = {
+            ...item,
+            platform: platformParam
+        }
+        const vodData = VodDataSchema.parse(rawData);
+        return vodData;
     });
 
     return c.json({
-        data: formattedData,
+        data: vodsData,
         meta: {
             total: totalCount,
             page: page,

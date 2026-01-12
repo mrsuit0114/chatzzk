@@ -38,11 +38,11 @@ export function PlatformPage() {
     const totalPages = data?.meta.totalPages || 0;
 
     // --- [렌더링] ---
-    if (!platformId || !PLATFORM_LABELS[platformId.toLowerCase()]) {
+    if (!platformId || !PLATFORM_LABELS[platformId.toUpperCase()]) {
         return <div className="container py-20 text-center">존재하지 않는 플랫폼입니다.</div>;
     }
 
-    const platformName = PLATFORM_LABELS[platformId.toLowerCase()];
+    const platformName = PLATFORM_LABELS[platformId.toUpperCase()];
 
     return (
         <div className="container mx-auto py-8 space-y-6">
