@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { User, LogOut, Settings } from "lucide-react";
+import { User, LogOut, Settings, ShieldCheck } from "lucide-react";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -12,16 +12,26 @@ import {
 
 import { GlobalSearchBar } from "@/features/search/components/GlobalSearchBar";
 import { useAuthStore } from "@/stores/auth.store";
+import { supabase } from "@/lib/supabase";
+import { USER_ROLE } from "@shared/constants/service_codes";
 
 export function Header() {
     const navigate = useNavigate();
     const location = useLocation();
-    // ✅ 전역 로그인 상태 및 액션 구독
-    const { isAuthenticated, user, logout } = useAuthStore();
+    const { user, userProfile, clearSession } = useAuthStore();
 
-    const handleLogout = () => {
-        logout();
-        navigate("/"); // 로그아웃 후 홈으로 리다이렉트
+    // ✅ 관리자 여부 체크 (옵션)
+    const isAdmin = userProfile?.role === USER_ROLE.ADMIN;
+
+    const handleLogout = async () => {
+        // 1. Supabase 서버에 로그아웃 요청 (필수!)
+        await supabase.auth.signOut();
+
+        // 2. 클라이언트 상태 비우기
+        clearSession();
+
+        // 3. 홈으로 이동
+        navigate("/");
     };
 
     return (
@@ -42,7 +52,7 @@ export function Header() {
 
                 {/* 3. 우측 사용자 메뉴 (동적 렌더링) */}
                 <div className="flex items-center gap-2">
-                    {isAuthenticated ? (
+                    {user ? (
                         // ✅ 로그인 상태: 드롭다운 메뉴 표시
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -52,9 +62,20 @@ export function Header() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>
-                                    {user?.id || "사용자"}님
+                                    {userProfile?.userName || "사용자"}님
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
+                                {isAdmin && (
+                                    <>
+                                        <DropdownMenuItem asChild>
+                                            <Link to="/admin" className="text-amber-600 cursor-pointer">
+                                                <ShieldCheck className="mr-2 h-4 w-4" />
+                                                <span>관리자 페이지</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                    </>
+                                )}
                                 <DropdownMenuItem asChild>
                                     <Link to="/mypage" className="cursor-pointer">
                                         <Settings className="mr-2 h-4 w-4" />

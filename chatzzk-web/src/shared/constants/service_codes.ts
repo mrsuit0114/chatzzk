@@ -1,18 +1,35 @@
+import { z } from "zod";
+
 export const PLATFORM_CODE = {
-    CHZZK: "chzzk",
-    YOUTUBE: "youtube",
-    SOOP: "soop",
+    CHZZK: "CHZZK",
+    YOUTUBE: "YOUTUBE",
+    SOOP: "SOOP",
 } as const;
 
-export type PlatformCode = typeof PLATFORM_CODE[keyof typeof PLATFORM_CODE];
+export const PlatformCodeSchema = z.enum([
+    PLATFORM_CODE.CHZZK,
+    PLATFORM_CODE.YOUTUBE,
+    PLATFORM_CODE.SOOP,
+]);
+
+export type PlatformCode = z.infer<typeof PlatformCodeSchema>;
 
 export const USER_ROLE = {
-    ADMIN: "admin",
-    OWNER: "owner",
-    EDITOR: "editor",
+    ADMIN: "ADMIN",
+    OWNER: "OWNER",
+    EDITOR: "EDITOR",
+    USER: "USER",
 } as const;
 
-export type UserRole = typeof USER_ROLE[keyof typeof USER_ROLE];
+export const UserRoleSchema = z.enum([
+    USER_ROLE.ADMIN,
+    USER_ROLE.OWNER,
+    USER_ROLE.EDITOR,
+    USER_ROLE.USER,
+]);
+
+export type UserRole = z.infer<typeof UserRoleSchema>;
 
 export const AUTH_DOMAIN = '@chatzzk.auth';
-export const ID_REGEX = /^[a-z0-9]+$/;
+export const ID_REGEX = /^[a-z0-9]{4,20}$/;
+export const PASSWORD_MIN_LENGTH = 8;

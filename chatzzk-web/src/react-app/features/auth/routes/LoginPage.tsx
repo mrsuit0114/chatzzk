@@ -1,23 +1,16 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { AUTH_DOMAIN, ID_REGEX } from '@shared/constant';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { AUTH_DOMAIN, ID_REGEX, PASSWORD_MIN_LENGTH } from '@shared/constants/service_codes';
 
 export const LoginPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
-
-    // 로그인 후 이동할 페이지 (기본값: 홈)
     const from = location.state?.from?.pathname || '/';
 
-    // 1. 입력값 관리 (이메일, 비번)
     const [userName, setUserName] = useState('');
     const [password, setPassword] = useState('');
-
-    // 2. 현재 모드 (true면 회원가입 화면, false면 로그인 화면)
     const [isSignUpMode, setIsSignUpMode] = useState(false);
-
-    // 3. 에러 메시지 관리
     const [errorMsg, setErrorMsg] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -28,14 +21,21 @@ export const LoginPage = () => {
         setErrorMsg('');
 
         if (!ID_REGEX.test(userName)) {
-            setErrorMsg('아이디는 영문 소문자와 숫자만 사용할 수 있습니다.');
+            setErrorMsg('아이디는 4~20자의 영문 소문자와 숫자만 사용할 수 있습니다.');
+            setLoading(false);
+            return;
+        }
+
+        // 비밀번호 검사 (회원가입 시 필수, 로그인 시에는 서버가 알아서 체크하므로 길이만 가볍게 확인)
+        if (password.length < PASSWORD_MIN_LENGTH) {
+            setErrorMsg(`비밀번호는 최소 ${PASSWORD_MIN_LENGTH}자 이상이어야 합니다.`);
             setLoading(false);
             return;
         }
 
         try {
             if (isSignUpMode) {
-                const { error } = await supabase.auth.signUp({
+                const { data, error } = await supabase.auth.signUp({
                     email: `${userName.trim()}${AUTH_DOMAIN}`,
                     password,
                     options: {
@@ -46,7 +46,15 @@ export const LoginPage = () => {
                 });
                 if (error) throw error;
 
-                alert('회원가입 성공! (이메일 확인이 필요할 수 있습니다)');
+                if (data.session) {
+                    alert('회원가입 및 로그인이 완료되었습니다!');
+                    navigate(from, { replace: true });
+                } else {
+                    // 이메일 인증이 켜져있다면 세션이 없으므로 알림 표시
+                    alert('회원가입 성공! 이메일 인증 후 로그인해주세요.');
+                    setIsSignUpMode(false); // 로그인 모드로 전환
+                }
+
             } else {
                 const { error } = await supabase.auth.signInWithPassword({
                     email: `${userName.trim()}${AUTH_DOMAIN}`,
@@ -58,14 +66,29 @@ export const LoginPage = () => {
                 navigate(from, { replace: true });
             }
         } catch (error: any) {
-            setErrorMsg(error.message || '오류가 발생했습니다.');
+            // Supabase가 주는 에러 메시지를 한글로 순화
+            if (error.message.includes('Password should be')) {
+                setErrorMsg('비밀번호 보안 수준이 낮습니다.');
+            } else if (error.message.includes('Invalid login credentials')) {
+                setErrorMsg('아이디 또는 비밀번호가 일치하지 않습니다.');
+            } else if (error.message.includes('User already registered')) {
+                setErrorMsg('이미 사용 중인 아이디입니다.');
+            } else {
+                setErrorMsg(error.message || '오류가 발생했습니다.');
+            }
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
+            <Link to="/" className="mb-8 flex flex-col items-center gap-2 group">
+                <span className="text-4xl font-extrabold tracking-tighter text-gray-900 transition-colors group-hover:text-blue-600">
+                    CHATZZK
+                </span>
+                <span className="text-sm text-gray-500">스트리머 데이터 분석 플랫폼</span>
+            </Link>
             <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold text-center mb-6">
                     {isSignUpMode ? '회원가입' : '로그인'}
@@ -82,6 +105,11 @@ export const LoginPage = () => {
                             value={userName}
                             onChange={(e) => setUserName(e.target.value)}
                         />
+                        {isSignUpMode && (
+                            <p className="text-xs text-gray-500 mt-1">
+                                * 영문 소문자와 숫자 조합, 4~20자
+                            </p>
+                        )}
                     </div>
 
                     {/* 비밀번호 입력 */}
