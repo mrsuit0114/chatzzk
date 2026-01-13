@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { createClient } from '@supabase/supabase-js';
 import { Variables } from 'hono/types';
-import { ChannelData, ChannelDataSchema } from '@shared/types/channel';
+import { ChannelData, ChannelDataSchema, ChannelDetailSchema } from '@shared/types/channel';
 import { SEARCH_ITEMS_PER_PAGE } from '@shared/constants/ui';
 
 const app = new Hono<{ Bindings: Env, Variables: Variables }>();
@@ -44,6 +44,34 @@ app.get('/', async (c) => {
             totalPages: Math.ceil(totalCount / pageSize)
         }
     });
+});
+
+app.get('/:id', async (c) => {
+    const channelId = c.req.param('id');
+    const platformParam = c.req.query('platform')?.toUpperCase();
+
+    if (!platformParam) {
+        return c.json({ error: 'Platform query parameter is required' }, 400);
+    }
+
+    const supabase = createClient(c.env.SUPABASE_URL, c.env.SUPABASE_ANON_KEY);
+
+    const { data, error } = await supabase
+        .rpc('get_channel_detail', {
+            p_platform_code: platformParam,      // 쿼리에서 온 값
+            p_platform_channel_id: channelId     // 경로에서 온 값
+        })
+        .single();
+
+    if (error) return c.json({ error: error.message }, 500);
+    if (!data) return c.json({ error: 'Channel not found' }, 404);
+
+    try {
+        const channelDetail = ChannelDetailSchema.parse(data);
+        return c.json({ data: channelDetail });
+    } catch (e: any) {
+        return c.json({ error: 'Data parsing error', details: e.message }, 500);
+    }
 });
 
 export default app;

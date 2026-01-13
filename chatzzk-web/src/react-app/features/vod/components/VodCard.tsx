@@ -5,6 +5,7 @@ import { VodData } from "../types";
 import { PLATFORM_COLORS, PLATFORM_LABELS } from "@/constants";
 import { cn } from "@/lib/utils";
 import { formatDateKo, formatTime } from "@/utils/time-formatter";
+import { Play } from "lucide-react";
 
 
 interface Props {
@@ -16,13 +17,13 @@ export function VodCard({ data }: Props) {
 
     // 1. 카드 전체 클릭 -> 분석 페이지로 이동
     const handleCardClick = () => {
-        navigate(`/${data.platform}/analysis/${data.videoNo}`);
+        navigate(`/${data.platform.toLowerCase()}/analysis/${data.videoNo}`);
     };
 
     // 2. 채널명 클릭 -> 채널 상세 페이지로 이동
     const handleChannelClick = (e: React.MouseEvent) => {
         e.stopPropagation(); // 🚨 핵심: 부모(카드) 클릭 이벤트가 발생하지 않도록 막음
-        navigate(`/${data.platform}/channel/${data.channelId}`);
+        navigate(`/${data.platform.toLowerCase()}/channel/${data.channelId}`);
     };
 
     const badgeColor = PLATFORM_COLORS[data.platform] || "bg-gray-600";
@@ -41,7 +42,9 @@ export function VodCard({ data }: Props) {
                         className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                     />
                 ) : (
-                    <div className="flex items-center justify-center h-full text-muted-foreground">No Image</div>
+                    <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-muted/40 to-muted/10 text-muted-foreground">
+                        <Play className="w-10 h-10 opacity-60" />
+                    </div>
                 )}
 
                 {/* 좌측 상단: 플랫폼 배지 */}

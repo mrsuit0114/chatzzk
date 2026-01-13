@@ -28,3 +28,14 @@ export const formatDateKo = (dateStr: string) => {
     const date = new Date(dateStr);
     return format(date, "yyyy.MM.dd", { locale: ko });
 }
+
+export const formatDateTimeKo = (dateStr: string | null) => {
+    const date = dateStr ? new Date(dateStr).toLocaleString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+    }) : "";
+    return date;
+}

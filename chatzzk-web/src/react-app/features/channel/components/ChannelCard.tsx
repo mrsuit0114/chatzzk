@@ -12,7 +12,7 @@ export function ChannelCard({ data }: Props) {
     const navigate = useNavigate();
 
     const handleClick = () => {
-        navigate(`/${data.platform}/channel/${data.channelId}`);
+        navigate(`/${data.platform.toLowerCase()}/channel/${data.channelId}`);
     };
 
     return (

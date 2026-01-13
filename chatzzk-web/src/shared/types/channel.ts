@@ -18,3 +18,27 @@ export const ChannelDataSchema = z.object({
 }));
 
 export type ChannelData = z.infer<typeof ChannelDataSchema>;
+
+export const ChannelDetailSchema = z.object({
+    // DB Output (Snake Case)
+    channel_id: z.number(),
+    platform_code: PlatformCodeSchema,
+    platform_channel_id: z.string(),
+    channel_name: z.string(),
+    last_vod_crawled_at: z.string().nullable(),
+    vod_exposure_delay_hours: z.number(),
+    vod_detail_exposure_delay_hours: z.number(),
+    is_collection_enabled: z.boolean(),
+}).transform((data) => ({
+    // Frontend Output (Camel Case)
+    id: data.channel_id,
+    platform: data.platform_code,
+    channelId: data.platform_channel_id,
+    channelName: data.channel_name,
+    lastVodCrawledAt: data.last_vod_crawled_at,
+    vodExposureDelayHours: data.vod_exposure_delay_hours,
+    vodDetailExposureDelayHours: data.vod_detail_exposure_delay_hours,
+    isCollectionEnabled: data.is_collection_enabled,
+}));
+
+export type ChannelDetailData = z.infer<typeof ChannelDetailSchema>;

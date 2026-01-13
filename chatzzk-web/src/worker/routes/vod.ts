@@ -12,6 +12,7 @@ app.get('/', async (c) => {
     const query = c.req.query('query') || '';
     const fromDate = c.req.query('from') || null;
     const toDate = c.req.query('to') || null;
+    const channelId = c.req.query('channelId');
     const pageSize = PLATFORM_ITEMS_PER_PAGE;
 
     if (!platformParam) {
@@ -27,7 +28,8 @@ app.get('/', async (c) => {
             p_page: page,
             p_page_size: pageSize,
             p_from_date: fromDate,
-            p_to_date: toDate
+            p_to_date: toDate,
+            p_channel_id: channelId
         });
 
     if (error) {
