@@ -5,7 +5,7 @@ export function formatVodUrl(platform: PlatformCode, videoNo: string): string {
         case PLATFORM_CODE.CHZZK:
             return `https://chzzk.naver.com/video/${videoNo}`
         default:
-            return "";
+            return "#";
     }
 }
 

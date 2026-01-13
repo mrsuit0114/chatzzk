@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
+import { HonoEnv } from '../types';
 import { createClient } from '@supabase/supabase-js';
 import { PLATFORM_ITEMS_PER_PAGE } from '@shared/constants/ui';
-import { Variables } from 'hono/types';
 import { VodData, VodDataSchema } from '@shared/types/vod';
 
-const app = new Hono<{ Bindings: Env, Variables: Variables }>();
+const app = new Hono<HonoEnv>();
 
 app.get('/', async (c) => {
     const platformParam = c.req.query('platform')?.toUpperCase();

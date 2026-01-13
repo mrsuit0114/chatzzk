@@ -42,3 +42,40 @@ export const ChannelDetailSchema = z.object({
 }));
 
 export type ChannelDetailData = z.infer<typeof ChannelDetailSchema>;
+
+export const MyChannelSchema = z.object({
+    // DB Output
+    channel_id: z.number(),
+    platform_code: PlatformCodeSchema,
+    platform_channel_id: z.string(),
+    channel_name: z.string(),
+    last_vod_crawled_at: z.string().nullable(),
+    vod_exposure_delay_hours: z.number(),
+    vod_detail_exposure_delay_hours: z.number(),
+    is_collection_enabled: z.boolean(),
+
+    // JSONB Fields (DB에서 text[] 배열로 변환되어 옴)
+    streamer_nicknames: z.array(z.string()).nullable(),
+    streamer_sex: z.string().nullable(),
+    fan_nicknames: z.array(z.string()).nullable(),
+    additional_info: z.array(z.string()).nullable(),
+
+}).transform((data) => ({
+    // Frontend Output
+    id: data.channel_id,
+    platform: data.platform_code,
+    channelId: data.platform_channel_id,
+    channelName: data.channel_name,
+    lastVodCrawledAt: data.last_vod_crawled_at,
+    vodExposureDelayHours: data.vod_exposure_delay_hours,
+    vodDetailExposureDelayHours: data.vod_detail_exposure_delay_hours,
+    isCollectionEnabled: data.is_collection_enabled,
+
+    // 메타데이터 매핑 (Null일 경우 빈 배열/문자열 처리)
+    streamerNicknames: data.streamer_nicknames || [],
+    streamerSex: data.streamer_sex || "알 수 없음",
+    fanNicknames: data.fan_nicknames || [],
+    additionalInfo: data.additional_info || [],
+}));
+
+export type MyChannelData = z.infer<typeof MyChannelSchema>;

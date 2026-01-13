@@ -30,11 +30,11 @@ export function VodCard({ data }: Props) {
 
     return (
         <Card
-            className="cursor-pointer hover:shadow-lg transition-all group overflow-hidden border-border/60"
+            className="cursor-pointer hover:shadow-lg transition-all group overflow-hidden border-border/60 flex flex-col"
             onClick={handleCardClick}
         >
             {/* 썸네일 영역 */}
-            <div className="relative aspect-video bg-muted">
+            <div className="relative h-28 bg-muted">
                 {data.thumbnailUrl ? (
                     <img
                         src={data.thumbnailUrl}
@@ -62,12 +62,12 @@ export function VodCard({ data }: Props) {
                 <div className="flex justify-between items-start">
                     <span className="text-xs text-muted-foreground">{formatDateKo(data.publishDate)}</span>
                 </div>
-                <CardTitle className="text-base leading-tight line-clamp-2 h-[2.5rem]">
+                <CardTitle className="text-base leading-tight line-clamp-2">
                     {data.title}
                 </CardTitle>
             </CardHeader>
 
-            <CardContent className="p-4 pt-0">
+            <CardContent className="p-4 pt-0 mt-auto">
                 {/* 채널명 (클릭 시 전파 중단) */}
                 <button
                     onClick={handleChannelClick}

@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
 import { createClient } from '@supabase/supabase-js';
-import { Variables } from 'hono/types';
+import { HonoEnv } from '../types';
 import { ChannelData, ChannelDataSchema, ChannelDetailSchema } from '@shared/types/channel';
 import { SEARCH_ITEMS_PER_PAGE } from '@shared/constants/ui';
 
-const app = new Hono<{ Bindings: Env, Variables: Variables }>();
+const app = new Hono<HonoEnv>();
 
 app.get('/', async (c) => {
     // 1. 파라미터 파싱

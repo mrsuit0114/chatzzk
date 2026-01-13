@@ -7,7 +7,7 @@ export const ProtectedRoute = () => {
 
     // 1. 아직 로그인 체크가 안 끝났으면 아무것도 안 보여줌 (App.tsx의 로딩이 처리하겠지만 안전장치)
     if (!isInitialized) {
-        return null;
+        return <div>인증 정보 확인 중...</div>;
     }
 
     if (!user) {

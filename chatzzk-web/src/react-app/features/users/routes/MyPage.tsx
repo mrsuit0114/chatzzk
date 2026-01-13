@@ -6,75 +6,75 @@ import { MySettingsTab } from "../components/MySettingsTab";
 import { MyProfile } from "../components/MyProfile";
 import { MyChannelInfoTab } from "../components/MyChannelInfoTab";
 import { useSearchParams, Navigate } from "react-router-dom";
-import { USER_ROLE } from "@/constants";
-
+import { USER_ROLE } from "@shared/constants/service_codes";
+import { useQuery } from "@tanstack/react-query";
+import { getMyChannel } from "../api/getMyChannel";
 
 
 export function MyPage() {
-    const user = useAuthStore((state) => state.user);
-    const isEditor = user?.role === USER_ROLE.EDITOR; // 'editor' 문자열 대신 Enum 사용 권장
+    // 1. Store에서 동기화된 유저 프로필 가져오기
+    const { userProfile } = useAuthStore();
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const canFetchChannel = !!userProfile && (userProfile.role === USER_ROLE.OWNER || userProfile.role === USER_ROLE.EDITOR);
+
+    const { data: myChannelRes, isLoading } = useQuery({
+        queryKey: ['myChannel', userProfile?.id],
+        queryFn: getMyChannel,
+        enabled: canFetchChannel, // 조건 충족 시에만 API 호출
+    });
+
+    // 2. 권한 체크 로직
+    // ProtectedRoute를 통과했지만, 타입 안전성을 위해 null 체크
+    if (!userProfile) return null;
+
+    if (userProfile.role === USER_ROLE.ADMIN) {
+        return <Navigate to="/admin" replace />;
+    }
+
+    // ✅ [추가] USER 처리: 채널 권한이 없는 경우 안내 메시지
+    if (userProfile.role === USER_ROLE.USER) {
+        return (
+            <div className="container mx-auto py-20 text-center space-y-4">
+                <h2 className="text-2xl font-bold">접근 권한이 없습니다.</h2>
+                <p className="text-muted-foreground">
+                    일반 회원은 채널 관리 페이지를 이용할 수 없습니다.<br />
+                    스트리머 등록 문의는 고객센터를 이용해 주세요.
+                </p>
+            </div>
+        );
+    }
+
+    const myChannel = myChannelRes?.data;
+    const isOwner = userProfile.role === USER_ROLE.OWNER;
+
+    // 탭 관련 로직
     const MY_PAGE_TABS = {
         VODS: "vods",
         INFO: "info",
         SETTINGS: "settings",
     } as const;
 
-    const [searchParams, setSearchParams] = useSearchParams();
 
-    // 1. 현재 탭 가져오기 (없으면 기본값 'vods')
+    // 3. 탭 상태 관리
     const currentTab = searchParams.get("tab") || MY_PAGE_TABS.VODS;
 
     const handleTabChange = (value: string) => {
         setSearchParams({ tab: value });
     };
 
-    // 2. [보안 및 리다이렉트] 편집자가 'settings' 탭에 접근 시
-    // useEffect 대신 <Navigate /> 컴포넌트를 리턴하여 즉시 이동시킵니다.
-    // replace={true} 옵션을 주어 뒤로가기 시 다시 잘못된 탭으로 오지 않게 합니다.
-    if (isEditor && currentTab === MY_PAGE_TABS.SETTINGS) {
-        return <Navigate to={`?tab=${MY_PAGE_TABS.VODS}`} replace />;
-    }
+    if (isLoading) return <div className="container mx-auto py-20 text-center">로딩 중...</div>;
 
-    // 유저 정보가 로딩 안됐을 때 (로그인 페이지 등으로 튕겨내는 로직은 ProtectedRoute에 있다고 가정)
-    if (!user) return null;
 
     return (
         <div className="container mx-auto py-10 max-w-5xl space-y-8">
             {/* 상단 프로필 영역 */}
-            <MyProfile user={user} />
+            <MyProfile user={userProfile} channel={myChannel} />
 
             <Separator />
 
             {/* 탭 영역 */}
-            <Tabs
-                value={currentTab}
-                onValueChange={handleTabChange}
-                activationMode="manual"
-                className="w-full"
-            >
-                <TabsList className={`grid w-full max-w-[600px] ${isEditor ? "grid-cols-2" : "grid-cols-3"}`}>
-                    <TabsTrigger value={MY_PAGE_TABS.VODS}>영상 관리</TabsTrigger>
-                    <TabsTrigger value={MY_PAGE_TABS.INFO}>채널 정보</TabsTrigger>
 
-                    {!isEditor && (
-                        <TabsTrigger value={MY_PAGE_TABS.SETTINGS}>채널 설정</TabsTrigger>
-                    )}
-                </TabsList>
-
-                <TabsContent value={MY_PAGE_TABS.VODS} className="mt-6">
-                    <MyVodTab />
-                </TabsContent>
-
-                <TabsContent value={MY_PAGE_TABS.INFO} className="mt-6">
-                    <MyChannelInfoTab />
-                </TabsContent>
-
-                {!isEditor && (
-                    <TabsContent value={MY_PAGE_TABS.SETTINGS} className="mt-6">
-                        <MySettingsTab />
-                    </TabsContent>
-                )}
-            </Tabs>
         </div>
     );
 }
