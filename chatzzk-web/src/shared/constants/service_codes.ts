@@ -33,3 +33,19 @@ export type UserRole = z.infer<typeof UserRoleSchema>;
 export const AUTH_DOMAIN = '@chatzzk.auth';
 export const ID_REGEX = /^[a-z0-9]{4,20}$/;
 export const PASSWORD_MIN_LENGTH = 8;
+
+export const VOD_PIPELINE_STATUS = {
+    PENDING: "PENDING",
+    PROCESSING: "PROCESSING",
+    COMPLETED: "COMPLETED",
+    FAILED: "FAILED",
+}
+
+export const VodPipelineStatusSchema = z.enum([
+    VOD_PIPELINE_STATUS.PENDING,
+    VOD_PIPELINE_STATUS.PROCESSING,
+    VOD_PIPELINE_STATUS.COMPLETED,
+    VOD_PIPELINE_STATUS.FAILED,
+]);
+
+export type VodPipelineStatus = z.infer<typeof VodPipelineStatusSchema>;

@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { VodData } from "../types";
+import { VodData } from "@shared/types/vod";
 import { PLATFORM_COLORS, PLATFORM_LABELS } from "@/constants";
 import { cn } from "@/lib/utils";
 import { formatDateKo, formatTime } from "@/utils/time-formatter";
@@ -35,17 +35,9 @@ export function VodCard({ data }: Props) {
         >
             {/* 썸네일 영역 */}
             <div className="relative h-28 bg-muted">
-                {data.thumbnailUrl ? (
-                    <img
-                        src={data.thumbnailUrl}
-                        alt={data.title}
-                        className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-                    />
-                ) : (
-                    <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-muted/40 to-muted/10 text-muted-foreground">
-                        <Play className="w-10 h-10 opacity-60" />
-                    </div>
-                )}
+                <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-muted/40 to-muted/10 text-muted-foreground">
+                    <Play className="w-10 h-10 opacity-60" />
+                </div>
 
                 {/* 좌측 상단: 플랫폼 배지 */}
                 <Badge className={cn("absolute top-2 left-2 text-white border-none", badgeColor)}>

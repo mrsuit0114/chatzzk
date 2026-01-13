@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { HonoEnv } from '../types';
 import { createClient } from '@supabase/supabase-js';
-import { PLATFORM_ITEMS_PER_PAGE } from '@shared/constants/ui';
+import { VOD_ITEMS_PER_PAGE } from '@shared/constants/ui';
 import { VodData, VodDataSchema } from '@shared/types/vod';
 
 const app = new Hono<HonoEnv>();
@@ -13,7 +13,7 @@ app.get('/', async (c) => {
     const fromDate = c.req.query('from') || null;
     const toDate = c.req.query('to') || null;
     const channelId = c.req.query('channelId');
-    const pageSize = PLATFORM_ITEMS_PER_PAGE;
+    const pageSize = VOD_ITEMS_PER_PAGE;
 
     if (!platformParam) {
         return c.json({ error: 'Platform is required' }, 400);

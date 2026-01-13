@@ -2,13 +2,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { useAuthStore } from "@/stores/auth.store";
 import { MyVodTab } from "../components/MyVodTab";
-import { MySettingsTab } from "../components/MySettingsTab";
 import { MyProfile } from "../components/MyProfile";
 import { MyChannelInfoTab } from "../components/MyChannelInfoTab";
 import { useSearchParams, Navigate } from "react-router-dom";
 import { USER_ROLE } from "@shared/constants/service_codes";
 import { useQuery } from "@tanstack/react-query";
-import { getMyChannel } from "../api/getMyChannel";
+import { getMyChannel } from "../api/myChannel";
 
 
 export function MyPage() {
@@ -67,13 +66,32 @@ export function MyPage() {
 
 
     return (
-        <div className="container mx-auto py-10 max-w-5xl space-y-8">
+        <div className="container mx-auto max-w-5xl">
             {/* 상단 프로필 영역 */}
             <MyProfile user={userProfile} channel={myChannel} />
 
             <Separator />
 
             {/* 탭 영역 */}
+            <Tabs
+                value={currentTab}
+                onValueChange={handleTabChange}
+                className="w-full mt-2"
+            >
+                <TabsList className={`grid w-full grid-cols-2`}>
+                    <TabsTrigger value="vods">영상 관리</TabsTrigger>
+                    <TabsTrigger value="info">채널 정보</TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="vods" className="mt-6">
+                    <MyVodTab isOwner={isOwner} />
+                </TabsContent>
+
+                <TabsContent value="info" className="mt-6">
+                    <MyChannelInfoTab />
+                </TabsContent>
+
+            </Tabs>
 
         </div>
     );

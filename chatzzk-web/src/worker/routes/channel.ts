@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { createClient } from '@supabase/supabase-js';
 import { HonoEnv } from '../types';
 import { ChannelData, ChannelDataSchema, ChannelDetailSchema } from '@shared/types/channel';
-import { SEARCH_ITEMS_PER_PAGE } from '@shared/constants/ui';
+import { CHANNEL_ITEMS_PER_PAGE } from '@shared/constants/ui';
 
 const app = new Hono<HonoEnv>();
 
@@ -11,7 +11,7 @@ app.get('/', async (c) => {
     const platformParam = c.req.query('platform')?.toUpperCase() || 'ALL'; // 기본값 ALL
     const page = parseInt(c.req.query('page') || '1');
     const query = c.req.query('query') || '';
-    const pageSize = SEARCH_ITEMS_PER_PAGE; // 한 페이지에 보여줄 카드 수
+    const pageSize = CHANNEL_ITEMS_PER_PAGE; // 한 페이지에 보여줄 카드 수
 
     const supabase = createClient(c.env.SUPABASE_URL, c.env.SUPABASE_ANON_KEY);
 
