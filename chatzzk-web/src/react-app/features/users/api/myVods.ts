@@ -5,6 +5,8 @@ type GetMyVodsParams = {
     page: number;
     query?: string;
     visibility?: 'ALL' | 'PUBLIC' | 'PRIVATE';
+    fromDate?: string;
+    toDate?: string;
 };
 
 type GetMyVodsResponse = {
@@ -22,7 +24,9 @@ export const getMyVods = async (params: GetMyVodsParams): Promise<GetMyVodsRespo
     const { data } = await api.get<GetMyVodsResponse>('/my/vods', {
         params: {
             ...params,
-            visibility: params.visibility || 'ALL'
+            visibility: params.visibility || 'ALL',
+            fromDate: params.fromDate,
+            toDate: params.toDate
         }
     });
     return data;

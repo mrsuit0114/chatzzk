@@ -135,7 +135,7 @@ export function StringListInput({ label, description, items, onChange, disabled 
                             autoResizeTextarea(e.target);
                         }}
                         onKeyDown={(e) => handleKeyDown(e, handleAdd)}
-                        placeholder="내용 입력 후 Enter (Shift+Enter로 줄바꿈)"
+                        placeholder="내용 입력 후 Enter"
                         rows={1}
                         className={cn(
                             "flex min-h-[40px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",

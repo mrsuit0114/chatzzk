@@ -44,6 +44,10 @@ app.get('/vods', async (c) => {
     const page = parseInt(c.req.query('page') || '1');
     const query = c.req.query('query') || '';
     const visibility = c.req.query('visibility') || null; // 필터링 (옵션)
+
+    const fromDate = c.req.query('fromDate') || null;
+    const toDate = c.req.query('toDate') || null;
+
     const pageSize = VOD_ITEMS_PER_PAGE;
 
     const { data, error } = await supabase
@@ -51,7 +55,9 @@ app.get('/vods', async (c) => {
             p_page: page,
             p_page_size: pageSize,
             p_query: query,
-            p_visibility: visibility
+            p_visibility: visibility,
+            p_from_date: fromDate,
+            p_to_date: toDate
         });
 
     if (error) return c.json({ error: error.message }, 500);
@@ -110,6 +116,44 @@ app.patch('/vods/:videoNo/exposure', async (c) => {
 
     if (!success) {
         return c.json({ error: 'Update failed. VOD not found or permission denied.' }, 403);
+    }
+
+    return c.json({ success: true });
+});
+
+app.put('/channel/metadata', async (c) => {
+    const supabase = c.get('supabase');
+
+    // Validation
+    const bodySchema = z.object({
+        streamerNicknames: z.array(z.string()),
+        fanNicknames: z.array(z.string()),
+        streamerSex: z.string(),
+        additionalInfo: z.array(z.string()),
+    });
+
+    const body = await c.req.json().catch(() => null);
+    const parsed = bodySchema.safeParse(body);
+
+    if (!parsed.success) {
+        return c.json({ error: 'Invalid body', details: parsed.error }, 400);
+    }
+
+    const { streamerNicknames, fanNicknames, streamerSex, additionalInfo } = parsed.data;
+
+    // RPC 호출
+    const { data: success, error } = await supabase
+        .rpc('update_channel_metadata', {
+            p_streamer_nicknames: streamerNicknames,
+            p_fan_nicknames: fanNicknames,
+            p_streamer_sex: streamerSex,
+            p_additional_info: additionalInfo
+        });
+
+    if (error) return c.json({ error: error.message }, 500);
+
+    if (!success) {
+        return c.json({ error: 'Update failed. Channel not found or permission denied.' }, 403);
     }
 
     return c.json({ success: true });

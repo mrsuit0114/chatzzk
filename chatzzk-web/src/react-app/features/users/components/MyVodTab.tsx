@@ -18,18 +18,20 @@ interface Props {
 
 export function MyVodTab({ isOwner }: Props) {
     const queryClient = useQueryClient();
-    const { query } = useUrlParams();
+    const { query, fromDate, toDate } = useUrlParams();
     const [page, setPage] = useState(1);
 
     // ✅ 필터: 공개 여부 (ALL | PUBLIC | PRIVATE)
     const [visibilityFilter, setVisibilityFilter] = useState<'ALL' | 'PUBLIC' | 'PRIVATE'>('ALL');
 
     const { data: vodResponse, isLoading } = useQuery({
-        queryKey: ['myVods', page, query, visibilityFilter],
+        queryKey: ['myVods', page, query, visibilityFilter, fromDate, toDate],
         queryFn: () => getMyVods({
             page,
             query,
-            visibility: visibilityFilter
+            visibility: visibilityFilter,
+            fromDate,
+            toDate
         }),
         placeholderData: (previousData) => previousData, // 페이지 전환 시 깜빡임 방지
     });
@@ -73,10 +75,6 @@ export function MyVodTab({ isOwner }: Props) {
     // 3. 핸들러: 다이얼로그 열기
     const handleInitiateToggle = (vod: MyVodData) => {
         if (!isOwner) return;
-        if (vod.status !== 'COMPLETED') {
-            toast.warning("분석이 완료된 영상만 공개할 수 있습니다.");
-            return;
-        }
 
         setTargetVod({
             id: vod.videoNo,
@@ -110,7 +108,7 @@ export function MyVodTab({ isOwner }: Props) {
     if (isLoading) return <div className="py-20 text-center">목록을 불러오는 중...</div>;
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-8">
             <div className="flex flex-col gap-4">
                 <div className="flex flex-col md:flex-row justify-between items-end gap-4">
                     <div>
@@ -170,12 +168,11 @@ export function MyVodTab({ isOwner }: Props) {
                                 <Button
                                     variant="secondary"
                                     size="sm"
-                                    disabled={!isOwner || item.status !== 'COMPLETED'}
+                                    disabled={!isOwner}
                                     className={`h-8 px-3 shadow-sm backdrop-blur-md border transition-all duration-200
                                         ${item.isExposed
                                             ? "bg-white/90 text-green-700 border-green-200 hover:bg-green-50"
                                             : "bg-white/90 text-orange-600 border-orange-200 hover:bg-orange-50"}
-                                        ${item.status !== 'COMPLETED' ? "opacity-50 cursor-not-allowed" : ""}
                                     `}
                                     onClick={(e) => {
                                         e.stopPropagation();

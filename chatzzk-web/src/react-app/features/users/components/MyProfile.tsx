@@ -8,13 +8,13 @@ import { cn } from "@/lib/utils";
 import { formatPlatformChannelUrl } from "@/utils/platform";
 import { formatDateTimeKo } from "@/utils/time-formatter";
 import { USER_ROLE } from "@shared/constants/service_codes";
-import { ChannelDetailData } from "@shared/types/channel";
+import { MyChannelData } from "@shared/types/channel";
 import { UserProfile } from "@shared/types/user";
 import { ExternalLink, UserCog, ShieldCheck, Clock, ShieldAlert, LinkIcon, Activity } from "lucide-react";
 
 interface Props {
     user: UserProfile;              // 로그인한 유저 정보 (Store)
-    channel?: ChannelDetailData;    // 관리 중인 채널 정보 (API)
+    channel?: MyChannelData;    // 관리 중인 채널 정보 (API)
 }
 
 export function MyProfile({ user, channel }: Props) {

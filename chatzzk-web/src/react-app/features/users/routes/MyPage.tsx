@@ -64,6 +64,17 @@ export function MyPage() {
 
     if (isLoading) return <div className="container mx-auto py-20 text-center">로딩 중...</div>;
 
+    if (!myChannel) {
+        return (
+            <div className="container mx-auto py-20 text-center space-y-4">
+                <h2 className="text-2xl font-bold">채널 정보를 불러올 수 없습니다.</h2>
+                <p className="text-muted-foreground">
+                    채널이 존재하지 않거나 접근 권한이 없습니다.<br />
+                    문제가 지속될 경우 고객센터로 문의해 주세요.
+                </p>
+            </div>
+        )
+    }
 
     return (
         <div className="container mx-auto max-w-5xl">
@@ -88,7 +99,7 @@ export function MyPage() {
                 </TabsContent>
 
                 <TabsContent value="info" className="mt-6">
-                    <MyChannelInfoTab />
+                    <MyChannelInfoTab channel={myChannel} isOwner={isOwner} />
                 </TabsContent>
 
             </Tabs>

@@ -11,3 +11,15 @@ export const getMyChannel = async (): Promise<MyChannelResponse> => {
     const response = await api.get<MyChannelResponse>('/my/channel');
     return response.data;
 };
+
+export type UpdateMetadataParams = {
+    streamerNicknames: string[];
+    fanNicknames: string[];
+    streamerSex: string; // '남성' | '여성'
+    additionalInfo: string[];
+};
+
+export const updateChannelMetadata = async (params: UpdateMetadataParams) => {
+    // PUT /api/my/channel/metadata
+    await api.put('/my/channel/metadata', params);
+};
