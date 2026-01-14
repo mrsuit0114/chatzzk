@@ -36,7 +36,7 @@ export const LoginPage = () => {
         try {
             if (isSignUpMode) {
                 const { data, error } = await supabase.auth.signUp({
-                    email: `${userName.trim()}${AUTH_DOMAIN}`,
+                    email: `${userName.trim()}@${AUTH_DOMAIN}`,
                     password,
                     options: {
                         data: {
@@ -57,7 +57,7 @@ export const LoginPage = () => {
 
             } else {
                 const { error } = await supabase.auth.signInWithPassword({
-                    email: `${userName.trim()}${AUTH_DOMAIN}`,
+                    email: `${userName.trim()}@${AUTH_DOMAIN}`,
                     password,
                 });
                 if (error) throw error;

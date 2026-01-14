@@ -29,7 +29,6 @@ export function useAnalysisData() {
                 }
             } catch (err) {
                 if (isMounted) {
-                    console.error(err);
                     setError(err instanceof Error ? err : new Error("Unknown error"));
                 }
             } finally {

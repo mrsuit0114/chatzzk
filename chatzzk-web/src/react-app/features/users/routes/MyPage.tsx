@@ -8,6 +8,7 @@ import { useSearchParams, Navigate } from "react-router-dom";
 import { USER_ROLE } from "@shared/constants/service_codes";
 import { useQuery } from "@tanstack/react-query";
 import { getMyChannel } from "../api/myChannel";
+import { MySettingsTab } from "../components/MySettingsTab";
 
 
 export function MyPage() {
@@ -89,17 +90,22 @@ export function MyPage() {
                 onValueChange={handleTabChange}
                 className="w-full mt-2"
             >
-                <TabsList className={`grid w-full grid-cols-2`}>
-                    <TabsTrigger value="vods">영상 관리</TabsTrigger>
-                    <TabsTrigger value="info">채널 정보</TabsTrigger>
+                <TabsList className={`grid w-full grid-cols-3`}>
+                    <TabsTrigger value={MY_PAGE_TABS.VODS}>영상 관리</TabsTrigger>
+                    <TabsTrigger value={MY_PAGE_TABS.INFO}>채널 정보</TabsTrigger>
+                    <TabsTrigger value={MY_PAGE_TABS.SETTINGS}>채널 설정</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="vods" className="mt-6">
+                <TabsContent value={MY_PAGE_TABS.VODS} className="mt-6">
                     <MyVodTab isOwner={isOwner} />
                 </TabsContent>
 
-                <TabsContent value="info" className="mt-6">
+                <TabsContent value={MY_PAGE_TABS.INFO} className="mt-6">
                     <MyChannelInfoTab channel={myChannel} isOwner={isOwner} />
+                </TabsContent>
+
+                <TabsContent value={MY_PAGE_TABS.SETTINGS} className="mt-6">
+                    <MySettingsTab channel={myChannel} isOwner={isOwner} />
                 </TabsContent>
 
             </Tabs>

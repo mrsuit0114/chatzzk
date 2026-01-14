@@ -35,11 +35,6 @@ api.interceptors.response.use(
         return response;
     },
     (error) => {
-        // 에러 발생 시 공통 처리 (예: 401이면 로그아웃 시키기 등)
-        if (error.response?.status === 401) {
-            console.warn('인증 실패! 로그인이 필요합니다.');
-            // 필요하다면 여기서 강제 로그아웃 로직 등을 넣을 수 있음
-        }
         return Promise.reject(error);
     }
 );

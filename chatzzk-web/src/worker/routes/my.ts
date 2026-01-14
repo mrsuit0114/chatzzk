@@ -159,4 +159,52 @@ app.put('/channel/metadata', async (c) => {
     return c.json({ success: true });
 });
 
+app.patch('/channel', async (c) => {
+    const supabase = c.get('supabase');
+    const user = c.get('user');
+
+    const schema = z.object({
+        isCollectionEnabled: z.boolean().optional(),
+        vodDetailExposureDelayHours: z.number().min(0).optional(),
+        vodExposureDelayHours: z.number().min(0).optional(),
+    });
+
+    const body = await c.req.json().catch(() => null);
+    const parsed = schema.safeParse(body);
+    if (!parsed.success) return c.json({ error: parsed.error }, 400);
+
+    // DB 컬럼명으로 매핑 (camelCase -> snake_case)
+    const updates: any = {};
+    if (parsed.data.isCollectionEnabled !== undefined) updates.is_collection_enabled = parsed.data.isCollectionEnabled;
+    if (parsed.data.vodDetailExposureDelayHours !== undefined) updates.vod_detail_exposure_delay_hours = parsed.data.vodDetailExposureDelayHours;
+    if (parsed.data.vodExposureDelayHours !== undefined) updates.vod_exposure_delay_hours = parsed.data.vodExposureDelayHours;
+
+    if (Object.keys(updates).length === 0) return c.json({ success: true });
+
+    try {
+        // ✅ [수정] 1. UUID로 내부 유저 ID(Integer) 찾기
+        const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('id')
+            .eq('supabase_uid', user.id)
+            .single();
+
+        if (userError || !userData) {
+            return c.json({ error: 'User not found' }, 404);
+        }
+
+        // ✅ [수정] 2. 찾은 Integer ID로 업데이트 수행
+        const { error } = await supabase
+            .from('channels')
+            .update(updates)
+            .eq('user_id', userData.id); // UUID 대신 Integer 사용
+
+        if (error) return c.json({ error: error.message }, 500);
+
+        return c.json({ success: true });
+    } catch (e: any) {
+        return c.json({ error: e.message }, 500);
+    }
+});
+
 export default app;

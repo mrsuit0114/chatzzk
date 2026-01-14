@@ -65,8 +65,7 @@ export function MyVodTab({ isOwner }: Props) {
 
             setTargetVod(null); // 다이얼로그 닫기
         },
-        onError: (error) => {
-            console.error(error);
+        onError: () => {
             toast.error("설정 변경에 실패했습니다. 권한을 확인해주세요.");
             setTargetVod(null);
         }

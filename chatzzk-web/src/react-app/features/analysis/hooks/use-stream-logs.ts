@@ -29,7 +29,6 @@ export function useStreamLogs(chapterIndex: number) {
                 }
             } catch (err) {
                 if (isMounted) {
-                    console.error(err);
                     setError(err instanceof Error ? err : new Error("Unknown error"));
                     setLogs([]); // 에러 시 빈 배열
                 }

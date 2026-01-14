@@ -7,7 +7,7 @@ import { PLATFORM_COLORS, PLATFORM_LABELS } from "@/constants";
 import { cn } from "@/lib/utils";
 import { formatPlatformChannelUrl } from "@/utils/platform";
 import { formatDateTimeKo } from "@/utils/time-formatter";
-import { USER_ROLE } from "@shared/constants/service_codes";
+import { DELAY_OPTIONS, USER_ROLE } from "@shared/constants/service_codes";
 import { MyChannelData } from "@shared/types/channel";
 import { UserProfile } from "@shared/types/user";
 import { ExternalLink, UserCog, ShieldCheck, Clock, ShieldAlert, LinkIcon, Activity } from "lucide-react";
@@ -105,13 +105,13 @@ export function MyProfile({ user, channel }: Props) {
                             <StatusCard
                                 icon={<ShieldAlert className="h-4 w-4 text-amber-500" />}
                                 label="VOD 노출 지연"
-                                value={`${channel.vodExposureDelayHours}시간 후 공개`}
+                                value={DELAY_OPTIONS.find(opt => opt.value === String(channel.vodExposureDelayHours))?.label || "즉시 공개"}
                                 description="VOD 게시 후 공개까지의 지연 시간입니다."
                             />
                             <StatusCard
                                 icon={<ShieldAlert className="h-4 w-4 text-rose-500" />}
                                 label="상세 분석 지연"
-                                value={`${channel.vodDetailExposureDelayHours}시간 후 공개`}
+                                value={DELAY_OPTIONS.find(opt => opt.value === String(channel.vodDetailExposureDelayHours))?.label || "즉시 공개"}
                                 description="VOD 게시 후 상세 분석 정보 공개까지의 지연 시간입니다."
                             />
                         </div>
