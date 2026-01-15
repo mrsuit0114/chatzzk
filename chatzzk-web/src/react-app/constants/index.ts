@@ -1,7 +1,6 @@
 // 구분하기에는 적기 때문에 현재는 index.ts 파일에 모두 작성합니다.
 // 상수에서 파생된 type은 함께 관리할 것
-import { PLATFORM_CODE, PlatformCode, USER_ROLE, UserRole } from '@shared/constants/service_codes';
-export { PLATFORM_CODE, USER_ROLE, type PlatformCode, type UserRole };
+import { PLATFORM_CODE } from '@shared/constants/service_codes';
 
 export const PLATFORM_LABELS: Record<string | "all", string> = {
     all: "전체",

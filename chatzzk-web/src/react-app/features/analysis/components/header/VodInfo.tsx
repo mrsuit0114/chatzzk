@@ -32,7 +32,7 @@ export function VodInfo({ data }: VodInfoProps) {
                 className="flex-shrink-0"
             >
                 <Badge variant="outline" className={getBadgeClasses(data.platform)}>
-                    {PLATFORM_LABELS[data.platform]}
+                    {PLATFORM_LABELS[data.platform.toUpperCase()]}
                 </Badge>
             </a>
 

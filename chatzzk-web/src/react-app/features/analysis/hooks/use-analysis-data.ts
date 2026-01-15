@@ -1,57 +1,18 @@
-import { useState, useEffect, useMemo } from "react";
-import { RawDashboardResponse } from "../types";
-import { mapRawDataToViewData } from "../utils";
+import { getVodAnalysis } from "@/features/vod/api/analysis";
+import { useQuery } from "@tanstack/react-query";
+import { useParams } from "react-router-dom";
 
 
 export function useAnalysisData() {
-    const [rawData, setRawData] = useState<RawDashboardResponse | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<Error | null>(null);
+    const { platformId, videoNo } = useParams<{ platformId: string; videoNo: string }>();
 
-    // 1. 데이터 Fetching
-    useEffect(() => {
-        let isMounted = true;
-
-        async function loadData() {
-            try {
-                setIsLoading(true);
-                const response = await fetch("/data/analytics.json");
-
-                if (!response.ok) {
-                    throw new Error("Failed to load data");
-                }
-
-                const json = await response.json();
-
-                if (isMounted) {
-                    setRawData(json);
-                    setError(null);
-                }
-            } catch (err) {
-                if (isMounted) {
-                    setError(err instanceof Error ? err : new Error("Unknown error"));
-                }
-            } finally {
-                if (isMounted) {
-                    setIsLoading(false);
-                }
-            }
-        }
-
-        loadData();
-
-        return () => { isMounted = false; };
-    }, []);
-
-    // 2. 데이터 매핑 (rawData -> viewData)
-    const viewData = useMemo(() => {
-        if (!rawData) return null;
-        return mapRawDataToViewData(rawData);
-    }, [rawData]);
-
-    return {
-        viewData,
-        isLoading,
-        error
-    };
+    return useQuery({
+        queryKey: ['vodAnalysis', platformId, videoNo],
+        queryFn: () => {
+            if (!platformId || !videoNo) throw new Error("Invalid URL parameters");
+            return getVodAnalysis(platformId, videoNo);
+        },
+        enabled: !!platformId && !!videoNo,
+        retry: 1, // 404/403 등은 재시도 불필요
+    });
 }

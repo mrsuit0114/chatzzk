@@ -1,11 +1,15 @@
-import { Atmosphere, PlatformCode } from "@/constants";
+import { Atmosphere } from "@/constants";
+import { PlatformCode } from "@shared/constants/service_codes";
 import { ViewType } from "../constants";
 
+// ----------------------------------------------------------------------
+// Header & Meta Types
+// ----------------------------------------------------------------------
 export interface VodHeaderData {
     title: string;
     videoNo: string;
     vodUrl: string;
-    platform: PlatformCode
+    platform: PlatformCode;
     platformChannelUrl: string;
     channelName: string;
     channelId: string;
@@ -20,55 +24,53 @@ export interface VodAnalysisHeaderProps {
     currentView: ViewType;
     onViewChange: (view: ViewType) => void;
     isInsightLocked?: boolean;
+    insightUnlockTime?: Date; // 락 해제 시간 표시용
 }
 
+// ----------------------------------------------------------------------
+// Analysis Data Types (Component Props)
+// ----------------------------------------------------------------------
 
-// 피크 지점의 상세 데이터 (시간, 모멘텀, 볼륨)
 export interface PeakData {
-    timestamp: number; // ms 단위 (영상 내 절대 시간)
-    volume: number;    // float
-    momentum: number;  // float
-}
-
-export interface SegmentSummaryData {  // 데이터에서 id는 동일해도되나 렌더링 시 prefix로 구분필요
-    id: string;             // 컴포넌트 + 역할, 페이지 단위 prefix, 케밥 표기법을 사용해서 page에서 로드할 때 적용해야겠네
-    chapterId: string;      // chapter - 1, 2, ...
-    startTime: number;      // ms
-    endTime: number;        // ms
-
-    summary: string;        // 상세 요약 본문 (가변 길이)
-    keywords: string[];     // ["유비", "조조", "개그", ...]
-    atmosphere: Atmosphere;     // 대표 분위기 (예: "Funny", "Tension") - 필터링용
-
-    momentum: number;      // 급상승 지표 (모멘텀)
-    volume: number;        // 화력 지표 (볼륨)
-    // 정렬 및 평가 지표
-    score: number;          // 서비스 평가 점수
-    volPeak: PeakData;      // 화력(Volume) 기준 피크 정보
-    mmtPeak: PeakData;      // 급상승(Momentum) 기준 피크 정보
-}
-
-export interface ChapterSummaryData {
-    id: string;             // Chapter ID
-    title: string;          // 챕터 제목
-    summary: string;        // 챕터 전체 요약문
-    startTime: number;      // ms
-    endTime: number;        // ms
-}
-
-export interface ClipData {
-    startTime: number;      // ms
-    endTime: number;        // ms
+    timestamp: number;
     volume: number;
     momentum: number;
 }
 
-export interface AnalysisIntervals {
-    segmentStep: number; // ms
-    chapterStep: number; // ms
-    clipStep: number;    // ms
+export interface SegmentSummaryData {
+    id: string;             // UI용 고유 ID (예: seg-0, seg-1)
+    chapterId: string;      // 소속 챕터 ID
+
+    startTime: number;
+    endTime: number;
+
+    summary: string;
+    keywords: string[];
+    atmosphere: Atmosphere;
+
+    score: number;
+    volPeak: PeakData;
+    mmtPeak: PeakData;
 }
 
+export interface ChapterSummaryData {
+    id: string;             // UI용 고유 ID (예: ch-0)
+    title: string;
+    summary: string;
+    startTime: number;
+    endTime: number;
+}
+
+// 차트 시각화용 데이터 (RawStatSeries 변환)
+export interface ChartSeriesData {
+    timestamp: number;
+    volume: number;
+    momentum: number;
+}
+
+// ----------------------------------------------------------------------
+// Stream Log Types
+// ----------------------------------------------------------------------
 export enum StreamLogType {
     CHAT = 1,
     DONATION = 2,
@@ -76,28 +78,19 @@ export enum StreamLogType {
 }
 
 export interface StreamLogData {
-    timestamp: number; // ms
+    timestamp: number;
     type: StreamLogType;
     content: string;
     user?: string;
 }
 
-export interface VodMetadata {
-    platform: PlatformCode;
-    title: string;
-    channelId: string;
-    channelName: string;
-    videoNo: string;
-    publishDate: string; // yyyy-mm-dd
-    duration: number; // seconds
-    intervals: AnalysisIntervals;
-    avgScore: number;
-    atmosphereRatio: Record<Atmosphere, number>;
-}
-
-export interface AnalysisViewData {
+// ----------------------------------------------------------------------
+// Page State Interface
+// ----------------------------------------------------------------------
+export interface VodAnalysisPageData {
+    meta: VodHeaderData;
     chapters: ChapterSummaryData[];
     segments: SegmentSummaryData[];
-    clips: ClipData[];
-    metaInfo: VodMetadata;
+    // clips: ClipData[]; // 필요 시 추가
+    chartData: ChartSeriesData[]; // InsightView용
 }

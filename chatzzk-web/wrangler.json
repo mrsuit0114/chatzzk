@@ -18,7 +18,8 @@
 	"r2_buckets": [
 		{
 			"binding": "MY_BUCKET",
-			"bucket_name": "chatzzk-dev"
+			"bucket_name": "chatzzk-dev",
+			"preview_bucket_name": "chatzzk-dev"
 		}
 	],
 	"env": {

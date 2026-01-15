@@ -8,9 +8,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { Atmosphere, ATMOSPHERE_LABELS } from "@/constants";
-import { getAtmosphereColor } from "../../utils";
+import { Atmosphere, ATMOSPHERE_LABELS, KOREAN_TO_ATMOSPHERE } from "@/constants";
 
 interface AnalysisMetricsProps {
     atmosphereRatio: Record<Atmosphere, number>;
@@ -21,13 +19,12 @@ export function AnalysisMetrics({ atmosphereRatio, avgScore }: AnalysisMetricsPr
     // 점수 높은 순 정렬 후 Top 3 추출
     const sortedAtmospheres = Object.entries(atmosphereRatio)
         .map(([type, score]) => {
-            const atmosphere = type as Atmosphere;
+            const atmosphere = KOREAN_TO_ATMOSPHERE[type] as Atmosphere;
 
             return {
                 type: atmosphere,
                 score,
                 label: ATMOSPHERE_LABELS[atmosphere],
-                color: getAtmosphereColor(atmosphere),
             };
         })
         .sort((a, b) => b.score - a.score);
@@ -35,16 +32,16 @@ export function AnalysisMetrics({ atmosphereRatio, avgScore }: AnalysisMetricsPr
 
     return (
         <div className="flex items-center gap-3 bg-secondary/10 px-3 py-1 rounded-lg border border-border/50 h-15">
-            {/* 1. 분위기 비율 (수직 배치) */}
-            {/* TODO: 추후에 분위기 별 색상을 옆에 표시할 것 */}
+            {/* 1. 분위기 비율 (Tooltip) */}
             <TooltipProvider delayDuration={100}>
                 <Tooltip>
                     <TooltipTrigger asChild>
+                        {/* asChild 사용 시, 내부에 단 하나의 자식 요소만 있어야 하며 ref 전달이 가능해야 함 */}
                         <div className="flex flex-col justify-center gap-[1px] cursor-help">
                             {top3.map((item) => (
-                                <div key={item.label} className="flex items-center justify-between w-[4.5rem]">
+                                // ✅ 수정 1: key를 item.label -> item.type으로 변경 (유니크 보장)
+                                <div key={item.type} className="flex items-center justify-between w-[4.5rem]">
                                     <div className="flex items-center gap-1.5 overflow-hidden">
-                                        <span className={cn("flex-shrink-0 h-1.5 rounded-full", item.color.replace("text-", "bg-"))} />
                                         <span className="text-[10px] text-muted-foreground truncate">{item.label}</span>
                                     </div>
                                     <span className="text-[10px] font-medium tabular-nums text-foreground">
@@ -59,7 +56,7 @@ export function AnalysisMetrics({ atmosphereRatio, avgScore }: AnalysisMetricsPr
                         <div className="space-y-2">
                             <p className="font-semibold text-xs mb-2 text-muted-foreground">전체 분위기 분석</p>
                             {sortedAtmospheres.map((item) => (
-                                <div key={item.label} className="flex items-center justify-between gap-8 text-sm">
+                                <div key={item.type} className="flex items-center justify-between gap-8 text-sm">
                                     <div className="flex items-center gap-2">
                                         <span>{item.label}</span>
                                     </div>

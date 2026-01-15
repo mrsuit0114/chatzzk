@@ -1,41 +1,26 @@
 import { useState } from "react";
-import { useInsightAccess } from "../hooks/use-insight-access";
 import { HighlightView } from "../components/highlight";
 import { VodAnalysisHeader } from "../components/header";
 import { InsightView } from "../components/insight/InsightView";
 import { ViewType } from "../constants";
 
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { useAnalysisData } from "../hooks/use-analysis-data";
-import { VodMetadataToVodHeaderData } from "../utils";
+import { transformRawToHeaderData } from "../utils";
+import { useParams } from "react-router-dom";
 
 export function VodAnalysisPage() {
-    const { viewData, isLoading, error } = useAnalysisData();
+    // const { platform, videoNo } = useParams();
+
+    // 1. Hook을 통해 R2 데이터 Fetching
+    const { data: rawData, isLoading, error } = useAnalysisData();
+
     const [currentView, setCurrentView] = useState<ViewType>("highlight");
-
-    const MOCK_VOD_DATA = {
-        title: "침착맨 삼국지",
-        publishDate: "2024-01-01", // 📅 방송일
-        ownerId: "chim_owner",     // 👑 소유자 ID
-        channelSettings: {
-            insightOpenDays: 7     // ⏳ 7일 뒤 공개 설정
-        },
-        // ... 기타 데이터
-    };
-
-    const { isLocked, reason } = useInsightAccess({
-        publishDate: MOCK_VOD_DATA.publishDate,
-        insightOpenDays: MOCK_VOD_DATA.channelSettings.insightOpenDays,
-        channelOwnerId: MOCK_VOD_DATA.ownerId
-    });
-
-    const activeView = (currentView === "insight" && isLocked) ? "highlight" : currentView;
-
+    const isInsightLocked = (rawData as any)?._meta?.isInsightLocked ?? false;
 
     const handleViewChange = (view: ViewType) => {
-        if (view === "insight" && isLocked) {
-            // 🔒 잠겨있는데 클릭하면 토스트 메시지 띄우기
-            alert(reason || "접근 권한이 없습니다."); // 실제로는 toast.error(reason) 사용
+        if (view === "insight" && isInsightLocked) {
+            alert("아직 분석 결과가 공개되지 않았습니다.");
             return;
         }
         setCurrentView(view);
@@ -52,40 +37,45 @@ export function VodAnalysisPage() {
         );
     }
 
-    // ✅ 3. 에러 처리
-    if (error || !viewData) {
+    if (error || !rawData) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background text-destructive">
-                <p>데이터를 불러오는데 실패했습니다.</p>
+                <div className="flex flex-col items-center gap-2">
+                    <AlertCircle className="h-10 w-10" />
+                    <p className="font-semibold">분석이 완료되지 않은 데이터입니다.</p>
+                </div>
             </div>
         );
     }
 
-    const headerData = VodMetadataToVodHeaderData(viewData.metaInfo);
+    // ✅ 2. 데이터 변환 (metaInfo + stats -> HeaderData)
+    // 기존 VodMetadataToVodHeaderData 대신 transformRawToHeaderData 사용
+    const headerData = transformRawToHeaderData(rawData.metaInfo, rawData.stats);
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background pb-20">
             <VodAnalysisHeader
                 data={headerData}
-                currentView={activeView}
+                currentView={currentView}
                 onViewChange={handleViewChange}
-                isInsightLocked={isLocked} // ✅ Hook 결과 전달
+                isInsightLocked={isInsightLocked}
             />
 
-            <main className="container mx-auto py-3">
-                {activeView === "highlight" ? (
+            {/* <main className="container mx-auto py-6 space-y-8">
+                {currentView === "highlight" ? (
                     <HighlightView
-                        // ✅ 로딩이 끝났으므로 viewData 안전하게 사용 가능
-                        segments={viewData.segments}
-                        chapters={viewData.chapters}
+                        segments={rawData.segments} // Raw Data 그대로 전달 (필요시 내부에서 변환)
+                        chapters={rawData.chapters}
                     />
                 ) : (
-                    !isLocked && (
-                        // ✅ InsightView에 viewData 전체 전달
-                        <InsightView viewData={viewData} intervals={viewData.metaInfo.intervals} />
+                    !isInsightLocked && (
+                        <InsightView
+                            viewData={rawData}
+                            intervals={rawData.metaInfo.intervals}
+                        />
                     )
                 )}
-            </main>
+            </main> */}
         </div>
     );
 }

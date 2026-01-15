@@ -25,10 +25,6 @@ export function MyProfile({ user, channel }: Props) {
         ? formatDateTimeKo(channel.lastVodCrawledAt) || "수집 기록 없음"
         : "-";
 
-    const platformUrl = channel
-        ? formatPlatformChannelUrl(channel.platform, channel.channelId)
-        : "#";
-
     return (
         <Card className="flex flex-col lg:flex-row bg-card border shadow-sm overflow-hidden">
             {/* 1. 좌측: 사용자(관리자) 신원 영역 */}
@@ -86,7 +82,7 @@ export function MyProfile({ user, channel }: Props) {
                             </div>
 
                             <Button variant="outline" size="sm" asChild className="gap-2 shrink-0">
-                                <a href={platformUrl} target="_blank" rel="noopener noreferrer">
+                                <a href={formatPlatformChannelUrl(channel.platform, channel.channelId)} target="_blank" rel="noopener noreferrer">
                                     채널 방문하기 <ExternalLink className="h-3.5 w-3.5" />
                                 </a>
                             </Button>
