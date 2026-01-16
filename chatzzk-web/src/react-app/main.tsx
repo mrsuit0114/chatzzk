@@ -7,9 +7,9 @@ import { queryClient } from "./app/provider";
 
 
 createRoot(document.getElementById('root')!).render(
-	// <React.StrictMode> // (이중 요청 방지를 위해 개발 중엔 꺼두셔도 됩니다)
+	// <StrictMode>
 	<QueryClientProvider client={queryClient}>
 		<App />
 	</QueryClientProvider>
-	// </React.StrictMode>,
+	// </StrictMode>,
 );

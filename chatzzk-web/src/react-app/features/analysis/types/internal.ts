@@ -44,6 +44,9 @@ export interface SegmentSummaryData {
     startTime: number;
     endTime: number;
 
+    momentum: number;
+    volume: number;
+
     summary: string;
     keywords: string[];
     atmosphere: Atmosphere;
@@ -59,6 +62,13 @@ export interface ChapterSummaryData {
     summary: string;
     startTime: number;
     endTime: number;
+}
+
+export interface ClipData {
+    startTime: number;      // ms
+    endTime: number;        // ms
+    volume: number;
+    momentum: number;
 }
 
 // 차트 시각화용 데이터 (RawStatSeries 변환)
@@ -84,6 +94,12 @@ export interface StreamLogData {
     user?: string;
 }
 
+export interface AnalysisIntervals {
+    segmentStep: number; // ms
+    chapterStep: number; // ms
+    clipStep: number;    // ms
+}
+
 // ----------------------------------------------------------------------
 // Page State Interface
 // ----------------------------------------------------------------------
@@ -93,4 +109,10 @@ export interface VodAnalysisPageData {
     segments: SegmentSummaryData[];
     // clips: ClipData[]; // 필요 시 추가
     chartData: ChartSeriesData[]; // InsightView용
+}
+
+export interface InsightViewData {
+    chapters: ChapterSummaryData[];
+    segments: SegmentSummaryData[];
+    clips: ClipData[];
 }

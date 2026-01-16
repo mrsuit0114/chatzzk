@@ -19,6 +19,7 @@ import { SegmentSummaryData } from "@/features/analysis/types";
 
 import { cn } from "@/lib/utils";
 import { formatTime } from "@/utils/time-formatter";
+import { ATMOSPHERE_LABELS } from "@/constants";
 
 
 interface SegmentSummarySheetProps {
@@ -58,7 +59,7 @@ export function SegmentSummarySheet({ data, isOpen, onClose }: SegmentSummaryShe
                             </div>
                             {/* Atmosphere */}
                             <Badge variant="outline" className={cn("px-2.5 py-1 text-xs font-bold", getBadgeClasses(data.atmosphere))}>
-                                {data.atmosphere}
+                                {ATMOSPHERE_LABELS[data.atmosphere]}
                             </Badge>
                         </div>
                     </div>
@@ -119,7 +120,7 @@ export function SegmentSummarySheet({ data, isOpen, onClose }: SegmentSummaryShe
                                     <div>
                                         <span className="text-[10px] uppercase text-muted-foreground font-bold">Momentum</span>
                                         <p className="text-xl font-medium tabular-nums text-foreground/80">
-                                            {data.volPeak.momentum.toFixed(1)}
+                                            {data.volPeak.momentum.toFixed(2)}
                                         </p>
                                     </div>
                                 </div>
@@ -148,7 +149,7 @@ export function SegmentSummarySheet({ data, isOpen, onClose }: SegmentSummaryShe
                                         <span className="text-[10px] uppercase text-muted-foreground font-bold">Momentum</span>
                                         {/* 기준 지표 강조 */}
                                         <p className="text-xl font-bold tabular-nums text-blue-600">
-                                            {data.mmtPeak.momentum.toFixed(1)}
+                                            {data.mmtPeak.momentum.toFixed(2)}
                                         </p>
                                     </div>
                                 </div>

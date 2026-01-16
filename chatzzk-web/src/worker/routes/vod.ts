@@ -5,6 +5,7 @@ import { VOD_ITEMS_PER_PAGE } from '@shared/constants/ui';
 import { VodData, VodDataSchema } from '@shared/types/vod';
 import { createAuthClient } from '../utils/supabase';
 import { VOD_PIPELINE_STATUS } from '@shared/constants/service_codes';
+import { getAnalysisKey, getStreamLogKey } from '../constants';
 
 const app = new Hono<HonoEnv>();
 
@@ -96,7 +97,6 @@ app.get('/analysis/:platform/:videoNo', async (c) => {
             .eq('channels.platforms.platform_code', platform.toUpperCase())
             .single();
 
-        console.log('VOD:', vod, 'VOD Fetch Error:', error);
         if (error || !vod) {
             return c.json({ error: 'VOD not found or access denied' }, 404);
         }
@@ -130,26 +130,49 @@ app.get('/analysis/:platform/:videoNo', async (c) => {
             }
         }
 
-        // 경로 규칙: vods/{vod_id}/analysis.json
-        const objectKey = `vods/${vod.id}/analytics.json`;
+        const publishDate = new Date(vod.publish_date);
+        const detailDelay = channel.vod_detail_exposure_delay_hours || 0;
+        const insightReleaseTime = new Date(publishDate.getTime() + (detailDelay * 60 * 60 * 1000));
+        const isInsightLocked = !isOwnerOrEditor && (new Date() < insightReleaseTime);
+
+        // 5. R2 객체 가져오기 (헤더만 먼저 읽거나, get은 비용이 저렴하므로 바로 호출)
+        const objectKey = getAnalysisKey(vod.id);
         const object = await c.env.MY_BUCKET.get(objectKey);
 
         if (!object) {
-            // DB에는 있는데 R2에 파일이 없는 경우 (분석 중이거나 오류)
             return c.json({ error: 'Analysis data not found in storage.' }, 404);
         }
 
-        // JSON 파싱 후 반환
+        // ✅ [Cache Strategy: Smart ETag]
+        // analysis.json 파일 자체는 안 바뀌지만, _meta(잠금여부)는 시간에 따라 바뀝니다.
+        // 따라서 파일의 ETag와 잠금 상태를 조합하여 고유 값을 만듭니다.
+        // 잠금 상태가 바뀌면 ETag가 달라져서 프론트엔드가 새로 데이터를 받게 됩니다.
+        const rawEtag = object.httpEtag.replace(/^"|"$/g, '');
+        const compositeEtag = `"${rawEtag}-${isInsightLocked}"`;
+
+        // 2. Client Side ETag 가져오기 및 정규화 (Weak ETag 처리)
+        const ifNoneMatch = c.req.header('If-None-Match');
+
+        // ✅ [Fix] 'W/' 접두사가 있으면 제거하여 비교
+        let clientEtag = ifNoneMatch;
+        if (clientEtag && clientEtag.startsWith('W/')) {
+            clientEtag = clientEtag.slice(2); // 앞의 2글자(W/) 제거
+        }
+
+        // 3. 비교 (이제 W/가 없으므로 일치할 것임)
+        if (clientEtag === compositeEtag) {
+            console.log('>>> Cache Hit! Returning 304');
+            return new Response(null, {
+                status: 304,
+                headers: {
+                    'ETag': compositeEtag,
+                    'Cache-Control': 'private, no-cache',
+                }
+            });
+        }
+
+        // 6. 변경되었거나 캐시가 없으면 JSON 파싱 후 반환
         const analysisData = await object.json();
-
-        const publishDate = new Date(vod.publish_date);
-        const detailDelay = channel.vod_detail_exposure_delay_hours || 0;
-
-        // 상세 분석 공개 시점 = 방송일 + 지연 시간
-        const insightReleaseTime = new Date(publishDate.getTime() + (detailDelay * 60 * 60 * 1000));
-
-        // 잠금 조건: 소유자/편집자가 아니면서 && 아직 공개 시간이 안 됐을 때
-        const isInsightLocked = !isOwnerOrEditor && (new Date() < insightReleaseTime);
 
         return c.json({
             ...(analysisData as object),
@@ -157,10 +180,124 @@ app.get('/analysis/:platform/:videoNo', async (c) => {
                 isInsightLocked,
                 insightReleaseAt: insightReleaseTime.toISOString()
             }
+        }, 200, {
+            'ETag': compositeEtag,
+            'Cache-Control': 'private, no-cache', // 보안을 위해 매번 검증 (304 로직 이용)
         });
 
     } catch (e: any) {
         console.error(e);
+        return c.json({ error: e.message }, 500);
+    }
+});
+
+app.get('/logs/:platform/:videoNo/:index', async (c) => {
+    const platform = c.req.param('platform');
+    const videoNo = c.req.param('videoNo');
+    const logIndex = c.req.param('index'); // Chapter Index (0, 1, 2...)
+
+    const authHeader = c.req.header('Authorization');
+    const supabase = createAuthClient(c.env, authHeader || '');
+    const { data: { user } } = await supabase.auth.getUser();
+
+    try {
+        // 1. VOD 및 설정 조회 (분석 API와 동일한 로직 + Detail Delay 컬럼)
+        const { data: vod, error } = await supabase
+            .from('vods')
+            .select(`
+                id,
+                video_no,
+                publish_date,
+                pipeline_status,
+                is_exposed,
+                channels!inner (
+                    user_id,
+                    editor_id,
+                    vod_exposure_delay_hours,
+                    vod_detail_exposure_delay_hours,
+                    platforms!inner ( platform_code )
+                )
+            `)
+            .eq('video_no', videoNo)
+            .eq('channels.platforms.platform_code', platform.toUpperCase())
+            .single();
+
+        if (error || !vod) return c.json({ error: 'VOD not found' }, 404);
+        if (vod.pipeline_status !== VOD_PIPELINE_STATUS.COMPLETED) return c.json({ error: 'Not ready' }, 400);
+
+        // 2. 권한 체크 (소유자/편집자 확인)
+        const channel = vod.channels as any;
+        let isOwnerOrEditor = false;
+
+        if (user) {
+            const { data: internalUser } = await supabase
+                .from('users')
+                .select('id')
+                .eq('supabase_uid', user.id)
+                .single();
+            if (internalUser) {
+                isOwnerOrEditor = (internalUser.id === channel.user_id) ||
+                    (internalUser.id === channel.editor_id);
+            }
+        }
+
+        // 3. [핵심] 일반 유저는 상세 공개 시간(Detail Delay) 체크 필수
+        if (!isOwnerOrEditor) {
+            // 기본 공개 조건 체크
+            if (!vod.is_exposed) {
+                return c.json({ error: 'Access denied' }, 403);
+            }
+
+            // 시간 계산
+            const publishDate = new Date(vod.publish_date);
+            const detailDelay = channel.vod_detail_exposure_delay_hours || 0;
+            const insightReleaseTime = new Date(publishDate.getTime() + (detailDelay * 60 * 60 * 1000));
+
+            // 상세 공개 시간이 안 지났으면 로그 접근 불가
+            if (new Date() < insightReleaseTime) {
+                return c.json({
+                    error: 'Detail logs are restricted.',
+                    releaseAt: insightReleaseTime.toISOString()
+                }, 403);
+            }
+        }
+
+        const objectKey = getStreamLogKey(vod.id, logIndex);
+        const object = await c.env.MY_BUCKET.get(objectKey);
+
+        if (!object) {
+            return c.json({ error: 'Log file not found' }, 404);
+        }
+
+        // ✅ [Cache Strategy: Aggressive Immutable]
+        // 로그 파일은 절대 내용이 변하지 않으므로 가장 강력한 캐시 적용
+        const etag = object.httpEtag;
+        const ifNoneMatch = c.req.header('If-None-Match');
+
+        if (ifNoneMatch && ifNoneMatch === etag) {
+            return new Response(null, {
+                status: 304,
+                headers: {
+                    'ETag': etag,
+                    // public: CDN 캐시 가능
+                    // max-age=31536000: 1년 유지
+                    // immutable: 만료 전엔 서버 요청조차 하지 마라 (새로고침 시에도 캐시 사용)
+                    'Cache-Control': 'public, max-age=31536000, immutable',
+                }
+            });
+        }
+
+        // 캐시 헤더 설정 및 응답
+        const headers = new Headers();
+        object.writeHttpMetadata(headers);
+        headers.set('ETag', etag);
+        headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+
+        return new Response(object.body, {
+            headers,
+        });
+
+    } catch (e: any) {
         return c.json({ error: e.message }, 500);
     }
 });

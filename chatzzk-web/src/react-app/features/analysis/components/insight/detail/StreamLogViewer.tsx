@@ -1,17 +1,22 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { StreamLogItem } from "./StreamLogItem";
 import { Loader2 } from "lucide-react";
-import { useStreamLogs } from "@/features/analysis/hooks/use-stream-logs";
-import { findLogIndex } from "@/features/analysis/utils";
+import { useStreamLog } from "@/features/analysis/hooks/use-stream-log";
+import { findLogIndex, transformStreamLog } from "@/features/analysis/utils";
+import { StreamLogData } from "@/features/analysis/types";
 
 interface StreamLogsViewerProps {
     chapterIndex: number;
     focusedTimestamp: number | null;
 }
 
-export function StreamLogsViewer({ chapterIndex, focusedTimestamp }: StreamLogsViewerProps) {
-    const { logs, isLoading, error } = useStreamLogs(chapterIndex);
+export function StreamLogViewer({ chapterIndex, focusedTimestamp }: StreamLogsViewerProps) {
+    const { data: responseData, isLoading, error } = useStreamLog(chapterIndex);
+    const logs: StreamLogData[] = useMemo(() => {
+        if (!responseData?.streamLogs) return [];
+        return responseData.streamLogs.map(transformStreamLog);
+    }, [responseData]);
     const parentRef = useRef<HTMLDivElement>(null);
 
     // 1. 가상 스크롤 설정
@@ -19,8 +24,8 @@ export function StreamLogsViewer({ chapterIndex, focusedTimestamp }: StreamLogsV
         // ✅ [안전장치] 로딩 중일 때는 아이템 개수를 0으로 처리하여 계산 방지
         count: isLoading ? 0 : logs.length,
         getScrollElement: () => parentRef.current,
-        estimateSize: () => 80,
-        overscan: 5,
+        estimateSize: () => 32,
+        overscan: 10,
     });
 
     // 2. 자동 스크롤 동기화

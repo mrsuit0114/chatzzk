@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { DetailChart } from "./DetailChart";
-import { ClipData, AnalysisIntervals } from "../../../types";
+import { AnalysisIntervals, ClipData } from "@/features/analysis/types";
 import { DETAIL_CHART_HEIGHT } from "@/features/analysis/constants";
-import { StreamLogsViewer } from "./StreamLogsViewer";
+import { StreamLogViewer } from "./StreamLogViewer";
 
 interface DetailSectionProps {
     intervals: AnalysisIntervals;
@@ -73,7 +73,7 @@ export function DetailSection({
             {/* Stream Logs Area (Placeholder) */}
             <div className="flex-1 bg-slate-50 min-h-0 overflow-hidden p-2">
                 {focusedTimestamp !== null ? (
-                    <StreamLogsViewer
+                    <StreamLogViewer
                         focusedTimestamp={focusedTimestamp}
                         chapterIndex={currentChapterRange.chapterIndex}
                     />

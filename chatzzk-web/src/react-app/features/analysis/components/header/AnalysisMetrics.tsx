@@ -60,7 +60,7 @@ export function AnalysisMetrics({ atmosphereRatio, avgScore }: AnalysisMetricsPr
                                     <div className="flex items-center gap-2">
                                         <span>{item.label}</span>
                                     </div>
-                                    <span className="font-bold tabular-nums">{item.score.toFixed(2)}%</span>
+                                    <span className="font-bold tabular-nums">{item.score.toFixed(1)}%</span>
                                 </div>
                             ))}
                         </div>

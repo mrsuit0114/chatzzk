@@ -34,7 +34,7 @@ export function DetailChart({
     xDomain,
 }: DetailChartProps) {
 
-    // 1. 데이터 가공: Scaling 적용 (Momentum & Volume)
+    // 1. 데이터 가공: Scaling 적용 (Momentum & volume)
     const { chartData } = useMemo(() => {
         if (data.length === 0) return { chartData: [] };
 
@@ -44,7 +44,7 @@ export function DetailChart({
             startTime: clip.startTime,
             endTime: clip.endTime,
 
-            Volume: clip.volume,
+            volume: clip.volume,
             scaledMomentum: scaleMomentum(clip.momentum),
 
             originalMomentum: clip.momentum,

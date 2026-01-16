@@ -2,10 +2,10 @@ import { useState } from "react";
 import { SegmentTrendSection } from "./trend/SegmentTrendSection";
 import { StructureListSection } from "./structure/StructureListSection";
 import { DetailSection } from "./detail/DetailSection";
-import { AnalysisIntervals, AnalysisViewData } from "../../types";
+import { AnalysisIntervals, InsightViewData } from "../../types";
 
 interface InsightViewProps {
-    viewData: AnalysisViewData;
+    viewData: InsightViewData;
     intervals: AnalysisIntervals;
 }
 
