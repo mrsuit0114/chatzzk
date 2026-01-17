@@ -1,30 +1,6 @@
-import { useAuthStore } from "@/stores";
-import { USER_ROLE } from "@shared/constants/service_codes";
-import { useEffect } from "react";
-import { useNavigate, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
 export function AdminLayout() {
-    const navigate = useNavigate();
-    const { userProfile, isInitialized } = useAuthStore();
-
-    useEffect(() => {
-        if (!isInitialized) return;
-
-        // 1. 비로그인 차단
-        if (!userProfile) {
-            alert("관리자 로그인이 필요합니다.");
-            navigate("/login");
-            return;
-        }
-
-        // 2. 권한 차단 (ADMIN이 아니면 홈으로 추방)
-        if (userProfile.role !== USER_ROLE.ADMIN) {
-            alert("접근 권한이 없습니다.");
-            navigate("/");
-        }
-    }, [userProfile, isInitialized, navigate]);
-
-    if (!userProfile || userProfile.role !== USER_ROLE.ADMIN) return null;
 
     return (
         <div className="min-h-screen flex bg-gray-100">

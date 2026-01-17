@@ -36,11 +36,9 @@ const router = createBrowserRouter(
             </Route>
 
             <Route path="/admin" element={
-                <ProtectedRoute> {/* 1차: 로그인 체크 */}
-                    <AdminGuard>   {/* 2차: 권한 체크 */}
-                        <AdminLayout /> {/* 3차: 레이아웃 렌더링 */}
-                    </AdminGuard>
-                </ProtectedRoute>
+                <AdminGuard>   {/* 2차: 권한 체크 */}
+                    <AdminLayout /> {/* 3차: 레이아웃 렌더링 */}
+                </AdminGuard>
             }>
                 {/* /admin 접속 시 자동으로 provision으로 이동 */}
                 <Route index element={<Navigate to="provision" replace />} />

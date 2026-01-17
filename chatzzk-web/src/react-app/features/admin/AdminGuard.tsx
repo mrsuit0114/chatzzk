@@ -10,26 +10,38 @@ export const AdminGuard = ({ children }: { children: React.ReactNode }) => {
     const { userProfile, isInitialized } = useAuthStore();
 
     useEffect(() => {
-        // 1. 아직 초기화(세션 확인) 중이면 대기
+        // 1. 초기화가 안 끝났으면 아무것도 하지 않고 대기 (useEffect 종료)
+        //    이 줄이 없으면 새로고침 시 바로 튕깁니다.
         if (!isInitialized) return;
 
-        // 2. 비로그인 상태 -> 로그인 페이지로
+        // 2. 초기화 완료 후 체크: 비로그인 상태
         if (!userProfile) {
-            navigate('/login');
+            navigate('/login', { replace: true }); // 뒤로가기 방지 replace
             return;
         }
 
-        // 3. 권한 체크 (Store에 저장된 user 객체 안에 role이 있다고 가정)
-        // 만약 user 객체에 role이 없다면, fetchUserProfile 로직에서 role을 포함하도록 수정해야 합니다.
+        // 3. 초기화 완료 후 체크: 권한 부족
         if (userProfile.role !== USER_ROLE.ADMIN) {
             alert("관리자 권한이 없습니다.");
-            navigate('/');
+            navigate('/', { replace: true });
         }
     }, [userProfile, isInitialized, navigate]);
 
-    // 로딩 중이거나 권한이 없는 찰나의 순간에는 아무것도 보여주지 않음 (혹은 스피너)
-    if (!isInitialized || !userProfile || userProfile.role !== USER_ROLE.ADMIN) {
-        return <div className="p-10 text-center">권한 확인 중...</div>;
+    // ✅ 화면 렌더링 처리
+
+    // Case 1: 아직 세션 확인 중 (새로고침 시 이 화면이 잠깐 보임)
+    if (!isInitialized) {
+        return (
+            <div className="flex h-screen items-center justify-center">
+                <div className="text-gray-500">관리자 권한 확인 중...</div>
+                {/* 여기에 스피너 컴포넌트를 넣으면 더 좋습니다 */}
+            </div>
+        );
+    }
+
+    // Case 2: 로딩 끝났는데 권한이 없는 경우 (useEffect에서 이동시키겠지만, 찰나의 순간 UI 보호)
+    if (!userProfile || userProfile.role !== USER_ROLE.ADMIN) {
+        return null;
     }
 
     return <>{children}</>;

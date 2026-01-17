@@ -21,12 +21,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     isInitialized: false, // 앱이 켜지고 아직 Supabase 확인 전임
 
     // 로그인 시 세션 저장
-    setSession: (session) =>
+    setSession: async (session) => {
+        // 1. 로그아웃 상태이거나 세션이 없는 경우
+        if (!session) {
+            set({
+                session: null,
+                user: null,
+                userProfile: null,
+                isInitialized: true, // 로그인 안 된 상태로 확정
+            });
+            return;
+        }
+
+        // 2. 로그인 상태: 일단 user 정보는 넣되, isInitialized는 아직 false로 유지!
         set({
             session,
-            user: session?.user ?? null,
-            isInitialized: true,
-        }),
+            user: session.user,
+            isInitialized: false,
+        });
+
+        // 3. 프로필 데이터 가져오기 (기존 fetchUserProfile 함수 재사용)
+        await get().fetchUserProfile();
+
+        // 4. 프로필까지 다 가져왔으니 이제 진짜 초기화 완료!
+        set({ isInitialized: true });
+    },
 
     fetchUserProfile: async () => {
         const { user } = get();

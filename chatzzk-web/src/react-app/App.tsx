@@ -4,8 +4,7 @@ import { supabase } from "./lib/supabase";
 import { useAuthStore } from "./stores/auth.store"; // 경로 확인
 
 function App() {
-	// fetchUserProfile 추가
-	const { setSession, fetchUserProfile, clearSession, isInitialized } = useAuthStore();
+	const { setSession, clearSession, isInitialized } = useAuthStore();
 
 	useEffect(() => {
 		const handleAuth = async (session: any, event: string) => {
@@ -21,7 +20,6 @@ function App() {
 				}
 
 				setSession(session);
-				await fetchUserProfile();
 			} else {
 				clearSession();
 			}
