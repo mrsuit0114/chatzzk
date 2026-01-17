@@ -7,6 +7,7 @@ import vodRoute from './routes/vod';
 import channelRoute from './routes/channel';
 import myRoute from './routes/my';
 import myEditorRoute from './routes/my-editor';
+import adminRoute from './routes/admin';
 
 const app = new Hono<HonoEnv>();
 
@@ -26,6 +27,9 @@ app.route('/api/channels', channelRoute);
 app.use('/api/my/*', authMiddleware);
 app.route('/api/my', myRoute);
 app.route('/api/my/editor', myEditorRoute);
+
+app.use('/api/admin/*', authMiddleware);
+app.route('/api/admin', adminRoute);
 
 app.get("/api/health", (c) => {
     return c.json({ status: 'ok' });

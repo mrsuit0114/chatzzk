@@ -114,7 +114,9 @@ app.post('/', async (c) => {
             email: email,
             password: password,
             email_confirm: true,
-            user_metadata: { role: USER_ROLE.EDITOR }
+            user_metadata: {
+                user_name: id,
+            }
         });
 
         if (createError) {
@@ -148,10 +150,22 @@ app.post('/', async (c) => {
             throw new Error('Public user profile creation failed (Trigger timeout).');
         }
 
-        // 3. 채널 업데이트 (Integer ID 연결)
+        const { error: roleError } = await adminSupabase
+            .from('users')
+            .update({ role: USER_ROLE.EDITOR })
+            .eq('id', newPublicId);
+
+        if (roleError) {
+            await adminSupabase.auth.admin.deleteUser(newUuid); // 롤백
+            throw new Error(`Role update failed: ${roleError.message}`);
+        }
+
+        // -----------------------------------------------------------
+        // [수정 3] 채널 업데이트 (편집자 연결)
+        // -----------------------------------------------------------
         const { error: updateError } = await adminSupabase
             .from('channels')
-            .update({ editor_id: newPublicId }) // Integer ID 저장
+            .update({ editor_id: newPublicId })
             .eq('id', channel.id);
 
         if (updateError) {

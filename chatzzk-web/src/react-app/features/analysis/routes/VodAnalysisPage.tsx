@@ -1,21 +1,48 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { HighlightView } from "../components/highlight";
 import { VodAnalysisHeader } from "../components/header";
 import { InsightView } from "../components/insight/InsightView";
-import { ViewType } from "../constants";
+import { VIEW_TYPE, ViewType } from "../constants";
 
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useAnalysisData } from "../hooks/use-analysis-data";
 import { transformClipsData, transformHighlightData, transformRawToHeaderData } from "../utils";
 import { InsightViewData } from "../types";
+import { useParams } from "react-router-dom";
+import { useAuthStore } from "@/stores";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function VodAnalysisPage() {
-    // const { platform, videoNo } = useParams();
-
+    const { platformId, videoNo } = useParams<{ platformId: string; videoNo: string }>();
+    const queryClient = useQueryClient();
+    const { user } = useAuthStore();
     // 1. Hook을 통해 R2 데이터 Fetching
     const { data: rawData, isLoading, error } = useAnalysisData();
 
-    const [currentView, setCurrentView] = useState<ViewType>("highlight");
+    const [currentView, setCurrentView] = useState<ViewType>(VIEW_TYPE.HIGHLIGHT);
+
+    useEffect(() => {
+        if (user && platformId && videoNo) {
+            queryClient.setQueryData(
+                ['vodAnalysis', platformId, videoNo], // ⚠️ Hook의 queryKey와 100% 일치해야 함
+                (oldData: any) => {
+                    // 데이터가 없거나, 이미 잠금이 해제된 상태면 변경 없음
+                    if (!oldData || oldData._meta?.isInsightLocked === false) {
+                        return oldData;
+                    }
+
+                    // 불변성을 지키며 _meta.isInsightLocked만 false로 수정
+                    return {
+                        ...oldData,
+                        _meta: {
+                            ...oldData._meta,
+                            isInsightLocked: false
+                        }
+                    };
+                }
+            );
+        }
+    }, [user, queryClient, platformId, videoNo]);
 
     const highlightData = useMemo(() => {
         if (!rawData) return { segments: [], chapters: [] };

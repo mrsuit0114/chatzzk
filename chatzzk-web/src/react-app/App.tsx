@@ -17,19 +17,13 @@ function App() {
 				const currentUser = useAuthStore.getState().user;
 
 				if (currentUser?.id === session.user.id) {
-					console.log(`[Auth] Skip duplicate fetch for event: ${event}`);
 					return;
 				}
 
-				console.log(`[Auth] Processing event: ${event}`);
 				setSession(session);
 				await fetchUserProfile();
 			} else {
-				// 세션이 없는데 스토어에는 유저가 남아있다면 정리
-				const currentUser = useAuthStore.getState().user;
-				if (currentUser) {
-					clearSession();
-				}
+				clearSession();
 			}
 		};
 
