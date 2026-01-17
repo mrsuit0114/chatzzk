@@ -1,17 +1,21 @@
 # 나중에는 값을 yaml 파일로 옮기고 읽어오기만 해야할 듯 -> 빌드 컨텍스트에 포함되어 골치아픔
+# StrEnum이 db 컬럼의 타입인 경우 postgresql enum에 따라 key를 기준으로 타입이 정의되는 것으로 보임 -> 대문자 키로 정의됨
+# 그 외에 컬럼의 타입으로 정의되지는 않았지만 jsonb에서 strenum이 사용되는 경우(pipline log, channel metadata 등)가 있으나
+# jsonb는 비정형 데이터도 포함되기 때문에 소문자로 통일할 것
 from enum import IntEnum, StrEnum
 
 
 class PlatformCode(StrEnum):
-    CHZZK = "chzzk"
-    YOUTUBE = "youtube"
-    SOOP = "soop"
+    CHZZK = "CHZZK"
+    YOUTUBE = "YOUTUBE"
+    SOOP = "SOOP"
 
 
 class UserRole(StrEnum):
-    ADMIN = "admin"
-    OWNER = "owner"
-    EDITOR = "editor"
+    ADMIN = "ADMIN"
+    OWNER = "OWNER"
+    EDITOR = "EDITOR"
+    USER = "USER"
 
 
 class VODPipelineStatus(StrEnum):
@@ -28,28 +32,12 @@ class VODProcessingStep(StrEnum):
     PERFORM_ASR = "perform_asr"
     GENERATE_SEGMENT_SUMMARY = "generate_segment_summary"
     GENERATE_CHAPTER_SUMMARY = "generate_chapter_summary"
-    GENERATE_ANALYTICS = "generate_analytics"
+    GENERATE_ANALYSIS = "generate_analysis"
 
 
 class VODPipelineStepStatus(StrEnum):
     COMPLETED = "completed"
     FAILED = "failed"
-
-
-# -------------- db init value -------------------------
-class DBDefault:
-    IS_ACTIVE = "true"
-    IS_COLLECTION_ENABLED = "true"
-    VOD_EXPOSURE_DELAY_HOURS = 0
-
-    IS_EXPOSED = "true"
-
-    VOD_PIPELINE_STATUS = VODPipelineStatus.PENDING
-
-    class Len:
-        ID = 256
-        NAME = 256
-        URL = 512
 
 
 class AudioDataConstant:
@@ -147,7 +135,7 @@ class StoragePaths:
     TMP_DIR = "{vod_id}/tmp"
 
     WEB_DIR = "{vod_id}/web"
-    ANALYTICS = "{vod_id}/web/analytics.json"
+    ANALYSIS = "{vod_id}/web/analysis.json"
     STREAM_LOGS = "{vod_id}/web/stream_logs_{index}.json"
 
     @classmethod
@@ -175,8 +163,8 @@ class StoragePaths:
         return cls.SEGMENT_SUMMARY.format(vod_id=vod_id)
 
     @classmethod
-    def get_analytics_key(cls, vod_id: str | int) -> str:
-        return cls.ANALYTICS.format(vod_id=vod_id)
+    def get_analysis_key(cls, vod_id: str | int) -> str:
+        return cls.ANALYSIS.format(vod_id=vod_id)
 
     @classmethod
     def get_stream_logs_key(cls, vod_id: str | int, index: int) -> str:

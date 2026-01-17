@@ -1,4 +1,5 @@
 import os
+import sys
 from logging.config import fileConfig
 
 import alembic_postgresql_enum  # noqa: F401
@@ -6,6 +7,10 @@ from sqlalchemy import engine_from_config, pool
 
 from alembic import context
 from chatzzk_data_access.orm import Base
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

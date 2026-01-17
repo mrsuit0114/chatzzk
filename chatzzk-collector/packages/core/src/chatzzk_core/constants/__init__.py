@@ -18,7 +18,6 @@ from .service_code import (
     LLM_PROMPT_PATHS,
     AudioDataConstant,
     BucketPaths,
-    DBDefault,
     EntryType,
     EntryTypeCode,
     LLMTask,
@@ -51,7 +50,6 @@ __all__ = [
     # service_code
     "ASR_HALLUCINATION_KEYWORDS",
     "AudioDataConstant",
-    "DBDefault",
     "EntryType",
     "EntryTypeCode",
     "LLM_PROMPT_PATHS",

@@ -47,13 +47,3 @@ jobs:
           DATABASE_URL: ${{ env.TARGET_DB_URL }}
         run: |
           uv run alembic upgrade head
-
-      # 2. 시드 데이터 (개발 환경에서만 실행하거나, 필요시 운영에서도 실행)
-      # 만약 개발 환경에서만 시드가 필요하다면 아래 if 조건을 사용하세요.
-      - name: Run Seed Script
-        if: github.ref == 'refs/heads/develop'
-        env:
-          DATABASE_URL: ${{ env.TARGET_DB_URL }}
-          PYTHONPATH: ${{ github.workspace }}/chatzzk-collector
-        run: |
-          uv run python scripts/seed_data.py

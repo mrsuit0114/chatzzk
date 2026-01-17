@@ -9,7 +9,6 @@ export const UserProfileSchema = z.object({
     supabase_uid: z.string(),
     user_name: z.string(),
     role: UserRoleSchema,
-    is_active: z.boolean(),
     created_at: z.string(),
 }).transform((data) => ({
     // 출력(Output): 앱에서 사용할 camelCase 데이터로 변환 (Mapping)
@@ -17,7 +16,6 @@ export const UserProfileSchema = z.object({
     supabaseUid: data.supabase_uid,
     userName: data.user_name,
     role: data.role,
-    isActive: data.is_active,
     createdAt: data.created_at,
 }));
 
