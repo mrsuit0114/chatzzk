@@ -12,7 +12,7 @@ from app.schemas.dashboard import (
     StreamLogItem,
     StreamLogResponse,
 )
-from chatzzk_clients.analytics import StreamStatsCalculator
+from chatzzk_clients.analysis import StreamStatsCalculator
 from chatzzk_clients.llm import ContextAssembler
 from chatzzk_core.constants import (
     EntryTypeCode,
@@ -28,7 +28,7 @@ from chatzzk_data_access.repositories import VODRepository
 from chatzzk_data_access.storages import LocalStorage
 
 
-class LogAnalyticsService(BasePipelineService):
+class LogAnalysisService(BasePipelineService):
     def __init__(
         self,
         vod_repo: VODRepository,
@@ -126,9 +126,9 @@ class LogAnalyticsService(BasePipelineService):
             chapters=chapter_items,
         )
 
-    async def _process_analytics(self, vod_id: int, platform: PlatformCode) -> str:
+    async def _process_analysis(self, vod_id: int, platform: PlatformCode) -> str:
         # 분석하고 웹 서비스에서 사용할 구조로 가공해서 저장
-        analytics_key = StoragePaths.get_analytics_key(vod_id)
+        analysis_key = StoragePaths.get_analysis_key(vod_id)
         chat_entries, segment_summary_entries, chapter_summary_entries = await self._load_logs(vod_id)
 
         async with self.db_session_factory() as session:
@@ -172,9 +172,9 @@ class LogAnalyticsService(BasePipelineService):
             chapter_summary_entries,
         )
 
-        await self.tmp_storage.write_json(analytics_key, dashboard_payload.model_dump(by_alias=True))
+        await self.tmp_storage.write_json(analysis_key, dashboard_payload.model_dump(by_alias=True))
 
-        return analytics_key
+        return analysis_key
 
     async def _generate_stream_logs(self, vod_id: int) -> str:
         # asr_entries.jsonl과 chat_entries.jsonl을 읽어 context_assembler로부터 padding 적용, preprocess_chat을 false로 설정한 window를 duration//ChapterSize만큼 생성
@@ -221,21 +221,21 @@ class LogAnalyticsService(BasePipelineService):
 
     async def process(self, vod_id: int, platform: PlatformCode) -> str:
         start_at = self._get_utc_now()
-        analytics_key = StoragePaths.get_analytics_key(vod_id)
+        analysis_key = StoragePaths.get_analysis_key(vod_id)
         step_status = VODPipelineStepStatus.FAILED
-        pipeline_step = VODProcessingStep.GENERATE_ANALYTICS
+        pipeline_step = VODProcessingStep.GENERATE_ANALYSIS
         if await self._is_step_completed(vod_id, pipeline_step):
-            return analytics_key
+            return analysis_key
 
         try:
-            analytics_key = await self._process_analytics(vod_id, platform)
+            analysis_key = await self._process_analysis(vod_id, platform)
             await self._generate_stream_logs(vod_id)
             step_status = VODPipelineStepStatus.COMPLETED
         except Exception as e:
-            logger.error(f"[Process Analytics Error] VOD {vod_id} failed: {str(e)}")
+            logger.error(f"[Process Analysis Error] VOD {vod_id} failed: {str(e)}")
             await self._fail_pipeline(vod_id)
             raise
         finally:
             await self._record_step_status(vod_id, pipeline_step, step_status, start_at, self._get_utc_now())
 
-        return analytics_key
+        return analysis_key

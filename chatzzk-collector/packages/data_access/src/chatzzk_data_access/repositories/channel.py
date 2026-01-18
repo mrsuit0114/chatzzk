@@ -14,7 +14,7 @@ class ChannelRepository:
         self, session: AsyncSession, platform_code: PlatformCode
     ) -> Sequence[Channel]:
         """
-        특정 플랫폼의 '활성(is_active=True)' 채널 목록을 조회합니다.
+        특정 플랫폼의 '활성(is_collection_enabled=True)' 채널 목록을 조회합니다.
         Platform 테이블과 Join하여 한 번에 필터링합니다.
         """
         stmt = (
