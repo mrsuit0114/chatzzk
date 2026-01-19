@@ -5,10 +5,11 @@ import { MyVodTab } from "../components/MyVodTab";
 import { MyProfile } from "../components/MyProfile";
 import { MyChannelInfoTab } from "../components/MyChannelInfoTab";
 import { useSearchParams, Navigate } from "react-router-dom";
-import { USER_ROLE } from "@shared/constants/service_codes";
+import { CONTACT_EMAIL, USER_ROLE } from "@shared/constants/service_codes";
 import { useQuery } from "@tanstack/react-query";
 import { getMyChannel } from "../api/myChannel";
 import { MySettingsTab } from "../components/MySettingsTab";
+import { AlertTriangle } from "lucide-react";
 
 
 export function MyPage() {
@@ -35,11 +36,14 @@ export function MyPage() {
     // ✅ [추가] USER 처리: 채널 권한이 없는 경우 안내 메시지
     if (userProfile.role === USER_ROLE.USER) {
         return (
-            <div className="container mx-auto py-20 text-center space-y-4">
+            <div className="container mx-auto py-32 flex flex-col items-center text-center space-y-4">
+                <div className="p-4 bg-red-50 text-red-600 rounded-full">
+                    <AlertTriangle className="h-10 w-10" />
+                </div>
                 <h2 className="text-2xl font-bold">접근 권한이 없습니다.</h2>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground max-w-md">
                     일반 회원은 채널 관리 페이지를 이용할 수 없습니다.<br />
-                    스트리머 등록 문의는 고객센터를 이용해 주세요.
+                    스트리머 등록은 {CONTACT_EMAIL}에 문의바랍니다.
                 </p>
             </div>
         );
@@ -70,8 +74,7 @@ export function MyPage() {
             <div className="container mx-auto py-20 text-center space-y-4">
                 <h2 className="text-2xl font-bold">채널 정보를 불러올 수 없습니다.</h2>
                 <p className="text-muted-foreground">
-                    채널이 존재하지 않거나 접근 권한이 없습니다.<br />
-                    문제가 지속될 경우 고객센터로 문의해 주세요.
+                    연결된 채널이 없거나 일시적인 오류일 수 있습니다.
                 </p>
             </div>
         )

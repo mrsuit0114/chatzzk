@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const CONTACT_EMAIL = "chatzzkcontact@gmail.com"
+
 export const PLATFORM_CODE = {
     CHZZK: "CHZZK",
     YOUTUBE: "YOUTUBE",

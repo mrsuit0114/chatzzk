@@ -58,68 +58,48 @@ export function VodListToolbar({ placeholder = "제목 또는 채널명 검색" 
     };
 
     return (
-        <div className="flex flex-col gap-4 p-4 border rounded-lg bg-card md:flex-row md:items-end shadow-sm">
+        <div className="bg-card border rounded-lg p-4 shadow-sm space-y-4 lg:space-y-0 lg:flex lg:items-center lg:gap-4">
 
-            {/* 1. 검색어 입력 */}
-            <div className="flex-1 space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">검색</label>
-                <div className="relative">
-                    <Input
-                        placeholder={placeholder}
-                        value={localQuery}
-                        onChange={(e) => setLocalQuery(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        className="pl-9"
-                    />
-                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                </div>
+            {/* 1. 검색어 입력 (가변 너비) */}
+            <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                    placeholder={placeholder}
+                    value={localQuery}
+                    onChange={(e) => setLocalQuery(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="pl-9 bg-background"
+                />
             </div>
 
-            {/* 2. 날짜 범위 선택 */}
-            <div className="flex items-center gap-2">
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                        <Calendar className="h-3.5 w-3.5" /> 시작일
-                    </label>
-                    <Input
+            {/* 2. 구분선 (데스크탑 only) */}
+            <div className="hidden lg:block w-px h-8 bg-border" />
+
+            {/* 3. 날짜 및 버튼 그룹 */}
+            <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center gap-2 bg-background border rounded-md px-3 py-2 text-sm">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <input
                         type="date"
-                        className="w-[140px]"
+                        className="bg-transparent outline-none w-[110px] text-foreground p-0 h-auto font-mono text-xs"
                         value={localFrom}
                         onChange={(e) => setLocalFrom(e.target.value)}
-                        onKeyDown={handleKeyDown}
                     />
-                </div>
-                <span className="pt-8 text-muted-foreground">~</span>
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-                        <Calendar className="h-3.5 w-3.5" /> 종료일
-                    </label>
-                    <Input
+                    <span className="text-muted-foreground">~</span>
+                    <input
                         type="date"
-                        className="w-[140px]"
+                        className="bg-transparent outline-none w-[110px] text-foreground p-0 h-auto font-mono text-xs"
                         value={localTo}
                         onChange={(e) => setLocalTo(e.target.value)}
-                        onKeyDown={handleKeyDown}
                     />
                 </div>
-            </div>
 
-            {/* 3. 액션 버튼 그룹 */}
-            <div className="flex gap-2">
-                {/* 조회 버튼 */}
-                <Button onClick={handleSearch} className="min-w-[80px]">
-                    조회
-                </Button>
-
-                {/* ✅ 초기화 버튼 */}
-                <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleReset}
-                    title="검색 조건 초기화"
-                >
-                    <RotateCcw className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-2 ml-auto lg:ml-0">
+                    <Button onClick={handleSearch} size="default">조회</Button>
+                    <Button variant="outline" size="icon" onClick={handleReset} title="초기화">
+                        <RotateCcw className="h-4 w-4" />
+                    </Button>
+                </div>
             </div>
         </div>
     );

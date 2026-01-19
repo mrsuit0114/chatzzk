@@ -1,6 +1,6 @@
 
 export const getAnalysisKey = (vodId: string) => {
-    return `vods/${vodId}/analytics.json`;
+    return `vods/${vodId}/analysis.json`;
 }
 
 export const getStreamLogKey = (vodId: string, logIndex: string) => {

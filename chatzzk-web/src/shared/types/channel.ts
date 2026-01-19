@@ -19,18 +19,20 @@ export const ChannelDataSchema = z.object({
 
 export type ChannelData = z.infer<typeof ChannelDataSchema>;
 
-export const ChannelDetailSchema = z.object({
-    // DB Output (Snake Case)
+
+const BaseChannelDbFields = {
     channel_id: z.number(),
-    platform_code: PlatformCodeSchema,
+    platform_code: PlatformCodeSchema, // 기존에 정의된 Enum 스키마 사용 가정
     platform_channel_id: z.string(),
     channel_name: z.string(),
     last_vod_crawled_at: z.string().nullable(),
     vod_exposure_delay_hours: z.number(),
     vod_detail_exposure_delay_hours: z.number(),
     is_collection_enabled: z.boolean(),
-}).transform((data) => ({
-    // Frontend Output (Camel Case)
+};
+
+// 2. 공통 변환 로직 (Snake -> Camel)
+const transformBaseChannel = (data: any) => ({
     id: data.channel_id,
     platform: data.platform_code,
     channelId: data.platform_channel_id,
@@ -39,39 +41,24 @@ export const ChannelDetailSchema = z.object({
     vodExposureDelayHours: data.vod_exposure_delay_hours,
     vodDetailExposureDelayHours: data.vod_detail_exposure_delay_hours,
     isCollectionEnabled: data.is_collection_enabled,
-}));
+});
+export const ChannelDetailSchema = z.object(BaseChannelDbFields)
+    .transform(transformBaseChannel);
 
 export type ChannelDetailData = z.infer<typeof ChannelDetailSchema>;
 
+// 4. [Private] 내 채널 관리 스키마 (MyChannel) - Base 확장
 export const MyChannelSchema = z.object({
-    // DB Output
-    channel_id: z.number(),
-    platform_code: PlatformCodeSchema,
-    platform_channel_id: z.string(),
-    channel_name: z.string(),
-    last_vod_crawled_at: z.string().nullable(),
-    vod_exposure_delay_hours: z.number(),
-    vod_detail_exposure_delay_hours: z.number(),
-    is_collection_enabled: z.boolean(),
-
-    // JSONB Fields (DB에서 text[] 배열로 변환되어 옴)
+    ...BaseChannelDbFields, // 공통 필드 상속
+    // MyChannel 전용 추가 필드
     streamer_nicknames: z.array(z.string()).nullable(),
     streamer_sex: z.string().nullable(),
     fan_nicknames: z.array(z.string()).nullable(),
     additional_info: z.array(z.string()).nullable(),
-
 }).transform((data) => ({
-    // Frontend Output
-    id: data.channel_id,
-    platform: data.platform_code,
-    channelId: data.platform_channel_id,
-    channelName: data.channel_name,
-    lastVodCrawledAt: data.last_vod_crawled_at,
-    vodExposureDelayHours: data.vod_exposure_delay_hours,
-    vodDetailExposureDelayHours: data.vod_detail_exposure_delay_hours,
-    isCollectionEnabled: data.is_collection_enabled,
+    ...transformBaseChannel(data), // 공통 변환 로직 재사용
 
-    // 메타데이터 매핑 (Null일 경우 빈 배열/문자열 처리)
+    // 추가 필드 매핑
     streamerNicknames: data.streamer_nicknames || [],
     streamerSex: data.streamer_sex || "알 수 없음",
     fanNicknames: data.fan_nicknames || [],

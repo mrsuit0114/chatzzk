@@ -1,11 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { VodData } from "@shared/types/vod";
 import { PLATFORM_COLORS, PLATFORM_LABELS } from "@/constants";
 import { cn } from "@/lib/utils";
 import { formatDateKo, formatTime } from "@/utils/time-formatter";
-import { Play } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 interface Props {
@@ -30,44 +30,56 @@ export function VodCard({ data }: Props) {
 
     return (
         <Card
-            className="cursor-pointer hover:shadow-lg transition-all group overflow-hidden border-border/60 flex flex-col"
+            className="group cursor-pointer hover:shadow-md hover:border-primary/50 transition-all duration-200 overflow-hidden flex flex-col h-full bg-card"
             onClick={handleCardClick}
         >
-            {/* 썸네일 영역 */}
-            <div className="relative h-28 bg-muted">
-                <div className="flex items-center justify-center w-full h-full bg-gradient-to-br from-muted/40 to-muted/10 text-muted-foreground">
-                    <Play className="w-10 h-10 opacity-60" />
-                </div>
+            <div className="relative h-20 bg-gradient-to-r from-emerald-500/10 to-emerald-500/5 border-b">
 
-                {/* 좌측 상단: 플랫폼 배지 */}
-                <Badge className={cn("absolute top-2 left-2 text-white border-none", badgeColor)}>
+                <Badge className={cn("absolute top-2 left-2 text-white border-none shadow-sm", badgeColor)}>
                     {PLATFORM_LABELS[data.platform]}
                 </Badge>
 
-                {/* 우측 하단: 영상 길이 */}
-                <Badge className="absolute bottom-2 right-2 bg-black/80 text-white border-none pointer-events-none">
+                <Badge className="absolute bottom-2 right-2 bg-black/80 text-white border-none pointer-events-none hover:bg-black/80">
                     {formatTime(data.duration * 1000)}
                 </Badge>
             </div>
 
-            <CardHeader className="p-4 pb-2 space-y-1">
-                <div className="flex justify-between items-start">
-                    <span className="text-xs text-muted-foreground">{formatDateKo(data.publishDate)}</span>
-                </div>
-                <CardTitle className="text-base leading-tight line-clamp-2">
+            {/* 2. 콘텐츠 영역 */}
+            <CardHeader className="p-4 pb-2 space-y-2">
+                <h3 className="font-semibold leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">
                     {data.title}
-                </CardTitle>
+                </h3>
             </CardHeader>
 
             <CardContent className="p-4 pt-0 mt-auto">
-                {/* 채널명 (클릭 시 전파 중단) */}
-                <button
-                    onClick={handleChannelClick}
-                    className="text-sm text-muted-foreground hover:text-primary hover:underline transition-colors text-left"
-                >
-                    {data.channelName}
-                </button>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <button
+                        onClick={handleChannelClick}
+                        className="hover:text-foreground hover:underline transition-colors font-medium truncate max-w-[120px]"
+                    >
+                        {data.channelName}
+                    </button>
+                    <span className="shrink-0 opacity-70">
+                        {formatDateKo(data.publishDate)}
+                    </span>
+                </div>
             </CardContent>
         </Card>
+    );
+}
+
+export function VodCardSkeleton() {
+    return (
+        <div className="border rounded-xl bg-card overflow-hidden h-[160px] flex flex-col">
+            <div className="h-14 bg-muted/40 animate-pulse" />
+            <div className="p-4 space-y-3">
+                <Skeleton className="h-5 w-3/4" />
+                <Skeleton className="h-5 w-1/2" />
+                <div className="flex justify-between pt-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-4 w-16" />
+                </div>
+            </div>
+        </div>
     );
 }

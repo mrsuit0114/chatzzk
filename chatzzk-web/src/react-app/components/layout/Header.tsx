@@ -18,7 +18,7 @@ import { USER_ROLE } from "@shared/constants/service_codes";
 export function Header() {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, userProfile, clearSession } = useAuthStore();
+    const { userProfile, clearSession } = useAuthStore();
 
     // ✅ 관리자 여부 체크 (옵션)
     const isAdmin = userProfile?.role === USER_ROLE.ADMIN;
@@ -52,7 +52,7 @@ export function Header() {
 
                 {/* 3. 우측 사용자 메뉴 (동적 렌더링) */}
                 <div className="flex items-center gap-2">
-                    {user ? (
+                    {userProfile ? (
                         // ✅ 로그인 상태: 드롭다운 메뉴 표시
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
