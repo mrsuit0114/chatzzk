@@ -81,38 +81,61 @@ export function MyPage() {
     }
 
     return (
-        <div className="container mx-auto max-w-5xl">
-            {/* 상단 프로필 영역 */}
-            <MyProfile user={userProfile} channel={myChannel} />
+        <div className="container mx-auto">
+            {/* ✅ 3단 레이아웃 적용 (광고 공간 확보) */}
+            <div className="flex justify-center gap-6">
 
-            <Separator />
+                {/* [좌측 광고] - 2xl 이상에서 노출 */}
+                <aside className="hidden 2xl:block w-[160px] shrink-0">
+                    <div className="sticky top-24 w-full h-[600px] bg-muted/30 border border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center text-xs text-muted-foreground">
+                        Advertisement(Left)
+                    </div>
+                </aside>
 
-            {/* 탭 영역 */}
-            <Tabs
-                value={currentTab}
-                onValueChange={handleTabChange}
-                className="w-full mt-2"
-            >
-                <TabsList className={`grid w-full grid-cols-3`}>
-                    <TabsTrigger value={MY_PAGE_TABS.VODS}>영상 관리</TabsTrigger>
-                    <TabsTrigger value={MY_PAGE_TABS.INFO}>채널 정보</TabsTrigger>
-                    <TabsTrigger value={MY_PAGE_TABS.SETTINGS}>채널 설정</TabsTrigger>
-                </TabsList>
+                {/* [메인 콘텐츠] */}
+                <main className="flex-1 w-full max-w-5xl space-y-8">
+                    {/* 상단 프로필 영역 */}
+                    <MyProfile user={userProfile} channel={myChannel} />
 
-                <TabsContent value={MY_PAGE_TABS.VODS} className="mt-6">
-                    <MyVodTab isOwner={isOwner} />
-                </TabsContent>
+                    <Separator />
 
-                <TabsContent value={MY_PAGE_TABS.INFO} className="mt-6">
-                    <MyChannelInfoTab channel={myChannel} isOwner={isOwner} />
-                </TabsContent>
+                    {/* 탭 영역 */}
+                    <Tabs
+                        value={currentTab}
+                        onValueChange={handleTabChange}
+                        className="w-full"
+                    >
+                        {/* 탭 리스트 디자인 폴리싱 (배경색 추가) */}
+                        <TabsList className="grid w-full grid-cols-3 h-12 items-stretch p-1 bg-muted/50">
+                            <TabsTrigger value={MY_PAGE_TABS.VODS}>영상 관리</TabsTrigger>
+                            <TabsTrigger value={MY_PAGE_TABS.INFO}>채널 정보</TabsTrigger>
+                            <TabsTrigger value={MY_PAGE_TABS.SETTINGS}>채널 설정</TabsTrigger>
+                        </TabsList>
 
-                <TabsContent value={MY_PAGE_TABS.SETTINGS} className="mt-6">
-                    <MySettingsTab channel={myChannel} isOwner={isOwner} />
-                </TabsContent>
+                        <div className="mt-6">
+                            <TabsContent value={MY_PAGE_TABS.VODS}>
+                                <MyVodTab isOwner={isOwner} />
+                            </TabsContent>
 
-            </Tabs>
+                            <TabsContent value={MY_PAGE_TABS.INFO}>
+                                <MyChannelInfoTab channel={myChannel} isOwner={isOwner} />
+                            </TabsContent>
 
+                            <TabsContent value={MY_PAGE_TABS.SETTINGS}>
+                                <MySettingsTab channel={myChannel} isOwner={isOwner} />
+                            </TabsContent>
+                        </div>
+                    </Tabs>
+                </main>
+
+                {/* [우측 광고] - 2xl 이상에서 노출 */}
+                <aside className="hidden 2xl:block w-[160px] shrink-0">
+                    <div className="sticky top-24 w-full h-[600px] bg-muted/30 border border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center text-xs text-muted-foreground">
+                        Advertisement(Right)
+                    </div>
+                </aside>
+
+            </div>
         </div>
     );
 }

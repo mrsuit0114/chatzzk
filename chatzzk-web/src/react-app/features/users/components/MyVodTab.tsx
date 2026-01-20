@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { VodCard } from "@/features/vod/components/VodCard";
+import { VodCard, VodCardSkeleton } from "@/features/vod/components/VodCard";
 import { VodListToolbar } from "@/features/vod/components/VodListToolbar";
 import { BasePagination } from "@/components/ui/base-pagination";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MyVodData } from "@shared/types/vod";
 import { getMyVods, updateVodExposure } from "../api/myVods";
 import { AlertDialogHeader, AlertDialogFooter, AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { VOD_ITEMS_PER_PAGE } from "@shared/constants/ui";
+import { cn } from "@/lib/utils";
+import { VOD_PIPELINE_STATUS } from "@shared/constants/service_codes";
 
 interface Props {
     isOwner: boolean; // MyPage에서 받음
@@ -24,7 +27,7 @@ export function MyVodTab({ isOwner }: Props) {
     // ✅ 필터: 공개 여부 (ALL | PUBLIC | PRIVATE)
     const [visibilityFilter, setVisibilityFilter] = useState<'ALL' | 'PUBLIC' | 'PRIVATE'>('ALL');
 
-    const { data: vodResponse, isLoading } = useQuery({
+    const { data: vodResponse, isLoading, isFetching } = useQuery({
         queryKey: ['myVods', page, query, visibilityFilter, fromDate, toDate],
         queryFn: () => getMyVods({
             page,
@@ -97,25 +100,26 @@ export function MyVodTab({ isOwner }: Props) {
 
     // 상태 배지 렌더러
     const renderStatusBadge = (status: string) => {
-        if (status === 'COMPLETED') return null;
-        if (status === 'FAILED') {
+        if (status === VOD_PIPELINE_STATUS.COMPLETED) return null;
+        if (status === VOD_PIPELINE_STATUS.FAILED) {
             return <Badge variant="destructive" className="gap-1 h-6"><AlertCircle className="w-3 h-3" /> 분석 불가</Badge>;
         }
         return <Badge variant="secondary" className="gap-1 h-6 bg-blue-100 text-blue-700 hover:bg-blue-100"><Loader2 className="w-3 h-3 animate-spin" /> 분석 중...</Badge>;
     };
 
-    if (isLoading) return <div className="py-20 text-center">목록을 불러오는 중...</div>;
 
     return (
         <div className="space-y-6 pb-8">
             <div className="flex flex-col gap-4">
                 <div className="flex flex-col md:flex-row justify-between items-end gap-4">
-                    <div>
-                        <h2 className="text-xl font-bold">내 영상 관리</h2>
+                    <div className="space-y-1 ps-2">
+                        <div className="flex items-center gap-2">
+                            <h2 className="text-xl font-bold">내 영상 관리</h2>
+                        </div>
                         <p className="text-sm text-muted-foreground">
                             {isOwner
-                                ? "영상의 공개 여부를 설정할 수 있습니다."
-                                : "채널에 등록된 영상 목록입니다 (편집자는 조회만 가능)."}
+                                ? "영상의 공개 여부를 제어할 수 있습니다."
+                                : "채널에 등록된 영상 목록입니다 (읽기 전용)."}
                         </p>
                     </div>
                     <div className="w-full md:w-auto">
@@ -138,7 +142,10 @@ export function MyVodTab({ isOwner }: Props) {
                                 setVisibilityFilter(f.value as any);
                                 setPage(1);
                             }}
-                            className="min-w-[80px]"
+                            className={cn(
+                                "min-w-[80px] transition-all",
+                                visibilityFilter === f.value && "shadow-sm"
+                            )}
                         >
                             {f.label}
                         </Button>
@@ -147,63 +154,89 @@ export function MyVodTab({ isOwner }: Props) {
             </div>
 
             {/* VOD 리스트 */}
-            {vods.length > 0 ? (
+            {isLoading ? (
+                // 로딩 스켈레톤
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {vods.map((item) => (
-                        <div key={item.videoNo} className="relative group">
-
-                            {/* 카드 UI */}
-                            <div className={`transition-all duration-300 ${(!item.isExposed || item.status !== 'COMPLETED') ? "opacity-75 grayscale-[0.3]" : ""}`}>
-                                <VodCard data={item} />
-                            </div>
-
-                            {/* 상태 배지 */}
-                            <div className="absolute top-2 left-2 z-10">
-                                {renderStatusBadge(item.status)}
-                            </div>
-
-                            {/* 제어 버튼 (Owner Only) */}
-                            <div className="absolute top-2 right-2 z-10">
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    disabled={!isOwner}
-                                    className={`h-8 px-3 shadow-sm backdrop-blur-md border transition-all duration-200
-                                        ${item.isExposed
-                                            ? "bg-white/90 text-green-700 border-green-200 hover:bg-green-50"
-                                            : "bg-white/90 text-orange-600 border-orange-200 hover:bg-orange-50"}
-                                    `}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleInitiateToggle(item);
-                                    }}
-                                >
-                                    {item.isExposed ? (
-                                        <><Unlock className="h-3.5 w-3.5 mr-1.5" /><span className="text-xs font-bold">Public</span></>
-                                    ) : (
-                                        <><Lock className="h-3.5 w-3.5 mr-1.5" /><span className="text-xs font-bold">Private</span></>
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
+                    {Array.from({ length: VOD_ITEMS_PER_PAGE }).map((_, i) => (
+                        <VodCardSkeleton key={i} />
                     ))}
                 </div>
+            ) : vods.length > 0 ? (
+                <div className="relative min-h-[400px]">
+                    <div className={cn(
+                        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 transition-opacity duration-200",
+                        isFetching ? "opacity-50 pointer-events-none" : "opacity-100"
+                    )}>
+                        {vods.map((item) => (
+                            <div key={item.videoNo} className="relative group">
+                                {/* 카드 본체 */}
+                                <div className={cn(
+                                    "transition-all duration-300 rounded-xl overflow-hidden",
+                                    (!item.isExposed || item.status !== 'COMPLETED') && "grayscale-[0.5] opacity-80 ring-1 ring-border"
+                                )}>
+                                    <VodCard data={item} />
+                                </div>
+
+                                {/* [좌측 상단] 분석 상태 배지 (최우선 순위) */}
+                                <div className="absolute top-12 left-2 z-20 pointer-events-none">
+                                    {renderStatusBadge(item.status)}
+                                </div>
+
+                                {/* [우측 상단] 공개/비공개 제어 버튼 (Owner Only) */}
+                                <div className="absolute top-2 right-2 z-10">
+                                    <Button
+                                        variant="secondary"
+                                        size="sm"
+                                        disabled={!isOwner}
+                                        className={`h-8 px-3 shadow-sm backdrop-blur-md border transition-all duration-200
+                                        ${item.isExposed
+                                                ? "bg-white/90 text-green-700 border-green-200 hover:bg-green-50"
+                                                : "bg-white/90 text-orange-600 border-orange-200 hover:bg-orange-50"}
+                                    `}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleInitiateToggle(item);
+                                        }}
+                                    >
+                                        {item.isExposed ? (
+                                            <><Unlock className="h-3.5 w-3.5 mr-1.5" /><span className="text-xs font-bold">Public</span></>
+                                        ) : (
+                                            <><Lock className="h-3.5 w-3.5 mr-1.5" /><span className="text-xs font-bold">Private</span></>
+                                        )}
+                                    </Button>
+                                </div>
+
+                                {/* 비공개 상태일 때 오버레이 힌트 (선택 사항) */}
+                                {!item.isExposed && (
+                                    <div className="absolute inset-0 z-0 pointer-events-none bg-black/5 rounded-xl" />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
             ) : (
-                <div className="py-20 flex flex-col items-center justify-center border rounded-lg bg-secondary/5 text-muted-foreground gap-2">
-                    <AlertCircle className="h-8 w-8 opacity-20" />
+                <div className="py-24 flex flex-col items-center justify-center border-2 border-dashed rounded-xl bg-secondary/5 text-muted-foreground gap-3">
+                    <div className="p-3 bg-background rounded-full shadow-sm">
+                        <AlertCircle className="h-6 w-6 opacity-30" />
+                    </div>
                     <p>조건에 맞는 영상이 없습니다.</p>
                 </div>
             )}
 
             {totalPages > 1 && (
-                <BasePagination
-                    total={totalPages}
-                    page={page}
-                    onChange={(p) => setPage(p)}
-                />
+                <div className="flex justify-center pt-4">
+                    <BasePagination
+                        total={totalPages}
+                        page={page}
+                        onChange={(p) => {
+                            setPage(p);
+                            window.scrollTo({ top: 0, behavior: 'smooth' }); // 페이지 이동 시 상단 스크롤
+                        }}
+                    />
+                </div>
             )}
 
-            {/* ✅ 확인 다이얼로그 (AlertDialog) */}
+            {/* 변경 확인 모달 */}
             <AlertDialog open={!!targetVod} onOpenChange={(open) => !open && setTargetVod(null)}>
                 <AlertDialogContent>
                     <AlertDialogHeader>

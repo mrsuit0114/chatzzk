@@ -7,12 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, UserPlus, Save, Power, Ban, LockKeyhole, Loader2, Info } from "lucide-react";
+import { Eye, EyeOff, UserPlus, Save, Power, Ban, LockKeyhole, Loader2, Info, UserCog, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { DELAY_OPTIONS, ID_REGEX } from "@shared/constants/service_codes";
 import { MyChannelData } from "@shared/types/channel";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { updateChannelSettings, getEditorAccount, createEditorAccount, updateEditorAccount, toggleEditorStatus } from "../api/myChannel";
+import { cn } from "@/lib/utils";
 
 interface Props {
     channel: MyChannelData;
@@ -50,12 +51,13 @@ export function MySettingsTab({ channel, isOwner }: Props) {
     // ----------------------------------------------------------------
     // 2. 편집자 계정 관리
     // ----------------------------------------------------------------
+    const [isEditorRevealed, setIsEditorRevealed] = useState(false);
 
-    // 편집자 정보 조회 Query
+    // ✅ API 호출 최적화: Owner이면서 + 블러가 해제되었을 때만 fetch
     const { data: editorAccount, isLoading: isLoadingEditor } = useQuery({
         queryKey: ['myEditor'],
         queryFn: getEditorAccount,
-        enabled: isOwner, // Owner만 조회 가능
+        enabled: isOwner && isEditorRevealed,
     });
 
     // 입력 폼 상태
@@ -130,232 +132,244 @@ export function MySettingsTab({ channel, isOwner }: Props) {
     };
 
     return (
-        <div className="space-y-6">
-            {/* 1. 채널 설정 (Editor: Read Only, Owner: Edit) */}
-            <Card>
+        <div className="space-y-8 pb-8">
+            {/* 1. 채널 운영 설정 */}
+            <Card className="border-border/60 shadow-sm">
                 <CardHeader>
                     <div className="flex justify-between items-start">
-                        <div>
+                        <div className="space-y-1">
                             <CardTitle>채널 운영 설정</CardTitle>
-                            <CardDescription>데이터 수집 및 분석 결과의 공개 시점을 제어합니다.</CardDescription>
+                            <CardDescription>데이터 수집 활성화 여부 및 분석 결과의 공개 시점을 제어합니다.</CardDescription>
                         </div>
                         {!isOwner && (
-                            <Badge variant="outline" className="text-orange-500 border-orange-200">
-                                <Info className="h-3 w-3 mr-1" /> 읽기 전용
+                            <Badge variant="outline" className="text-orange-600 bg-orange-50 border-orange-200 gap-1.5 h-7">
+                                <Info className="h-3 w-3" /> 읽기 전용
                             </Badge>
                         )}
                     </div>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-8">
                     {/* 데이터 수집 허용 */}
                     <div className="flex items-center justify-between">
-                        <div className="space-y-0.5">
-                            <Label className="text-base">데이터 수집 허용</Label>
-                            <p className="text-xs text-muted-foreground">방송 시작 시 자동으로 채팅 및 데이터를 수집합니다.</p>
+                        <div className="space-y-1">
+                            <Label className="text-base font-medium">데이터 수집 활성화</Label>
+                            <p className="text-sm text-muted-foreground">채팅 및 방송 데이터를 수집하고 분석 및 요약을 생성합니다.</p>
                         </div>
                         <Switch
                             checked={settings.isCollectionEnabled}
                             onCheckedChange={(v) => setSettings(prev => ({ ...prev, isCollectionEnabled: v }))}
-                            disabled={!isOwner} // ✅ 권한 제어
+                            disabled={!isOwner}
                         />
                     </div>
 
                     <Separator />
 
-                    {/* VOD 요약 공개 시점 */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="space-y-0.5">
-                            <Label className="text-base">VOD 요약 공개 시점</Label>
-                            <p className="text-xs text-muted-foreground">방송 종료 후 요약본을 일반 사용자에게 공개할 시점입니다.</p>
+                    <div className="grid gap-6 md:grid-cols-2">
+                        {/* VOD 요약 공개 시점 */}
+                        <div className="space-y-3">
+                            <div className="space-y-1">
+                                <Label className="text-base font-medium">VOD 요약 공개 시점</Label>
+                                <p className="text-xs text-muted-foreground">방송 종료 후 일반 사용자에게 요약본이 노출되기까지의 대기 시간입니다.</p>
+                            </div>
+                            <Select
+                                value={settings.vodExposureDelayHours}
+                                onValueChange={(v) => setSettings(prev => ({ ...prev, vodExposureDelayHours: v }))}
+                                disabled={!isOwner}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="선택하세요" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {DELAY_OPTIONS.map(opt => (
+                                        <SelectItem key={`summary-${opt.value}`} value={opt.value}>{opt.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
-                        <Select
-                            value={settings.vodExposureDelayHours}
-                            onValueChange={(v) => setSettings(prev => ({ ...prev, vodExposureDelayHours: v }))}
-                            disabled={!isOwner} // ✅ 권한 제어
-                        >
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="선택하세요" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {DELAY_OPTIONS.map(opt => (
-                                    <SelectItem key={`summary-${opt.value}`} value={opt.value}>{opt.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
 
-                    {/* 상세 분석 공개 시점 */}
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="space-y-0.5">
-                            <Label className="text-base">상세 분석 데이터 공개 시점</Label>
-                            <p className="text-xs text-muted-foreground">VOD 요약의 상세 분석 공개 시점입니다.</p>
+                        {/* 상세 분석 공개 시점 */}
+                        <div className="space-y-3">
+                            <div className="space-y-1">
+                                <Label className="text-base font-medium">상세 분석 공개 시점</Label>
+                                <p className="text-xs text-muted-foreground">VOD의 상세 분석(감정, 키워드 등) 데이터가 노출되기까지의 대기 시간입니다.</p>
+                            </div>
+                            <Select
+                                value={settings.vodDetailExposureDelayHours}
+                                onValueChange={(v) => setSettings(prev => ({ ...prev, vodDetailExposureDelayHours: v }))}
+                                disabled={!isOwner}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="선택하세요" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {DELAY_OPTIONS.map(opt => (
+                                        <SelectItem key={`detail-${opt.value}`} value={opt.value}>{opt.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
-                        <Select
-                            value={settings.vodDetailExposureDelayHours}
-                            onValueChange={(v) => setSettings(prev => ({ ...prev, vodDetailExposureDelayHours: v }))}
-                            disabled={!isOwner} // ✅ 권한 제어
-                        >
-                            <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="선택하세요" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {DELAY_OPTIONS.map(opt => (
-                                    <SelectItem key={`detail-${opt.value}`} value={opt.value}>{opt.label}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
                     </div>
                 </CardContent>
 
-                {/* 저장 버튼은 Owner만 노출 */}
                 {isOwner && (
-                    <CardFooter className="flex justify-end border-t p-6">
-                        <Button onClick={() => saveSettings()} disabled={isSavingSettings}>
-                            {isSavingSettings && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <CardFooter className="flex justify-end border-t p-6 bg-muted/20">
+                        <Button onClick={() => saveSettings()} disabled={isSavingSettings} className="min-w-[100px]">
+                            {isSavingSettings ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
                             설정 저장
                         </Button>
                     </CardFooter>
                 )}
             </Card>
 
-            {/* 2. 편집자 계정 관리 (Owner Only) - Editor에게는 은닉됨 */}
+            {/* 2. 편집자 계정 관리 (Owner Only) */}
             {isOwner && (
-                isLoadingEditor ? (
-                    <div className="py-10 text-center text-muted-foreground">편집자 정보를 불러오는 중...</div>
-                ) : (
-                    <Card className={`transition-colors duration-300 ${editorAccount?.isActive
-                        ? "border-green-200 dark:border-green-900/50"
-                        : "border-border"
-                        }`}>
-                        {/* ... 기존 편집자 관리 UI 코드와 동일 (생략 없이 사용) ... */}
-                        {/* 기존 코드의 내용을 그대로 유지하되, 필요 시 import 경로나 스타일만 위와 맞춥니다. */}
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <div className="space-y-1">
-                                    <CardTitle>편집자 계정 관리</CardTitle>
-                                    <CardDescription>
-                                        내 채널의 비공개 데이터를 열람할 수 있는 편집자 계정입니다.
-                                    </CardDescription>
-                                </div>
-                                {editorAccount && (
-                                    <Badge variant={editorAccount.isActive ? "default" : "secondary"}
-                                        className={editorAccount.isActive ? "bg-green-600 hover:bg-green-700" : ""}
-                                    >
-                                        {editorAccount.isActive ? "Active" : "Inactive"}
-                                    </Badge>
-                                )}
+                <div className="relative rounded-xl border border-border shadow-sm overflow-hidden bg-card transition-all h-auto">
+
+                    {/* ✅ [Overlay] 블러 처리된 커버 (미조회 상태) */}
+                    {!isEditorRevealed && (
+                        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-background/60 backdrop-blur-md gap-5 transition-all duration-500">
+                            <div className="p-4 bg-muted/80 rounded-full ring-1 ring-border shadow-sm">
+                                <Lock className="h-8 w-8 text-muted-foreground" />
                             </div>
-                        </CardHeader>
+                            <div className="text-center space-y-1.5">
+                                <h3 className="font-semibold text-lg">편집자 계정 관리</h3>
+                            </div>
+                            <Button onClick={() => setIsEditorRevealed(true)} className="gap-2">
+                                <UserCog className="h-4 w-4" />
+                                관리 메뉴 열기
+                            </Button>
+                        </div>
+                    )}
 
-                        <CardContent>
-                            {editorAccount ? (
-                                <div className={`flex flex-col gap-4 p-5 border rounded-lg transition-all duration-300 ${editorAccount.isActive
-                                    ? "bg-background border-green-100 dark:border-green-900/30"
-                                    : "bg-muted/50 opacity-80"
-                                    }`}>
+                    {/* ✅ [Content] 실제 내용 (Reveal 전에는 블러 처리된 Dummy 처럼 보임) */}
+                    <div className={cn(
+                        "p-6 space-y-6 transition-all duration-500",
+                        !isEditorRevealed && "opacity-50 blur-sm pointer-events-none min-h-[300px]"
+                    )}>
+                        {/* 헤더 영역 */}
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                    <UserCog className="h-5 w-5 text-primary" />
+                                    <h3 className="font-semibold text-xl leading-none tracking-tight">편집자 계정 관리</h3>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                    내 채널의 비공개 데이터를 열람할 수 있는 부계정입니다.
+                                </p>
+                            </div>
+                            {/* 배지 (데이터 로드 후에만 표시) */}
+                            {editorAccount && (
+                                <Badge
+                                    variant={editorAccount.isActive ? "default" : "secondary"}
+                                    className={editorAccount.isActive ? "bg-green-600" : ""}
+                                >
+                                    {editorAccount.isActive ? "Active" : "Inactive"}
+                                </Badge>
+                            )}
+                        </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label>편집자 ID</Label>
-                                            <div className="flex items-center gap-2">
+                        <Separator />
+
+                        {/* 로딩 및 데이터 표시 영역 */}
+                        {isEditorRevealed && isLoadingEditor ? (
+                            <div className="py-20 text-center text-muted-foreground bg-muted/10 rounded-xl border border-dashed animate-pulse">
+                                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-3 opacity-50" />
+                                <p>계정 정보를 안전하게 불러오는 중...</p>
+                            </div>
+                        ) : (
+                            // 데이터가 있거나(수정) 없을 때(생성)
+                            <>
+                                {editorAccount ? (
+                                    // A. 수정 모드
+                                    <div className={cn(
+                                        "flex flex-col gap-6 p-6 border rounded-xl bg-card transition-all",
+                                        editorAccount.isActive ? "border-green-200 bg-green-50/5" : "bg-muted/30 border-dashed"
+                                    )}>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <Label>편집자 ID</Label>
                                                 <Input
                                                     value={editId}
                                                     onChange={(e) => setEditId(e.target.value)}
                                                     disabled={!editorAccount.isActive}
+                                                    className="bg-background"
                                                 />
                                             </div>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <Label>비밀번호 변경</Label>
-                                            <div className="relative">
-                                                <Input
-                                                    type={showEditorPw ? "text" : "password"}
-                                                    value={editPw}
-                                                    onChange={(e) => setEditPw(e.target.value)}
-                                                    placeholder="변경할 때만 입력"
-                                                    disabled={!editorAccount.isActive}
-                                                    className="pr-10"
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="absolute right-0 top-0 h-full px-3 py-2"
-                                                    onClick={() => setShowEditorPw(!showEditorPw)}
-                                                    disabled={!editorAccount.isActive}
-                                                >
-                                                    {showEditorPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <Separator className="my-1" />
-
-                                    <div className="flex justify-between items-center">
-                                        <div className="text-sm text-muted-foreground flex items-center gap-2">
-                                            {!editorAccount.isActive && <LockKeyhole className="h-4 w-4" />}
-                                            <span>
-                                                {editorAccount.isActive
-                                                    ? "현재 정상적으로 활동 가능한 상태입니다."
-                                                    : "계정이 정지되어 로그인이 불가능합니다."}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex gap-2">
-                                            {editorAccount.isActive && (
-                                                <Button variant="default" size="sm" onClick={handleUpdate} disabled={isUpdating}>
-                                                    {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                                    <Save className="h-4 w-4 mr-2" />
-                                                    정보 수정
-                                                </Button>
-                                            )}
-
-                                            <Button
-                                                variant={editorAccount.isActive ? "destructive" : "outline"}
-                                                size="sm"
-                                                onClick={() => toggleStatus()}
-                                                disabled={isToggling}
-                                                className={!editorAccount.isActive ? "border-green-600 text-green-600 hover:bg-green-50" : ""}
-                                            >
-                                                {editorAccount.isActive ? (
-                                                    <>
-                                                        <Ban className="h-4 w-4 mr-2" />
-                                                        계정 비활성화
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Power className="h-4 w-4 mr-2" />
-                                                        계정 활성화
-                                                    </>
-                                                )}
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center justify-center py-10 text-center space-y-4 border-2 border-dashed rounded-lg bg-muted/20">
-                                    {/* ... 생성 UI ... */}
-                                    <div className="p-4 bg-background rounded-full shadow-sm">
-                                        <UserPlus className="h-8 w-8 text-muted-foreground/50" />
-                                    </div>
-                                    <div className="space-y-4 w-full max-w-sm">
-                                        <div className="space-y-1">
-                                            <h3 className="font-semibold text-lg">편집자 계정 생성</h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                계정을 생성하면 비공개 데이터를 공유할 수 있습니다.
-                                            </p>
-                                        </div>
-
-                                        <div className="space-y-3 text-left">
-                                            <div className="space-y-1">
-                                                <Label>아이디</Label>
-                                                <div className="flex items-center gap-2">
-                                                    <Input value={editId} onChange={(e) => setEditId(e.target.value)} placeholder="user_id" />
+                                            <div className="space-y-2">
+                                                <Label>비밀번호 변경</Label>
+                                                <div className="relative">
+                                                    <Input
+                                                        type={showEditorPw ? "text" : "password"}
+                                                        value={editPw}
+                                                        onChange={(e) => setEditPw(e.target.value)}
+                                                        placeholder={editorAccount.isActive ? "변경 시에만 입력" : "비활성 상태"}
+                                                        disabled={!editorAccount.isActive}
+                                                        className="pr-10 bg-background"
+                                                    />
+                                                    <Button
+                                                        type="button" variant="ghost" size="sm"
+                                                        className="absolute right-0 top-0 h-full px-3"
+                                                        onClick={() => setShowEditorPw(!showEditorPw)}
+                                                        disabled={!editorAccount.isActive}
+                                                    >
+                                                        {showEditorPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                                    </Button>
                                                 </div>
                                             </div>
-                                            <div className="space-y-1">
+                                        </div>
+
+                                        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-2 border-t mt-2">
+                                            <div className="text-xs text-muted-foreground flex items-center gap-1.5 bg-background border px-3 py-1.5 rounded-full">
+                                                {!editorAccount.isActive ? <LockKeyhole className="h-3.5 w-3.5" /> : <Info className="h-3.5 w-3.5" />}
+                                                <span>
+                                                    {editorAccount.isActive
+                                                        ? "현재 정상적으로 활동 가능한 상태입니다."
+                                                        : "계정이 정지되어 로그인이 불가능합니다."}
+                                                </span>
+                                            </div>
+                                            <div className="flex gap-2 w-full sm:w-auto">
+                                                {editorAccount.isActive && (
+                                                    <Button variant="default" size="sm" onClick={handleUpdate} disabled={isUpdating} className="flex-1 sm:flex-none">
+                                                        {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                        <Save className="h-4 w-4 mr-2" />
+                                                        정보 수정
+                                                    </Button>
+                                                )}
+                                                <Button
+                                                    variant={editorAccount.isActive ? "destructive" : "outline"}
+                                                    size="sm"
+                                                    onClick={() => toggleStatus()}
+                                                    disabled={isToggling}
+                                                    className={cn("flex-1 sm:flex-none", !editorAccount.isActive && "border-green-600 text-green-600 hover:bg-green-50")}
+                                                >
+                                                    {editorAccount.isActive ? (
+                                                        <> <Ban className="h-4 w-4 mr-2" /> 계정 비활성화 </>
+                                                    ) : (
+                                                        <> <Power className="h-4 w-4 mr-2" /> 계정 활성화 </>
+                                                    )}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    // B. 생성 모드 (데이터 없을 때)
+                                    // 블러 상태일 때도 이 레이아웃이 뒷배경으로 깔려있음 (단, 내용은 비어있음)
+                                    <div className="flex flex-col items-center justify-center py-10 text-center space-y-5 border-2 border-dashed rounded-xl bg-muted/5">
+                                        <div className="p-4 bg-background rounded-full shadow-sm ring-1 ring-border">
+                                            <UserPlus className="h-8 w-8 text-primary/60" />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <h3 className="font-semibold text-lg">편집자 계정 생성</h3>
+                                            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+                                                편집자 계정은 비공개 데이터 열람 권한이 부여됩니다.
+                                            </p>
+                                        </div>
+                                        <div className="w-full max-w-sm bg-card p-6 rounded-lg border shadow-sm space-y-4 text-left">
+                                            <div className="space-y-2">
+                                                <Label>아이디</Label>
+                                                <Input value={editId} onChange={(e) => setEditId(e.target.value)} placeholder="알파벳 소문자와 숫자의 조합 4자 이상" />
+                                            </div>
+                                            <div className="space-y-2">
                                                 <Label>비밀번호</Label>
                                                 <Input type="password" value={editPw} onChange={(e) => setEditPw(e.target.value)} placeholder="최소 8자 이상" />
                                             </div>
@@ -365,11 +379,11 @@ export function MySettingsTab({ channel, isOwner }: Props) {
                                             </Button>
                                         </div>
                                     </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                )
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
             )}
         </div>
     );

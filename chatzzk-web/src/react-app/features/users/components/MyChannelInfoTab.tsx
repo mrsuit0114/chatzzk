@@ -14,12 +14,13 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Save, Info, RotateCcw, AlertTriangle, Loader2 } from "lucide-react";
+import { Save, Info, RotateCcw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { StringListInput } from "./StringListInput";
 import { MyChannelData } from "@shared/types/channel";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { updateChannelMetadata } from "../api/myChannel";
+import { cn } from "@/lib/utils";
 
 interface Props {
     channel: MyChannelData; // 백엔드에서 받아온 실제 데이터
@@ -77,11 +78,6 @@ export function MyChannelInfoTab({ channel, isOwner }: Props) {
         saveMetadata(formData);
     };
 
-    // 핸들러: 되돌리기 (다이얼로그 오픈)
-    const handleResetClick = () => {
-        setIsResetDialogOpen(true);
-    };
-
     // 핸들러: 초기화 확정
     const handleConfirmReset = () => {
         setFormData({
@@ -95,29 +91,30 @@ export function MyChannelInfoTab({ channel, isOwner }: Props) {
     };
 
     return (
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <CardTitle>채널 분석 정보 수정</CardTitle>
-                            <CardDescription>
-                                AI가 방송 요약 및 하이라이트 분석 시 참고할 정보를 관리합니다.
+        <div className="space-y-6 pb-8">
+            <Card className="border-border/60 shadow-sm">
+                <CardHeader className="pb-4 border-b bg-muted/10">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="space-y-1">
+                            <CardTitle className="text-xl">채널 분석 정보 관리</CardTitle>
+                            <CardDescription className="max-w-2xl leading-relaxed">
+                                AI가 방송 내용을 분석하고 요약할 때 사용하는 핵심 메타데이터입니다.
                             </CardDescription>
                         </div>
                         {!isOwner && (
-                            <Badge variant="outline" className="text-orange-500 border-orange-200">
-                                <Info className="h-3 w-3 mr-1" /> 읽기 전용 모드 (편집자)
+                            <Badge variant="outline" className="h-8 px-3 text-orange-600 bg-orange-50 border-orange-200 gap-2">
+                                <Info className="h-3.5 w-3.5" />
+                                <span>읽기 전용 (편집자)</span>
                             </Badge>
                         )}
                     </div>
                 </CardHeader>
 
-                <CardContent className="space-y-8">
+                <CardContent className="space-y-10 py-8">
                     {/* 1. 스트리머 호칭 */}
                     <StringListInput
-                        label="스트리머 호칭 (Aliases)"
-                        description="방송에서 시청자로부터 불리는 별명이나 호칭을 입력하세요."
+                        label="스트리머 호칭"
+                        description="시청자로부터 불리는 호칭을 입력하세요. (반드시 입력할 것을 권장합니다.)"
                         items={formData.streamerNicknames}
                         onChange={(val) => setFormData(prev => ({ ...prev, streamerNicknames: val }))}
                         disabled={!isOwner}
@@ -125,61 +122,65 @@ export function MyChannelInfoTab({ channel, isOwner }: Props) {
 
                     {/* 2. 팬 호칭 */}
                     <StringListInput
-                        label="팬 호칭 (Fan Aliases)"
-                        description="시청자나 팬을 지칭하는 용어(팬덤 명)를 입력하세요."
+                        label="팬 호칭"
+                        description="스트리머가 시청자나 팬을 지칭하는 호칭을 입력하세요. (없는 경우 비워두세요.)"
                         items={formData.fanNicknames}
                         onChange={(val) => setFormData(prev => ({ ...prev, fanNicknames: val }))}
                         disabled={!isOwner}
                     />
 
-                    {/* 3. 성별 (한글 값 사용) */}
+                    {/* 3. 성별 */}
                     <div className="space-y-3">
-                        <div className="space-y-1">
-                            <Label className="text-base">스트리머 성별</Label>
-                        </div>
-                        <RadioGroup
-                            value={formData.streamerSex}
-                            onValueChange={(val) => isOwner && setFormData(prev => ({ ...prev, streamerSex: val }))}
-                            className="flex gap-6 pt-1"
-                            disabled={!isOwner}
-                        >
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="남성" id="male" />
-                                <Label htmlFor="male" className="cursor-pointer">남성</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="여성" id="female" />
-                                <Label htmlFor="female" className="cursor-pointer">여성</Label>
-                            </div>
-                        </RadioGroup>
+                        <Label className="text-base font-semibold">스트리머 성별</Label>
+                        <Card className="p-4 border bg-muted/20 w-fit">
+                            <RadioGroup
+                                value={formData.streamerSex}
+                                onValueChange={(val) => isOwner && setFormData(prev => ({ ...prev, streamerSex: val }))}
+                                className="flex gap-8"
+                                disabled={!isOwner}
+                            >
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="남성" id="male" />
+                                    <Label htmlFor="male" className={cn("cursor-pointer font-medium", !isOwner && "cursor-not-allowed opacity-70")}>남성</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="여성" id="female" />
+                                    <Label htmlFor="female" className={cn("cursor-pointer font-medium", !isOwner && "cursor-not-allowed opacity-70")}>여성</Label>
+                                </div>
+                            </RadioGroup>
+                        </Card>
                     </div>
 
                     {/* 4. 추가 정보 */}
                     <StringListInput
-                        label="추가 배경 정보"
-                        description="모든 방송에서 공통적으로 언급되는 정보나 스트리머에 대한 배경 지식을 입력하세요. (ex. 방송 주요 컨텐츠, 주변 인물 관계, rp, 컨셉, 팬덤 캐릭터 표현 등)"
+                        label="배경 지식 및 컨셉 - 가장 범용적인 정보를 우선하여 3개 이하 권장"
+                        description="자신의 대부분 방송에서 언급되어 AI가 참고할 맥락 정보를 입력하세요. ex) 주요 컨텐츠, 주변 인물 관계, RP, 스트리머 경력 등"
                         items={formData.additionalInfo}
                         onChange={(val) => setFormData(prev => ({ ...prev, additionalInfo: val }))}
                         disabled={!isOwner}
                     />
                 </CardContent>
 
-                {/* 하단 액션 버튼 (소유자만 표시) */}
                 {isOwner && (
-                    <CardFooter className="flex justify-between border-t p-6 bg-muted/20">
-                        {/* 되돌리기 버튼 */}
+                    <CardFooter className={cn(
+                        "flex justify-between border-t p-6 transition-colors duration-300 sticky bottom-0 z-10",
+                        isDirty ? "bg-primary/5 border-primary/20" : "bg-background"
+                    )}>
                         <Button
                             variant="ghost"
-                            onClick={handleResetClick}
+                            onClick={() => setIsResetDialogOpen(true)}
                             disabled={!isDirty || isPending}
-                            className="text-muted-foreground hover:text-destructive"
+                            className="text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                         >
                             <RotateCcw className="mr-2 h-4 w-4" />
-                            되돌리기
+                            초기화
                         </Button>
 
-                        {/* 저장 버튼 */}
-                        <Button onClick={handleSave} disabled={!isDirty || isPending}>
+                        <Button
+                            onClick={handleSave}
+                            disabled={!isDirty || isPending}
+                            className={cn(isDirty && "animate-pulse-subtle shadow-md")}
+                        >
                             {isPending ? (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             ) : (
@@ -191,24 +192,18 @@ export function MyChannelInfoTab({ channel, isOwner }: Props) {
                 )}
             </Card>
 
-            {/* 변경 취소 확인 다이얼로그 */}
             <AlertDialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle className="flex items-center gap-2">
-                            <AlertTriangle className="h-5 w-5 text-destructive" />
-                            변경 사항 초기화
-                        </AlertDialogTitle>
+                        <AlertDialogTitle>변경 사항 초기화</AlertDialogTitle>
                         <AlertDialogDescription>
-                            현재 수정 중인 모든 내용을 취소하고 마지막 저장 상태로 되돌리시겠습니까?
+                            수정 중인 모든 내용을 취소하고 마지막 저장 상태로 되돌리시겠습니까?<br />
+                            이 작업은 되돌릴 수 없습니다.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>취소</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleConfirmReset}
-                            className="bg-destructive hover:bg-destructive/90"
-                        >
+                        <AlertDialogAction onClick={handleConfirmReset} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                             초기화
                         </AlertDialogAction>
                     </AlertDialogFooter>

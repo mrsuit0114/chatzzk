@@ -34,7 +34,7 @@ export function HomePage() {
                     CHATZZK
                 </h1>
                 <p className="text-lg text-muted-foreground leading-relaxed max-w-lg mx-auto">
-                    지난 방송, 보고싶은 부분만 시청하세요.<br />
+                    지난 방송, 보고싶은 부분을 빠르게 탐색하세요.<br />
                     AI가 분석한 방송의 흐름과 핵심 요약을 제공합니다.
                 </p>
             </div>

@@ -48,7 +48,7 @@ export function SearchPage() {
                 {/* [좌측 광고 영역] */}
                 <aside className="hidden 2xl:block w-[160px] shrink-0">
                     <div className="sticky top-24 w-full h-[600px] bg-muted/30 border border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center text-xs text-muted-foreground">
-                        Ad (Left)
+                        Advertisement(Left)
                     </div>
                 </aside>
 
@@ -138,7 +138,7 @@ export function SearchPage() {
                 {/* [우측 광고 영역] */}
                 <aside className="hidden 2xl:block w-[160px] shrink-0">
                     <div className="sticky top-24 w-full h-[600px] bg-muted/30 border border-dashed border-muted-foreground/20 rounded-lg flex items-center justify-center text-xs text-muted-foreground">
-                        Ad (Right)
+                        Advertisement(Right)
                     </div>
                 </aside>
 

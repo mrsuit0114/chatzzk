@@ -92,7 +92,6 @@ export function GlobalSearchBar() {
                     {/* Value는 소문자 영어, 보여지는 텍스트는 한글 */}
                     <SelectItem value="all">전체</SelectItem>
                     <SelectItem value="chzzk">치지직</SelectItem>
-                    <SelectItem value="youtube">유튜브</SelectItem>
                 </SelectContent>
             </Select>
 

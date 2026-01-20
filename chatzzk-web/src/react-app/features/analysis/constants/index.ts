@@ -1,7 +1,7 @@
 // 상수에서 파생된 type은 함께 관리할 것
 export const VIEW_TYPE = {
-    HIGHLIGHT: "highlight",
-    INSIGHT: "insight",
+    HIGHLIGHT: { value: "highlight", label: "하이라이트" },
+    INSIGHT: { value: "insight", label: "상세 분석" },
 } as const;
 
 export type ViewType = typeof VIEW_TYPE[keyof typeof VIEW_TYPE];
