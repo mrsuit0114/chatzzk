@@ -41,7 +41,7 @@ export function BroadcastRecapSection({ chapters, allSegments }: BroadcastRecapS
                 </div>
 
                 {/* [Right] Segment List Container */}
-                <div className="md:col-span-6 lg:col-span-6 h-full overflow-hidden pl--2">
+                <div className="md:col-span-6 lg:col-span-6 h-full overflow-hidden -pl-2">
                     <SegmentList segments={currentSegments} />
                 </div>
 

@@ -64,8 +64,7 @@ export function DetailSection({
                 ) : (
                     // ✅ [초기 상태 처리] focusedTimestamp가 null일 때 안내 문구 표시
                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-1 select-none">
-                        <span className="text-sm font-medium">No Selection</span>
-                        <span className="text-xs opacity-70">Select a point on the Trend Chart</span>
+                        <span className="text-sm font-medium">선택된 챕터에 해당하는 차트가 여기에 표시됩니다.</span>
                     </div>
                 )}
             </div>
@@ -80,7 +79,7 @@ export function DetailSection({
                 ) : (
                     // ✅ [초기 상태] 데이터 로드 전 안내 문구
                     <div className="flex h-full items-center justify-center text-muted-foreground text-sm select-none opacity-50">
-                        Logs will appear here...
+                        챕터에 해당하는 방송 로그가 여기에 표시됩니다.
                     </div>
                 )}
             </div>

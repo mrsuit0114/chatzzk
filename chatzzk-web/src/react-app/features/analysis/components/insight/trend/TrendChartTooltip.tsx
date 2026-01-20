@@ -34,12 +34,12 @@ export const TrendChartTooltip = ({ active, payload }: any) => {
                         {ATMOSPHERE_LABELS[data.atmosphere as keyof typeof ATMOSPHERE_LABELS] || ATMOSPHERE_LABELS["neutral"]}
                     </span>
 
-                    <span>Volume</span>
+                    <span>화력</span>
                     <span className="font-mono text-slate-800">
                         {data.activeVolume.toFixed(2)}
                     </span>
 
-                    <span>Momentum</span>
+                    <span>변동성</span>
                     <span className="font-mono text-slate-800">
                         {data.activeMomentum.toFixed(2)}
                         <span className="ml-1 text-[11px] text-slate-400 font-normal">
@@ -47,7 +47,7 @@ export const TrendChartTooltip = ({ active, payload }: any) => {
                         </span>
                     </span>
 
-                    <span>Score</span>
+                    <span>평점</span>
                     <span className="font-mono text-slate-800">
                         {data.score?.toFixed(1) || "-"}
                     </span>
@@ -56,7 +56,7 @@ export const TrendChartTooltip = ({ active, payload }: any) => {
                 {/* 3. Keywords */}
                 {data.keywords && data.keywords.length > 0 && (
                     <div className="pt-2 border-t border-slate-100">
-                        <p className="text-[12px] text-muted-foreground mb-1.5 font-medium">Keywords</p>
+                        <p className="text-[12px] text-muted-foreground mb-1.5 font-medium">키워드</p>
                         <div className="flex flex-wrap gap-1  max-w-full">
                             {data.keywords.slice(0, 5).map((k: string, i: number) => (
                                 <span

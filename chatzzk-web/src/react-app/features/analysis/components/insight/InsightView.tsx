@@ -17,7 +17,7 @@ export function InsightView({ viewData, intervals }: InsightViewProps) {
     };
 
     return (
-        <div className="flex flex-col gap-3 p-4">
+        <div className="flex flex-col gap-2 p-2">
 
             {/* Top: Trend Section */}
             <SegmentTrendSection
@@ -29,7 +29,7 @@ export function InsightView({ viewData, intervals }: InsightViewProps) {
             />
 
             {/* Bottom Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[60vh] max-h-[800px]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 h-[60vh] max-h-[800px]">
                 <div className="col-span-6 border h-full overflow-hidden rounded">
                     <StructureListSection
                         data={viewData.segments}

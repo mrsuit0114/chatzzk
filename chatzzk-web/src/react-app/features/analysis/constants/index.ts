@@ -23,9 +23,9 @@ export const METRIC_TYPES = {
 export type MetricType = typeof METRIC_TYPES[keyof typeof METRIC_TYPES];
 
 export const METRIC_LABELS = {
-    summary: "Summary",
-    volPeak: "Volume Peak",
-    mmtPeak: "Momentum Peak",
+    summary: "세그먼트",
+    volPeak: "화력 피크",
+    mmtPeak: "변동성 피크",
 } as const;
 
 export const CHART_KEYS = {

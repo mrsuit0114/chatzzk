@@ -6,7 +6,7 @@ import { TrendToolbar } from "./TrendToolbar";
 import { SegmentSummaryData, ChapterSummaryData } from "../../../types";
 import { ChapterBlockRow } from "./ChapterBlockRow";
 import { TrendYAxis } from "./TrendYAxis";
-import { CHART_KEYS, MetricType } from "@/features/analysis/constants";
+import { CHART_KEYS, METRIC_TYPES, MetricType } from "@/features/analysis/constants";
 import { findSegmentIndexBinary, scaleMomentum } from "@/features/analysis/utils/chart-helper";
 
 const CHART_HEIGHT = 250;
@@ -36,7 +36,7 @@ export function SegmentTrendSection({
     focusedTimestamp,
     onChartClick
 }: SegmentTrendSectionProps) {
-    const [metricType, setMetricType] = useState<MetricType>("summary");
+    const [metricType, setMetricType] = useState<MetricType>(METRIC_TYPES.SUMMARY);
     const [isVisible, setIsVisible] = useState({ [CHART_KEYS.VOLUME]: true, [CHART_KEYS.MOMENTUM]: true });
     const [fillBar, setFillBar] = useState(false);
 
@@ -128,12 +128,6 @@ export function SegmentTrendSection({
         <section className="space-y-4 p-4 border rounded-lg bg-card shadow-sm flex flex-col">
             <div className="flex flex-col gap-4 shrink-0">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                        <h3 className="text-lg font-bold">Trend Analysis</h3>
-                        <p className="text-sm text-muted-foreground">
-                            세그먼트별 지표 흐름과 챕터 구성을 확인하세요.
-                        </p>
-                    </div>
                     <TrendToolbar
                         metricType={metricType}
                         onMetricChange={setMetricType}

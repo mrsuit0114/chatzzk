@@ -78,6 +78,7 @@ export function TrendChart({
             <Tooltip
                 content={<TrendChartTooltip />}
                 cursor={{ fill: "transparent" }} // 커서 배경 투명하게 (바 그래프 강조를 위해)
+                offset={60}
             />
 
             <ReferenceLine

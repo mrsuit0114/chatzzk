@@ -37,23 +37,17 @@ export function StructureListSection({
     const segmentsByChapter = useMemo(() => {
         const map = new Map<string, SegmentSummaryData[]>();
 
-        // 1. 맵 초기화
+        // 1. 맵 초기화 (챕터 순서 보장 및 빈 배열 생성)
         chapters.forEach(ch => map.set(ch.id, []));
 
-        // 2. 세그먼트 분류 (O(N))
-        // data가 시간순 정렬되어 있고, chapters도 시간순이라 가정하면 더 최적화 가능하지만
-        // 현재 로직(시간 비교)으로도 충분히 빠릅니다.
+        // 2. 세그먼트 분류 (chapterId 이용)
         data.forEach(seg => {
-            // 해당 세그먼트가 속할 챕터를 찾습니다.
-            // (대부분의 경우 segment 데이터에 chapterId가 있다면 그걸 쓰는 게 가장 빠릅니다)
-            // 현재는 시간 기준으로 매칭합니다.
-            const targetChapter = chapters.find(
-                ch => seg.startTime >= ch.startTime && seg.endTime <= ch.endTime
-            );
+            // 시간 비교 로직 제거 -> ID로 바로 조회
+            const list = map.get(seg.chapterId);
 
-            if (targetChapter) {
-                const list = map.get(targetChapter.id);
-                if (list) list.push(seg);
+            // 데이터 무결성을 위해 list가 존재할 때만 push
+            if (list) {
+                list.push(seg);
             }
         });
 
@@ -139,9 +133,13 @@ export function StructureListSection({
                                             onClick={() => onSeek(seg.startTime)}
                                             className={cn(
                                                 "cursor-pointer transition-all duration-200 rounded-lg border-2 mb-2 last:mb-0",
+                                                // ✅ [수정] 호버 효과 강화 그룹
+                                                "hover:border-primary/45 hover:bg-muted hover:shadow-sm",
+
+                                                // 활성/비활성 상태 스타일
                                                 isSegmentActive
-                                                    ? "border-primary/60 bg-primary/5 ring-1 ring-primary/20"
-                                                    : "border-transparent hover:bg-muted/50"
+                                                    ? "border-primary/60 bg-primary/5 shadow-sm"
+                                                    : "border-transparent" // 평소에는 투명 테두리 (레이아웃 밀림 방지)
                                             )}
                                         >
                                             <SegmentDetailCard data={seg} />

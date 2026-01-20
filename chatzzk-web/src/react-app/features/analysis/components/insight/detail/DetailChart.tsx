@@ -102,6 +102,7 @@ export function DetailChart({
                     <Tooltip
                         content={<DetailChartTooltip />}
                         cursor={{ fill: '#f1f5f9', opacity: 0.5 }}
+                        offset={30}
                     />
 
                     {segmentRange && (

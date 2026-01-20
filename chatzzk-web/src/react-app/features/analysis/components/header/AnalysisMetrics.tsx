@@ -66,7 +66,7 @@ export function AnalysisMetrics({ atmosphereRatio, avgScore }: AnalysisMetricsPr
 
             {/* 2. Avg Score */}
             <div className="flex flex-col items-end justify-center min-w-[3.5rem]">
-                <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-0.5">Avg Score</span>
+                <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-0.5">평점 평균</span>
                 <div className="flex items-center gap-1.5 text-xl font-bold text-foreground leading-none">
                     <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
                     <span className="tabular-nums tracking-tight">{avgScore.toFixed(1)}</span>
