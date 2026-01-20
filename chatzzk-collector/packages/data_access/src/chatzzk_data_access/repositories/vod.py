@@ -78,7 +78,7 @@ class VODRepository:
                 joinedload(VOD.channel, innerjoin=True).joinedload(Channel.platform, innerjoin=True)
             )
             .where(VOD.pipeline_status == status)
-            .order_by(VOD.created_at.asc())
+            .order_by(VOD.publish_date.asc())
             .limit(limit)
             # 2. of=VOD 옵션 추가
             # 조인된 테이블(Channel, Platform)은 건드리지 않고, 'VOD' 테이블의 행만 락을 겁니다.

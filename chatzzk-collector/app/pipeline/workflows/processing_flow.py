@@ -3,6 +3,7 @@ import os
 
 from prefect import flow, task
 from prefect.cache_policies import NO_CACHE
+from prefect.utilities.annotations import quote
 
 from app.pipeline.containers import AppContainer
 from chatzzk_core.constants import PlatformCode
@@ -13,152 +14,113 @@ PROCESSING_BATCH_SIZE = os.getenv("PROCESSING_BATCH_SIZE", 5)
 
 
 @task(cache_policy=NO_CACHE)
-async def task_dispatch_vod_info() -> list[TargetVODInfo]:
-    container = AppContainer(settings=Settings())
-    await container.init_resources()
-
-    try:
-        service = await container.service_package.vod_dispatch_service()
-        return await service.allocate_next_batch(PROCESSING_BATCH_SIZE)
-    finally:
-        await container.shutdown_resources()
+async def task_dispatch_vod_info(dispatch_service, batch_size: int) -> list[TargetVODInfo]:
+    return await dispatch_service.allocate_next_batch(batch_size)
 
 
 @task(cache_policy=NO_CACHE, tags=["limit-chat-collection"])
-async def task_collect_chat(vod_id: int, platform_code: PlatformCode, video_no: str, duration: int):
-    container = AppContainer(settings=Settings())
-    await container.init_resources()
-
-    try:
-        service_dict = await container.service_package.chat_collection_services()
-        service = service_dict[platform_code]
-        return await service.collect_and_save_chats(vod_id, video_no, duration)
-    finally:
-        await container.shutdown_resources()
+async def task_collect_chat(service, vod_id: int, video_no: str, duration: int):
+    return await service.collect_and_save_chats(vod_id, video_no, duration)
 
 
 @task(cache_policy=NO_CACHE, tags=["limit-audio-collection"])
-async def task_collect_audio(vod_id: int, platform_code: PlatformCode, video_no: str):
-    container = AppContainer(settings=Settings())
-    await container.init_resources()
-
-    try:
-        service_dict = await container.service_package.audio_collection_services()
-        service = service_dict[platform_code]
-        return await service.collect_and_save_audio(vod_id, video_no)
-    finally:
-        await container.shutdown_resources()
+async def task_collect_audio(service, vod_id: int, video_no: str):
+    return await service.collect_and_save_audio(vod_id, video_no)
 
 
 @task(cache_policy=NO_CACHE, tags=["limit-perform-vad"])
-async def task_perform_vad(vod_id: int):
-    container = AppContainer(settings=Settings())
-    await container.init_resources()
-
-    try:
-        service = await container.service_package.vad_service()
-        return await service.perform_vad(vod_id)
-    finally:
-        await container.shutdown_resources()
+async def task_perform_vad(service, vod_id: int):
+    return await service.perform_vad(vod_id)
 
 
 @task(cache_policy=NO_CACHE, tags=["limit-perform-asr"])
-async def task_perform_asr(vod_id: int):
-    container = AppContainer(settings=Settings())
-    await container.init_resources()
-
-    try:
-        service = await container.service_package.asr_service()
-        return await service.perform_asr(vod_id)
-    finally:
-        await container.shutdown_resources()
+async def task_perform_asr(service, vod_id: int):
+    return await service.perform_asr(vod_id)
 
 
 @task(cache_policy=NO_CACHE, tags=["limit-generate-summaries"])
-async def task_generate_summaries(vod_id: int, channel_id: int, platform_code: PlatformCode):
-    container = AppContainer(settings=Settings())
-    await container.init_resources()
-
-    try:
-        service = await container.service_package.llm_generation_service()
-        await service.generate_segment_summaries(platform_code, channel_id, vod_id)
-        return await service.generate_chapter_summaries(platform_code, channel_id, vod_id)
-    finally:
-        await container.shutdown_resources()
+async def task_generate_summaries(service, vod_id: int, channel_id: int, platform_code: PlatformCode):
+    await service.generate_segment_summaries(platform_code, channel_id, vod_id)
+    return await service.generate_chapter_summaries(platform_code, channel_id, vod_id)
 
 
 @task(cache_policy=NO_CACHE)
-async def task_process_analytics(vod_id: int, platform_code: PlatformCode):
-    container = AppContainer(settings=Settings())
-    await container.init_resources()
-
-    try:
-        service = await container.service_package.log_analytics_service()
-        return await service.process(vod_id, platform_code)
-    finally:
-        await container.shutdown_resources()
+async def task_process_analysis(service, vod_id: int, platform_code: PlatformCode):
+    return await service.process(vod_id, platform_code)
 
 
 @task(cache_policy=NO_CACHE)
-async def task_finalize_vod(vod_id: int):
-    container = AppContainer(settings=Settings())
-    await container.init_resources()
-
-    try:
-        service = await container.service_package.vod_publishing_service()
-        return await service.finalize_vod(vod_id)
-    finally:
-        await container.shutdown_resources()
+async def task_finalize_vod(service, vod_id: int):
+    return await service.finalize_vod(vod_id)
 
 
 @flow(name="Single VOD Pipeline", log_prints=True)
-async def process_single_vod(vod_info: TargetVODInfo):
+async def process_single_vod(vod_info: TargetVODInfo, services: dict):
     vod_id = vod_info.vod.id
     platform_code = vod_info.platform.platform_code
     video_no = vod_info.vod.video_no
     duration = vod_info.vod.duration
     channel_id = vod_info.channel.id
 
-    await task_collect_chat(vod_id, platform_code, video_no, duration)
-    await task_collect_audio(vod_id, platform_code, video_no)
-    await task_perform_vad(vod_id)
-    await task_perform_asr(vod_id)
-    await task_generate_summaries(vod_id, channel_id, platform_code)
-    await task_process_analytics(vod_id, platform_code)
-    await task_finalize_vod(vod_id)
+    # 주입받은 서비스 딕셔너리에서 필요한 서비스 추출 (quote 처리된 상태로 넘어옴)
+    await task_collect_chat(quote(services["chat"][platform_code]), vod_id, video_no, duration)
+    await task_collect_audio(quote(services["audio"][platform_code]), vod_id, video_no)
+    await task_perform_vad(quote(services["vad"]), vod_id)
+    await task_perform_asr(quote(services["asr"]), vod_id)
+    await task_generate_summaries(quote(services["llm"]), vod_id, channel_id, platform_code)
+    await task_process_analysis(quote(services["log"]), vod_id, platform_code)
+    await task_finalize_vod(quote(services["publish"]), vod_id)
 
 
 @flow(name="VOD Processing Entrypoint", log_prints=True)
 async def processing_flow():
-    vod_info_list = await task_dispatch_vod_info()
+    container = AppContainer(settings=Settings())
+    await container.init_resources()
 
-    if not vod_info_list:
-        print("No VODs to process.")
-        return
+    try:
+        # 1. 서비스들을 미리 로드
+        dispatch_service = await container.service_package.vod_dispatch_service()
+        services = {
+            "chat": await container.service_package.chat_collection_services(),
+            "audio": await container.service_package.audio_collection_services(),
+            "vad": await container.service_package.vad_service(),
+            "asr": await container.service_package.asr_service(),
+            "llm": await container.service_package.llm_generation_service(),
+            "log": await container.service_package.log_analysis_service(),
+            "publish": await container.service_package.vod_publishing_service(),
+        }
 
-    print(f"🚀 Starting parallel processing for {len(vod_info_list)} VODs...")
+        # 2. 배치 할당
+        vod_info_list = await task_dispatch_vod_info(quote(dispatch_service), PROCESSING_BATCH_SIZE)
 
-    # 1. Coroutine 리스트 생성 (아직 실행 안 됨)
-    sub_flow_coroutines = [process_single_vod(vod_info) for vod_info in vod_info_list]
+        if not vod_info_list:
+            print("No VODs to process.")
+            return
 
-    # 2. asyncio.gather로 동시 실행 및 결과 대기
-    # return_exceptions=True: 하나가 실패해도 멈추지 않고, 에러 객체를 결과 리스트에 포함시킴
-    results = await asyncio.gather(*sub_flow_coroutines, return_exceptions=True)
+        # 3. 병렬 실행 시 서비스 뭉치를 함께 전달
+        sub_flow_coroutines = [
+            process_single_vod(vod_info, services)  # dict 자체는 직렬화 필요 없음 (Sub-flow 호출이므로)
+            for vod_info in vod_info_list
+        ]
 
-    successful = []
-    failed = []
+        results = await asyncio.gather(*sub_flow_coroutines, return_exceptions=True)
 
-    # 3. 결과 분류 (Exception 타입인지 확인)
-    for result in results:
-        if isinstance(result, Exception):
-            failed.append(result)
-            print(f"❌ Sub-flow failed with error: {result}")
-        else:
-            successful.append(result)
+        successful = []
+        failed = []
 
-    print(f"✅ Processed {len(successful)} items successfully")
-    if failed:
-        print(f"⚠️ Failed to process {len(failed)} items")
+        # 3. 결과 분류 (Exception 타입인지 확인)
+        for result in results:
+            if isinstance(result, Exception):
+                failed.append(result)
+                print(f"❌ Sub-flow failed with error: {result}")
+            else:
+                successful.append(result)
+
+        print(f"✅ Processed {len(successful)} items successfully")
+        if failed:
+            print(f"⚠️ Failed to process {len(failed)} items")
+    finally:
+        await container.shutdown_resources()
 
 
 if __name__ == "__main__":

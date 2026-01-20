@@ -17,7 +17,7 @@ no-asr-inference = [
     "chatzzk_clients[ml-backend]",
     "chatzzk_clients[media-tools]",
     "chatzzk_clients[llm-generation]",
-    "chatzzk_clients[analytics]",
+    "chatzzk_clients[analysis]",
 ]
 
 http-core = [
@@ -58,7 +58,7 @@ llm-generation = [
     "langfuse>=3.10.1",
 ]
 
-analytics = [
+analysis = [
     "pandas>=2.3.3",
     "scipy>=1.16.3",
 ]

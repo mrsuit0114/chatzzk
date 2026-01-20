@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -63,10 +63,14 @@ class ChzzkVODDiscoveryService:
 
     async def scan_new_vods(self, target_channel: dict) -> tuple[list[ChzzkVODMeta], datetime]:
         # 수집해야할 vod 리스트와 탐색 datetime(utc)를 반환
-        platform_channel_id = target_channel["platform_channel_id"]
-        last_crawled_at = target_channel["last_vod_crawled_at"]
-
         now_utc = datetime.now(UTC)
+
+        platform_channel_id = target_channel["platform_channel_id"]
+        last_crawled_at = (
+            target_channel["last_vod_crawled_at"]
+            if target_channel["last_vod_crawled_at"]
+            else now_utc - timedelta(days=3)
+        )
 
         recent_vods = await self.chzzk_api_client.fetch_recent_vod_metas(
             platform_channel_id, collect_after=last_crawled_at

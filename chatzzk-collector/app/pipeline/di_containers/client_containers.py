@@ -8,7 +8,7 @@ from loguru import logger
 from openai import AsyncOpenAI
 
 from chatzzk_clients._http import AioHTTPClient
-from chatzzk_clients.analytics import StreamStatsCalculator
+from chatzzk_clients.analysis import StreamStatsCalculator
 from chatzzk_clients.chzzk import ChzzkAPIClient
 from chatzzk_clients.llm import ContextAssembler, LLMClient, PromptManager
 from chatzzk_clients.media import MediaProcessor
