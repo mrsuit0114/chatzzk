@@ -167,11 +167,14 @@ function VodCollectConditionTooltip() {
                             <div className="space-y-1.5">
                                 <h4 className="font-bold text-foreground text-sm">노출 및 공개 정책</h4>
                                 <div className="text-xs text-muted-foreground space-y-1 leading-relaxed">
+                                    <p className="text-sm font-medium text-foreground">
+                                        분석에는 다소 시간이 소요되며 완료된 데이터만 노출됩니다.
+                                    </p>
                                     <p>
                                         채널 소유자가 <span className="text-foreground font-medium">데이터 공개를 허용</span>한 경우에만 분석 결과가 노출됩니다.
                                     </p>
                                     <p className="text-xs text-muted-foreground/80">
-                                        * 소유자 설정에 따라 특정 VOD는 비공개될 수 있습니다.
+                                        * 공개를 허용하더라도 채널 소유자 설정에 따라 특정 VOD는 비공개될 수 있습니다.
                                     </p>
                                 </div>
                             </div>

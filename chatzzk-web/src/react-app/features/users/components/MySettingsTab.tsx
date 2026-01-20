@@ -139,7 +139,7 @@ export function MySettingsTab({ channel, isOwner }: Props) {
                     <div className="flex justify-between items-start">
                         <div className="space-y-1">
                             <CardTitle>채널 운영 설정</CardTitle>
-                            <CardDescription>데이터 수집 활성화 여부 및 분석 결과의 공개 시점을 제어합니다.</CardDescription>
+                            <CardDescription>데이터 수집 활성화 여부 및 분석 결과의 공개 시점을 제어합니다. 플랫폼에 게시된 시점을 기준으로 합니다.</CardDescription>
                         </div>
                         {!isOwner && (
                             <Badge variant="outline" className="text-orange-600 bg-orange-50 border-orange-200 gap-1.5 h-7">
@@ -168,8 +168,8 @@ export function MySettingsTab({ channel, isOwner }: Props) {
                         {/* VOD 요약 공개 시점 */}
                         <div className="space-y-3">
                             <div className="space-y-1">
-                                <Label className="text-base font-medium">VOD 요약 공개 시점</Label>
-                                <p className="text-xs text-muted-foreground">방송 종료 후 일반 사용자에게 요약본이 노출되기까지의 대기 시간입니다.</p>
+                                <Label className="text-base font-medium">방송 요약 공개 시점</Label>
+                                <p className="text-xs text-muted-foreground">일반 사용자에게 노출되기까지의 대기 시간입니다.</p>
                             </div>
                             <Select
                                 value={settings.vodExposureDelayHours}
@@ -191,7 +191,7 @@ export function MySettingsTab({ channel, isOwner }: Props) {
                         <div className="space-y-3">
                             <div className="space-y-1">
                                 <Label className="text-base font-medium">상세 분석 공개 시점</Label>
-                                <p className="text-xs text-muted-foreground">VOD의 상세 분석(감정, 키워드 등) 데이터가 노출되기까지의 대기 시간입니다.</p>
+                                <p className="text-xs text-muted-foreground">일반 사용자에게 상세 분석이 허용되기까지의 시간입니다.</p>
                             </div>
                             <Select
                                 value={settings.vodDetailExposureDelayHours}
