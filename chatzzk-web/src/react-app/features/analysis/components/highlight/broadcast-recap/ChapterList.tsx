@@ -23,7 +23,7 @@ export function ChapterList({ chapters, selectedChapterId, onSelectChapter }: Ch
     return (
         <div className="flex flex-col h-full overflow-hidden">
             <div className="flex-none flex items-center justify-between pb-4 border-b bg-background">
-                <h3 className="text-lg font-bold">Chapters</h3>
+                <h3 className="text-lg font-bold">챕터</h3>
                 <Button variant="ghost" size="sm" onClick={handleToggleAll} className="h-7 text-xs text-muted-foreground hover:text-foreground">
                     {isAllOpen ? <><ChevronUp className="mr-1 h-3 w-3" /> 모두 접기</> : <><ChevronDown className="mr-1 h-3 w-3" /> 모두 펴기</>}
                 </Button>

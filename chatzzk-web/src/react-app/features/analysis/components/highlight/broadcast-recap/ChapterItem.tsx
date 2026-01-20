@@ -13,7 +13,6 @@ interface ChapterItemProps {
 
 export function ChapterItem({ chapter, isSelected, isOpen, onSelect }: ChapterItemProps) {
 
-    // 헤더 클릭 핸들러: 닫혀있을 때만 선택(Focus) 트리거
     const handleTriggerClick = () => {
         if (!isOpen) {
             onSelect();
@@ -24,35 +23,53 @@ export function ChapterItem({ chapter, isSelected, isOpen, onSelect }: ChapterIt
         <AccordionItem
             value={chapter.id}
             className={cn(
-                "border rounded-lg px-3 transition-all duration-200 bg-card",
+                "group/item border rounded-lg px-3 transition-all duration-300 mb-2 overflow-hidden",
+                // ✅ 선택된 상태 디자인 강화
                 isSelected
-                    ? "bg-primary/5 border-primary ring-1 ring-primary/30 shadow-sm"
-                    : "hover:border-primary/50"
+                    ? "border-primary shadow-sm ring-1 ring-primary/20"
+                    : "bg-card hover:border-primary/50"
             )}
         >
             <AccordionTrigger
                 onClick={handleTriggerClick}
-                className="py-3 hover:no-underline group"
+                className="py-3 hover:no-underline"
             >
-                <div className="flex flex-col items-start text-left gap-1">
-                    <span className="text-xs font-mono text-muted-foreground flex items-center gap-1 group-hover:text-primary transition-colors">
-                        <Clock className="h-3 w-3" />
-                        {formatTime(chapter.startTime)} ~ {formatTime(chapter.endTime)}
-                    </span>
-                    <span className="font-semibold text-sm line-clamp-2 break-keep group-data-[state=open]:line-clamp-none transition-all">
+                <div className="flex flex-col items-start text-left gap-1.5 w-full">
+                    <div className="flex items-center justify-between w-full pr-2">
+                        <span className={cn(
+                            "text-xs font-mono flex items-center gap-1 transition-colors",
+                            isSelected ? "text-primary font-bold" : "text-muted-foreground group-hover/item:text-primary"
+                        )}>
+                            <Clock className="h-3 w-3" />
+                            {formatTime(chapter.startTime)} ~ {formatTime(chapter.endTime)}
+                        </span>
+                    </div>
+
+                    <span className={cn(
+                        "text-sm font-semibold leading-tight break-keep transition-all",
+                        isOpen ? "line-clamp-none" : "line-clamp-1"
+                    )}>
                         {chapter.title}
                     </span>
                 </div>
             </AccordionTrigger>
 
             <AccordionContent
-                className="pb-3 cursor-default"
-                // 내용은 보이는 상태에서 클릭하는 것이므로 무조건 선택(Focus)
-                onClick={onSelect}
+                className="pb-4 cursor-pointer"
+                onClick={(e) => {
+                    e.stopPropagation(); // 아코디언 동작 방지 (필요 시)
+                    onSelect();
+                }}
             >
-                <p className="text-sm text-muted-foreground leading-relaxed hover:text-foreground transition-colors cursor-pointer">
+                <div className={cn(
+                    "relative transition-all duration-300 text-sm leading-relaxed",
+                    // ✅ [요청 반영] 선택 시 텍스트 뚜렷하게 (text-foreground), 아닐 땐 흐리게
+                    isSelected
+                        ? "border-primary text-foreground font-medium"
+                        : "border-border text-muted-foreground hover:text-foreground"
+                )}>
                     {chapter.summary}
-                </p>
+                </div>
             </AccordionContent>
         </AccordionItem>
     );

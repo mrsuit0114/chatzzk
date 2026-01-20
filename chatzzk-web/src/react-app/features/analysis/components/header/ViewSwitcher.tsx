@@ -1,4 +1,4 @@
-import { Lock } from "lucide-react";
+import { LineChart, Lock, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VIEW_TYPE, ViewType } from "../../constants";
 
@@ -11,67 +11,47 @@ interface ViewSwitcherProps {
 
 export function ViewSwitcher({ currentView, onChange, isInsightLocked }: ViewSwitcherProps) {
 
-    // ✅ 토글 핸들러: 현재 상태를 확인하고 반대로 뒤집습니다.
-    const handleToggle = () => {
-        if (currentView === VIEW_TYPE.HIGHLIGHT) {
-            // Highlight -> Insight 시도
-            if (isInsightLocked) {
-                // 잠겨있으면 차단 (부모 페이지에서 toast를 띄우겠지만 여기서도 방어)
-                return;
-            }
-            onChange(VIEW_TYPE.INSIGHT);
+    const handleSwitch = () => {
+        if (isInsightLocked) return;
+        if (currentView === VIEW_TYPE.INSIGHT) {
+            onChange(VIEW_TYPE.HIGHLIGHT); // 부모로 전달 (부모에서 잠금 체크 및 Toast 처리)
         } else {
-            // Insight -> Highlight
-            onChange(VIEW_TYPE.HIGHLIGHT);
+            onChange(VIEW_TYPE.INSIGHT);
         }
     };
 
-    // 잠김 상태에서의 커서 스타일 처리
-    const isLockedAndHighlight = currentView === VIEW_TYPE.HIGHLIGHT && isInsightLocked;
-
     return (
-        <div
-            // ✅ 컨테이너 전체에 클릭 이벤트 부여
-            onClick={handleToggle}
-            className={cn(
-                "relative flex items-center p-1 bg-muted rounded-lg border h-9 transition-colors select-none",
-                // 잠겨있지 않거나, 이미 Insight 뷰라면 포인터 커서 / 잠겨있고 Highlight 뷰라면 금지 커서
-                !isLockedAndHighlight ? "cursor-pointer hover:bg-muted/80" : "cursor-not-allowed opacity-80"
-            )}
-            role="button" // 접근성을 위해 버튼 역할 명시
-            tabIndex={0}  // 키보드 탭 접근 가능하게 설정
-            onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    handleToggle();
-                }
-            }}
-        >
-            {/* Highlight Label (Visual Only) */}
-            <div
+        <div className="flex p-1 bg-muted rounded-lg border h-9 select-none relative mr-2">
+            {/* 1. Highlight Tab */}
+            <button
+                type="button"
+                onClick={handleSwitch}
                 className={cn(
-                    "relative z-10 px-3 py-1 text-xs font-semibold transition-all duration-200 rounded-md flex items-center gap-2 h-full justify-center min-w-[80px]",
+                    "relative z-10 flex items-center justify-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all duration-200 min-w-[90px]",
                     currentView === VIEW_TYPE.HIGHLIGHT
-                        ? "bg-background text-foreground shadow-sm"
-                        : "text-muted-foreground"
+                        ? "bg-background text-foreground shadow-sm ring-1 ring-border/50"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted-foreground/10"
                 )}
             >
-                Highlight
-            </div>
+                <Sparkles className="h-3.5 w-3.5" />
+                {VIEW_TYPE.HIGHLIGHT.label}
+            </button>
 
-            {/* Insight Label (Visual Only) */}
-            <div
+            {/* 2. Insight Tab */}
+            <button
+                type="button"
+                onClick={handleSwitch}
                 className={cn(
-                    "relative z-10 px-3 py-1 text-xs font-semibold transition-all duration-200 rounded-md flex items-center gap-2 h-full justify-center min-w-[80px]",
+                    "relative z-10 flex items-center justify-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all duration-200 min-w-[90px]",
                     currentView === VIEW_TYPE.INSIGHT
-                        ? "bg-background text-primary shadow-sm"
-                        : "text-muted-foreground"
+                        ? "bg-background text-primary shadow-sm ring-1 ring-border/50"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted-foreground/10",
+                    isInsightLocked && "opacity-80"
                 )}
             >
-                {/* 잠겨있을 때 자물쇠 아이콘 표시 */}
-                {isInsightLocked && <Lock className="h-3 w-3" />}
-                Insight
-            </div>
+                {isInsightLocked ? <Lock className="h-3.5 w-3.5" /> : <LineChart className="h-3.5 w-3.5" />}
+                {VIEW_TYPE.INSIGHT.label}
+            </button>
         </div>
     );
 }

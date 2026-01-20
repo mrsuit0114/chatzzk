@@ -18,33 +18,27 @@ interface AnalysisMetricsProps {
 export function AnalysisMetrics({ atmosphereRatio, avgScore }: AnalysisMetricsProps) {
     // 점수 높은 순 정렬 후 Top 3 추출
     const sortedAtmospheres = Object.entries(atmosphereRatio)
-        .map(([type, score]) => {
-            const atmosphere = KOREAN_TO_ATMOSPHERE[type] as Atmosphere;
-
-            return {
-                type: atmosphere,
-                score,
-                label: ATMOSPHERE_LABELS[atmosphere],
-            };
+        .map(([key, score]) => {
+            // 한글 키 -> 영문 Enum 변환 (매핑 없으면 그대로 사용하거나 fallback)
+            const type = (KOREAN_TO_ATMOSPHERE[key] || key) as Atmosphere;
+            const label = ATMOSPHERE_LABELS[type] || key;
+            return { type, score, label };
         })
         .sort((a, b) => b.score - a.score);
+
     const top3 = sortedAtmospheres.slice(0, 3);
 
     return (
-        <div className="flex items-center gap-3 bg-secondary/10 px-3 py-1 rounded-lg border border-border/50 h-15">
+        <div className="flex items-center gap-3 bg-secondary/20 px-3 py-1.5 rounded-lg border border-border/60 h-auto min-h-[3rem]">
             {/* 1. 분위기 비율 (Tooltip) */}
-            <TooltipProvider delayDuration={100}>
+            <TooltipProvider delayDuration={0}>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        {/* asChild 사용 시, 내부에 단 하나의 자식 요소만 있어야 하며 ref 전달이 가능해야 함 */}
-                        <div className="flex flex-col justify-center gap-[1px] cursor-help">
+                        <div className="flex flex-col justify-center gap-0.5 cursor-help select-none">
                             {top3.map((item) => (
-                                // ✅ 수정 1: key를 item.label -> item.type으로 변경 (유니크 보장)
-                                <div key={item.type} className="flex items-center justify-between w-[4.5rem]">
-                                    <div className="flex items-center gap-1.5 overflow-hidden">
-                                        <span className="text-[10px] text-muted-foreground truncate">{item.label}</span>
-                                    </div>
-                                    <span className="text-[10px] font-medium tabular-nums text-foreground">
+                                <div key={item.type} className="flex items-center justify-between w-[5rem] text-[10px] leading-tight">
+                                    <span className="text-muted-foreground truncate max-w-[3rem]">{item.label}</span>
+                                    <span className="font-semibold tabular-nums text-foreground">
                                         {item.score.toFixed(1)}%
                                     </span>
                                 </div>
@@ -68,14 +62,14 @@ export function AnalysisMetrics({ atmosphereRatio, avgScore }: AnalysisMetricsPr
                 </Tooltip>
             </TooltipProvider>
 
-            <Separator orientation="vertical" className="h-6" />
+            <Separator orientation="vertical" className="h-8 bg-border/60" />
 
             {/* 2. Avg Score */}
-            <div className="flex flex-col items-end justify-center leading-none min-w-[3rem]">
-                <span className="text-[9px] text-muted-foreground font-medium uppercase tracking-wider mb-0.5">Avg Score</span>
-                <div className="flex items-center gap-1 text-lg font-bold text-foreground">
-                    <Star className="h-3.5 w-3.5 text-yellow-500 fill-yellow-500" />
-                    <span className="tabular-nums">{avgScore.toFixed(1)}</span>
+            <div className="flex flex-col items-end justify-center min-w-[3.5rem]">
+                <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-0.5">Avg Score</span>
+                <div className="flex items-center gap-1.5 text-xl font-bold text-foreground leading-none">
+                    <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                    <span className="tabular-nums tracking-tight">{avgScore.toFixed(1)}</span>
                 </div>
             </div>
         </div>

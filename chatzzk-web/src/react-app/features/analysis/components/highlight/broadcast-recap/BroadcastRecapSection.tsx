@@ -2,6 +2,9 @@ import { useState, useMemo } from "react";
 import { ChapterList } from "./ChapterList";
 import { SegmentList } from "./SegmentList";
 import { ChapterSummaryData, SegmentSummaryData } from "@/features/analysis/types";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { Info } from "lucide-react";
 
 interface BroadcastRecapSectionProps {
     chapters: ChapterSummaryData[];
@@ -20,16 +23,16 @@ export function BroadcastRecapSection({ chapters, allSegments }: BroadcastRecapS
     return (
         <section className="space-y-4 pt-6 border-t">
             <div className="space-y-1 px-1">
-                <h2 className="text-xl font-bold tracking-tight">Broadcast Recap</h2>
-                <p className="text-sm text-muted-foreground">
-                    방송의 전체 흐름(Chapter)과 상세 내용(Segment)을 시간 순서대로 확인하세요.
-                </p>
+                <h2 className="text-xl font-bold tracking-tight flex items-center gap-2">
+                    방송 전체 요약
+                    <RecapTooltip />
+                </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 h-[80vh] min-h-[600px]">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 h-[80vh] min-h-[600px]">
 
                 {/* [Left] Chapter List Container */}
-                <div className="md:col-span-6 lg:col-span-6 h-full border-r pr-4 overflow-hidden">
+                <div className="md:col-span-6 lg:col-span-6 h-full border-r pr-2 overflow-hidden">
                     <ChapterList
                         chapters={chapters}
                         selectedChapterId={selectedChapterId}
@@ -38,11 +41,65 @@ export function BroadcastRecapSection({ chapters, allSegments }: BroadcastRecapS
                 </div>
 
                 {/* [Right] Segment List Container */}
-                <div className="md:col-span-6 lg:col-span-6 h-full overflow-hidden">
+                <div className="md:col-span-6 lg:col-span-6 h-full overflow-hidden pl--2">
                     <SegmentList segments={currentSegments} />
                 </div>
 
             </div>
         </section>
     );
+}
+
+function RecapTooltip() {
+    return (
+        <TooltipProvider delayDuration={100}>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full text-muted-foreground hover:text-primary transition-colors">
+                        <Info className="h-4 w-4" />
+                    </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right" align="start" className="max-w-[320px] p-4 bg-popover/95 backdrop-blur shadow-xl text-xs space-y-4 border">
+
+                    {/* 1. 구조 설명 */}
+                    <div className="space-y-2">
+                        <h4 className="font-bold text-foreground flex items-center gap-1.5">
+                            📚 요약 구성 단위
+                        </h4>
+                        <ul className="space-y-2 text-muted-foreground">
+                            <li className="flex gap-2 items-start">
+                                <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 mt-0.5">
+                                    1시간
+                                </span>
+                                <div className="leading-relaxed">
+                                    <span className="text-foreground font-medium">챕터 (Chapter)</span>
+                                    <br />방송의 전체적인 큰 흐름을 파악하는 단위입니다.
+                                </div>
+                            </li>
+                            <li className="flex gap-2 items-start">
+                                <span className="bg-secondary text-secondary-foreground px-1.5 py-0.5 rounded text-[10px] font-bold shrink-0 mt-0.5">
+                                    5분
+                                </span>
+                                <div className="leading-relaxed">
+                                    <span className="text-foreground font-medium">세그먼트 (Segment)</span>
+                                    <br />주요 사건과 대화를 상세하게 기록한 단위입니다.
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    {/* 2. 사용 방법 (인터랙션) */}
+                    <div className="space-y-1 pt-2 border-t border-border/50">
+                        <h4 className="font-bold text-foreground mb-1">💡 사용 팁</h4>
+                        <p className="text-muted-foreground leading-relaxed">
+                            흥미로워 보이는 <span className="text-foreground font-semibold decoration-wavy decoration-primary/50">챕터를 클릭</span>해보세요.
+                            <br />
+                            해당 시간대에 포함된 상세 세그먼트들이 <span className="text-foreground font-medium">우측 화면</span>에 나타납니다.
+                        </p>
+                    </div>
+
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
+    )
 }

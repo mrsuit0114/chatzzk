@@ -40,11 +40,11 @@ export function MomentCard({ data, interval, sortBy, onClick }: MomentCardProps)
             {/* Header (높이 고정됨) */}
             <CardHeader className="p-3 pb-2 flex flex-row items-center justify-between space-y-0">
                 <div className="flex items-center gap-1.5">
-                    <div className="flex items-center gap-1 text-xs font-mono font-medium text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded">
+                    <div className="flex items-center gap-1 text-xs font-mono font-medium text-foreground bg-muted/80 px-1.5 py-0.5 rounded">
                         <Clock className="h-3 w-3" />
                         <span>{formatTime(data.startTime)}</span>
                     </div>
-                    <div className="flex items-center text-[10px] text-muted-foreground/70">
+                    <div className="flex items-center text-[11px] text-foreground/70">
                         <Timer className="h-3 w-3 mr-0.5" />
                         <span>{formatInterval(interval)}</span>
                     </div>
@@ -77,9 +77,9 @@ export function MomentCard({ data, interval, sortBy, onClick }: MomentCardProps)
 
                 {/* 2. Keywords (Fixed Position relative to bottom content) */}
                 {/* mt-2로 상단(Summary)과의 최소 간격 유지 */}
-                <div className="flex flex-wrap gap-1.5 mt-2 mb-3 h-[16px] overflow-hidden">
+                <div className="flex flex-wrap gap-1.5 mt-2 mb-3 h-[18px] overflow-hidden">
                     {data.keywords.map((keyword) => (
-                        <span key={keyword} className="text-[10px] px-1.5 py-0.5 bg-secondary/50 rounded text-muted-foreground whitespace-nowrap">
+                        <span key={keyword} className="text-[12px] px-1.5 py-0.5 bg-secondary/50 rounded text-muted-foreground whitespace-nowrap">
                             #{keyword}
                         </span>
                     ))}
@@ -88,7 +88,7 @@ export function MomentCard({ data, interval, sortBy, onClick }: MomentCardProps)
                 {/* 3. Footer (Fixed Height) */}
                 <div className="mt-auto">
                     <Separator className="mb-2" />
-                    <div className="bg-secondary/10 -mx-1 px-2 py-1.5 rounded flex items-center justify-between">
+                    <div className="bg-secondary/10 -mx-1 px-2 py-1 rounded flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                             <span className="text-[10px] uppercase font-bold tracking-wider opacity-70">Peak</span>
                             <span className="font-mono font-medium text-foreground">
