@@ -112,10 +112,10 @@ export function ChannelProvisionPage() {
                                     name="userId"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>아이디 (User ID)</FormLabel>
+                                            <FormLabel htmlFor="user-id">아이디 (User ID)</FormLabel>
                                             <FormControl>
                                                 <div className="flex items-center gap-2">
-                                                    <Input placeholder="chimchak_man" {...field} />
+                                                    <Input id="user-id" type="text" placeholder="chimchak_man" {...field} />
                                                     <span className="text-sm text-muted-foreground whitespace-nowrap">
                                                         @{AUTH_DOMAIN}
                                                     </span>
