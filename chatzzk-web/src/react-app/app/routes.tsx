@@ -33,22 +33,22 @@ const router = createBrowserRouter(
                 <Route path="/:platformId" element={<PlatformPage />} />
                 <Route path="/:platformId/channel/:channelId" element={<ChannelPage />} />
                 <Route path="/:platformId/analysis/:videoNo" element={<VodAnalysisPage />} />
+                <Route path="/admin" element={
+                    <AdminGuard>   {/* 2차: 권한 체크 */}
+                        <AdminLayout /> {/* 3차: 레이아웃 렌더링 */}
+                    </AdminGuard>
+                }>
+                    {/* /admin 접속 시 자동으로 provision으로 이동 */}
+                    <Route index element={<Navigate to="provision" replace />} />
+
+                    {/* /admin/provision 경로 매핑 */}
+                    <Route path="provision" element={<ChannelProvisionPage />} />
+
+                    {/* 추후 추가될 경로들 */}
+                    {/* <Route path="channels" element={<ChannelListPage />} /> */}
+                </Route>
             </Route>
 
-            <Route path="/admin" element={
-                <AdminGuard>   {/* 2차: 권한 체크 */}
-                    <AdminLayout /> {/* 3차: 레이아웃 렌더링 */}
-                </AdminGuard>
-            }>
-                {/* /admin 접속 시 자동으로 provision으로 이동 */}
-                <Route index element={<Navigate to="provision" replace />} />
-
-                {/* /admin/provision 경로 매핑 */}
-                <Route path="provision" element={<ChannelProvisionPage />} />
-
-                {/* 추후 추가될 경로들 */}
-                {/* <Route path="channels" element={<ChannelListPage />} /> */}
-            </Route>
 
             {/* ✅ Auth Layout (헤더/사이드바 없는 페이지) */}
             <Route path="/login" element={<LoginPage />} />

@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import dayjs from "dayjs";
 
 // 파라미터 타입 정의
 type GetVodsParams = {
@@ -22,13 +23,20 @@ type VodResponse = {
 };
 
 export const getVods = async ({ platform, page, query, from, to, channelId }: GetVodsParams): Promise<VodResponse> => {
+    const fromDateUTC = from
+        ? dayjs(from).startOf('day').toISOString()
+        : undefined;
+    const toDateUTC = to
+        ? dayjs(to).endOf('day').toISOString()
+        : undefined;
+
     const response = await api.get('/vods', {
         params: {
             platform,
             page,
             query,
-            from: from?.toString(),
-            to: to?.toString(),
+            from: fromDateUTC,
+            to: toDateUTC,
             channelId,
         },
     });

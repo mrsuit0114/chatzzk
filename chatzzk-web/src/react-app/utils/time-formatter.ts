@@ -1,5 +1,4 @@
-import { format } from "date-fns";
-import { ko } from "date-fns/locale";
+import dayjs from "dayjs";
 
 export const formatVideoTime = (ms: number): string => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -25,17 +24,9 @@ export const formatInterval = (ms: number) => {
 };
 
 export const formatDateKo = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return format(date, "yyyy.MM.dd", { locale: ko });
+    return dayjs(dateStr).format("YYYY.MM.DD");
 }
 
 export const formatDateTimeKo = (dateStr: string | null) => {
-    const date = dateStr ? new Date(dateStr).toLocaleString('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-    }) : "";
-    return date;
+    return dayjs(dateStr).format("YYYY.MM.DD HH:mm");
 }
