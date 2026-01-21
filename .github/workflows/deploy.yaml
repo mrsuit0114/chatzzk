@@ -16,6 +16,10 @@ jobs:
     # main이면 'Production', 아니면 'Development' 환경의 변수를 가져옵니다.
     environment: ${{ github.ref == 'refs/heads/main' && 'Production' || 'Development' }}
 
+    defaults:
+      run:
+        working-directory: ./chatzzk-web
+
     steps:
       - uses: actions/checkout@v4
 
