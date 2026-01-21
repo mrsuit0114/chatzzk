@@ -1,18 +1,21 @@
 // src/react-app/app/routes.tsx
 import { createBrowserRouter, Route, createRoutesFromElements, RouterProvider, Navigate } from "react-router-dom";
-import { MainLayout } from "@/components/layout/MainLayout";
+import { lazy, Suspense } from "react"
 
-import { HomePage } from "@/features/home/routes/HomePage";
-import { SearchPage } from "@/features/search/routes/SearchPage";
-import { PlatformPage } from "@/features/platform/routes/PlatformPage";
-import { ChannelPage } from "@/features/channel/routes/ChannelPage";
-import { LoginPage } from "@/features/auth/routes/LoginPage";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
-import { MyPage } from "@/features/users/routes/MyPage";
-import { VodAnalysisPage } from "@/features/analysis/routes/VodAnalysisPage";
 import { AdminGuard } from "@/features/admin/AdminGuard";
 import { AdminLayout } from "@/features/admin/layout/AdminLayout";
-import { ChannelProvisionPage } from "@/features/admin/routes/ChannelProvisionPage";
+import { Loader2 } from "lucide-react";
+
+const HomePage = lazy(() => import("@/features/home/routes/HomePage").then(m => ({ default: m.HomePage })));
+const SearchPage = lazy(() => import("@/features/search/routes/SearchPage").then(m => ({ default: m.SearchPage })));
+const PlatformPage = lazy(() => import("@/features/platform/routes/PlatformPage").then(m => ({ default: m.PlatformPage })));
+const ChannelPage = lazy(() => import("@/features/channel/routes/ChannelPage").then(m => ({ default: m.ChannelPage })));
+const LoginPage = lazy(() => import("@/features/auth/routes/LoginPage").then(m => ({ default: m.LoginPage })));
+const MyPage = lazy(() => import("@/features/users/routes/MyPage").then(m => ({ default: m.MyPage })));
+const VodAnalysisPage = lazy(() => import("@/features/analysis/routes/VodAnalysisPage").then(m => ({ default: m.VodAnalysisPage })));
+const ChannelProvisionPage = lazy(() => import("@/features/admin/routes/ChannelProvisionPage").then(m => ({ default: m.ChannelProvisionPage })));
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -21,31 +24,46 @@ const router = createBrowserRouter(
             <Route element={<MainLayout />}>
 
                 {/* 1. [공개/고정 경로] 가장 먼저 매칭되어야 하는 페이지들 */}
-                <Route path="/" element={<HomePage />} />
-                <Route path="/search" element={<SearchPage />} />
+                <Route path="/" element={
+                    <Suspense fallback={null}><HomePage /></Suspense>
+                } />
+                <Route path="/search" element={
+                    <Suspense fallback={null}><SearchPage /></Suspense>
+                } />
 
                 {/* 2. [로그인 필수 경로] ProtectedRoute로 감싸기 */}
                 <Route element={<ProtectedRoute />}>
-                    <Route path="/mypage" element={<MyPage />} />
+                    <Route path="/mypage" element={
+                        <Suspense fallback={null}><MyPage /></Suspense>
+                    } />
                 </Route>
 
                 {/* 4. [동적 경로] 가장 나중에 매칭 (위에서 매칭 안 된 경우 여기로) */}
-                <Route path="/:platformId" element={<PlatformPage />} />
-                <Route path="/:platformId/channel/:channelId" element={<ChannelPage />} />
-                <Route path="/:platformId/analysis/:videoNo" element={<VodAnalysisPage />} />
+                <Route path="/:platformId" element={
+                    <Suspense fallback={null}><PlatformPage /></Suspense>
+                } />
+                <Route path="/:platformId/channel/:channelId" element={
+                    <Suspense fallback={null}><ChannelPage /></Suspense>
+                } />
+                <Route
+                    path="/:platformId/analysis/:videoNo"
+                    element={
+                        <Suspense fallback={
+                            <div className="min-h-screen flex items-center justify-center">
+                                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                            </div>
+                        }>
+                            <VodAnalysisPage />
+                        </Suspense>
+                    }
+                />
                 <Route path="/admin" element={
-                    <AdminGuard>   {/* 2차: 권한 체크 */}
-                        <AdminLayout /> {/* 3차: 레이아웃 렌더링 */}
-                    </AdminGuard>
+                    <AdminGuard><AdminLayout /></AdminGuard>
                 }>
-                    {/* /admin 접속 시 자동으로 provision으로 이동 */}
                     <Route index element={<Navigate to="provision" replace />} />
-
-                    {/* /admin/provision 경로 매핑 */}
-                    <Route path="provision" element={<ChannelProvisionPage />} />
-
-                    {/* 추후 추가될 경로들 */}
-                    {/* <Route path="channels" element={<ChannelListPage />} /> */}
+                    <Route path="provision" element={
+                        <Suspense fallback={null}><ChannelProvisionPage /></Suspense>
+                    } />
                 </Route>
             </Route>
 
