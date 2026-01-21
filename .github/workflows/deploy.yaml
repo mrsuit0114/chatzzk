@@ -34,6 +34,8 @@ jobs:
       # 🏗️ 프론트엔드 빌드 (Sentry 업로드 포함)
       - name: Build Frontend
         env:
+          VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
           # Repository Secret에서 가져옴 (공통)
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           # Environment Variable에서 가져옴 (환경별로 다름!)
