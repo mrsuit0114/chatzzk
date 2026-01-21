@@ -49,3 +49,4 @@ jobs:
           # main 브랜치면 프로덕션 배포, 아니면 개발용 배포
           # wrangler.json에 [env.dev] 설정이 있다고 가정
           command: deploy --env ${{ github.ref == 'refs/heads/main' && 'production' || 'dev' }}
+          workingDirectory: 'chatzzk-web'
