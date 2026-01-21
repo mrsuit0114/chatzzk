@@ -148,7 +148,7 @@ app.get('/analysis/:platform/:videoNo', async (c) => {
         // 따라서 파일의 ETag와 잠금 상태를 조합하여 고유 값을 만듭니다.
         // 잠금 상태가 바뀌면 ETag가 달라져서 프론트엔드가 새로 데이터를 받게 됩니다.
         const rawEtag = object.httpEtag.replace(/^"|"$/g, '');
-        const compositeEtag = `"${rawEtag}-${isInsightLocked}"`;
+        const compositeEtag = `"${rawEtag}"`;
 
         // 2. Client Side ETag 가져오기 및 정규화 (Weak ETag 처리)
         const ifNoneMatch = c.req.header('If-None-Match');
@@ -159,30 +159,34 @@ app.get('/analysis/:platform/:videoNo', async (c) => {
             clientEtag = clientEtag.slice(2); // 앞의 2글자(W/) 제거
         }
 
-        // 3. 비교 (이제 W/가 없으므로 일치할 것임)
+
         if (clientEtag === compositeEtag) {
-            console.log('>>> Cache Hit! Returning 304');
+            // 304 응답을 줄 때도 바뀐 헤더(잠금 상태)는 실어 보냅니다.
+            // 브라우저는 304를 받으면 Body는 캐시를 쓰고, Header는 서버가 준 것으로 업데이트합니다.
+            const headers = new Headers();
+            headers.set('ETag', compositeEtag);
+            headers.set('Cache-Control', 'private, no-cache'); // 항상 검증 요청
+            headers.set('X-Insight-Locked', isInsightLocked.toString()); // ✨ 바뀐 상태 전달
+            headers.set('X-Insight-Release-At', insightReleaseTime.toISOString());
+            headers.set('Access-Control-Expose-Headers', 'X-Insight-Locked, X-Insight-Release-At, ETag');
+
             return new Response(null, {
                 status: 304,
-                headers: {
-                    'ETag': compositeEtag,
-                    'Cache-Control': 'private, no-cache',
-                }
+                headers
             });
         }
 
-        // 6. 변경되었거나 캐시가 없으면 JSON 파싱 후 반환
-        const analysisData = await object.json();
+        const headers = new Headers();
+        object.writeHttpMetadata(headers as any);
+        headers.set('ETag', compositeEtag);
+        headers.set('Cache-Control', 'private, no-cache');
+        headers.set('X-Insight-Locked', isInsightLocked.toString());
+        headers.set('X-Insight-Release-At', insightReleaseTime.toISOString());
+        headers.set('Access-Control-Expose-Headers', 'X-Insight-Locked, X-Insight-Release-At, ETag');
 
-        return c.json({
-            ...(analysisData as object),
-            _meta: {
-                isInsightLocked,
-                insightReleaseAt: insightReleaseTime.toISOString()
-            }
-        }, 200, {
-            'ETag': compositeEtag,
-            'Cache-Control': 'private, no-cache', // 보안을 위해 매번 검증 (304 로직 이용)
+        return new Response(object.body, {
+            headers,
+            status: 200
         });
 
     } catch (e: any) {

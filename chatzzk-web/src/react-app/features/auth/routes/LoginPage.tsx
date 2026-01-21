@@ -19,6 +19,7 @@ export const LoginPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
     const [loading, setLoading] = useState(false);
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -34,7 +35,7 @@ export const LoginPage = () => {
             if (error) throw error;
 
             // 성공 시 이동
-            navigate(from, { replace: true });
+            navigate(from);
 
         } catch (error: any) {
             if (error.message.includes('Invalid login credentials')) {

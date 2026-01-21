@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { HighlightView } from "../components/highlight";
 import { VodAnalysisHeader } from "../components/header";
 import { InsightView } from "../components/insight/InsightView";
@@ -8,28 +8,14 @@ import { Lock, AlertTriangle, Loader2 } from "lucide-react";
 import { useAnalysisData } from "../hooks/use-analysis-data";
 import { transformClipsData, transformHighlightData, transformRawToHeaderData } from "../utils";
 import { InsightViewData } from "../types";
-import { useParams } from "react-router-dom";
-import { useAuthStore } from "@/stores";
-import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export function VodAnalysisPage() {
-    const { platformId, videoNo } = useParams<{ platformId: string; videoNo: string }>();
-    const queryClient = useQueryClient();
-    const { user } = useAuthStore();
     // 1. Hook을 통해 R2 데이터 Fetching
     const { data: rawData, isLoading, isError } = useAnalysisData();
 
     const [currentView, setCurrentView] = useState<ViewType>(VIEW_TYPE.HIGHLIGHT);
-
-    useEffect(() => {
-        if (platformId && videoNo) {
-            queryClient.invalidateQueries({
-                queryKey: ['vodAnalysis', platformId, videoNo]
-            });
-        }
-    }, [user, queryClient, platformId, videoNo]);
 
     const highlightData = useMemo(() => {
         if (!rawData) return { segments: [], chapters: [] };

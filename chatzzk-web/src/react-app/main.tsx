@@ -8,9 +8,9 @@ import "@/lib/dayjs";
 
 
 createRoot(document.getElementById('root')!).render(
-	// <StrictMode>
-	<QueryClientProvider client={queryClient}>
-		<App />
-	</QueryClientProvider>
-	// </StrictMode>,
+	<StrictMode>
+		<QueryClientProvider client={queryClient}>
+			<App />
+		</QueryClientProvider>
+	</StrictMode>,
 );

@@ -7,7 +7,7 @@ function App() {
 	const { setSession, clearSession, isInitialized } = useAuthStore();
 
 	useEffect(() => {
-		const handleAuth = async (session: any, event: string) => {
+		const handleAuth = async (session: any) => {
 			if (session) {
 				// ✅ [핵심 해결책] 중복 방지 로직
 				// 현재 스토어에 있는 유저 ID와 방금 들어온 세션의 유저 ID가 같다면
@@ -25,9 +25,9 @@ function App() {
 			}
 		};
 
-		const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+		const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
 			// 이벤트 타입도 함께 넘겨서 디버깅 및 처리
-			handleAuth(session, event);
+			handleAuth(session);
 		});
 
 		return () => subscription.unsubscribe();
