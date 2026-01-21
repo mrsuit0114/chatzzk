@@ -9,12 +9,17 @@ declare namespace Cloudflare {
     }
 }
 interface Env extends Cloudflare.Env {
+    SENTRY_ENVIRONMENT: string;
+    ALLOWED_ORIGIN: string;
+
     SUPABASE_URL: string;
     SUPABASE_ANON_KEY: string;
+    SENTRY_DSN: string;
 
     SUPABASE_SERVICE_ROLE_KEY: string;
 
     MY_BUCKET: R2Bucket;
+    ASSETS: Fetcher;
 }
 
 // Begin runtime types

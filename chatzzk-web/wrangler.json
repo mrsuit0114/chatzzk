@@ -1,6 +1,5 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "chatzzk-web",
 	"main": "./src/worker/index.ts",
 	"compatibility_date": "2025-10-08",
 	"compatibility_flags": [
@@ -12,24 +11,35 @@
 	"upload_source_maps": true,
 	"assets": {
 		"directory": "./dist",
-		"binding": "ASSETS",
-		"not_found_handling": "single-page-application"
+		"binding": "ASSETS"
 	},
-	"r2_buckets": [
-		{
-			"binding": "MY_BUCKET",
-			"bucket_name": "chatzzk-dev",
-			"preview_bucket_name": "chatzzk-dev"
-		}
-	],
 	"env": {
+		"dev": {
+			"name": "chatzzk-web-dev",
+			"vars": {
+				"ALLOWED_ORIGIN": "*",
+				"SENTRY_ENVIRONMENT": "development"
+			},
+			"r2_buckets": [
+				{
+					"binding": "MY_BUCKET",
+					"bucket_name": "chatzzk-dev",
+					"remote": true
+				}
+			]
+		},
 		"production": {
+			"name": "chatzzk-web-prod",
+			"vars": {
+				"ALLOWED_ORIGIN": "https://chatzzk.com",
+				"SENTRY_ENVIRONMENT": "production"
+			},
 			"r2_buckets": [
 				{
 					"binding": "MY_BUCKET",
 					"bucket_name": "chatzzk-prod"
 				}
-			],
+			]
 		}
 	}
 }
