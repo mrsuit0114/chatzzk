@@ -42,27 +42,49 @@ const transformBaseChannel = (data: any) => ({
     vodDetailExposureDelayHours: data.vod_detail_exposure_delay_hours,
     isCollectionEnabled: data.is_collection_enabled,
 });
+
 export const ChannelDetailSchema = z.object(BaseChannelDbFields)
     .transform(transformBaseChannel);
 
 export type ChannelDetailData = z.infer<typeof ChannelDetailSchema>;
 
-// 4. [Private] 내 채널 관리 스키마 (MyChannel) - Base 확장
-export const MyChannelSchema = z.object({
-    ...BaseChannelDbFields, // 공통 필드 상속
-    // MyChannel 전용 추가 필드
-    streamer_nicknames: z.array(z.string()).nullable(),
-    streamer_sex: z.string().nullable(),
-    fan_nicknames: z.array(z.string()).nullable(),
-    additional_info: z.array(z.string()).nullable(),
-}).transform((data) => ({
-    ...transformBaseChannel(data), // 공통 변환 로직 재사용
+const metadataShape = {
+    streamer_nicknames: z.array(z.string()).nullish().default([]),
+    streamer_sex: z.enum(["남성", "여성"]).nullish().default("남성"),
+    fan_nicknames: z.array(z.string()).nullish().default([]),
+    additional_info: z.array(z.string()).nullish().default([]),
+};
 
-    // 추가 필드 매핑
-    streamerNicknames: data.streamer_nicknames || [],
-    streamerSex: data.streamer_sex || "알 수 없음",
-    fanNicknames: data.fan_nicknames || [],
-    additionalInfo: data.additional_info || [],
+// 2. [조회용] DB(Snake) -> 앱(Camel) 변환 스키마
+export const ChannelMetadataSchema = z.object(metadataShape).transform((data) => ({
+    streamerNicknames: data.streamer_nicknames ?? [],
+    streamerSex: data.streamer_sex ?? "남성",
+    fanNicknames: data.fan_nicknames ?? [],
+    additionalInfo: data.additional_info ?? [],
 }));
 
-export type MyChannelData = z.infer<typeof MyChannelSchema>;
+export type ChannelMetadata = z.output<typeof ChannelMetadataSchema>;
+
+// 3. [저장용] 앱(Camel) -> DB(Snake) 변환 스키마
+// 프론트에서 보낸 데이터를 다시 DB 모양으로 되돌려줍니다.
+export const ChannelMetadataUpdateSchema = z.object({
+    streamerNicknames: z.array(z.string()).default([]),
+    streamerSex: z.enum(["남성", "여성"]).default("남성"),
+    fanNicknames: z.array(z.string()).default([]),
+    additionalInfo: z.array(z.string()).default([]),
+}).transform((data) => ({
+    streamer_nicknames: data.streamerNicknames, // 다시 Snake로!
+    streamer_sex: data.streamerSex,
+    fan_nicknames: data.fanNicknames,
+    additional_info: data.additionalInfo,
+}));
+
+export const MyChannelSchema = z.object({
+    ...BaseChannelDbFields,
+    metadata: z.object(metadataShape),
+}).transform((data) => ({
+    ...transformBaseChannel(data),
+    channelMetadata: ChannelMetadataSchema.parse(data.metadata),
+}));
+
+export type MyChannelData = z.output<typeof MyChannelSchema>;

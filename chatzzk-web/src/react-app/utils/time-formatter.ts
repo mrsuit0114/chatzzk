@@ -28,5 +28,6 @@ export const formatDateKo = (dateStr: string) => {
 }
 
 export const formatDateTimeKo = (dateStr: string | null) => {
+    if (!dateStr) return null;
     return dayjs(dateStr).format("YYYY.MM.DD HH:mm");
 }

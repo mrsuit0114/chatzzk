@@ -1,21 +1,16 @@
 import { api } from "@/lib/api";
-import { PlatformCode } from "@shared/constants/service_codes";
+import { Password, PlatformCode, UserId } from "@shared/constants/service_codes";
+import { ChannelMetadata } from "@shared/types/channel";
 
 // 요청 데이터 타입 정의 (백엔드와 스펙 일치)
 export type ProvisionRequest = {
-    userId: string;
-    password: string;
-
+    userId: UserId;
+    password: Password;
     platform: PlatformCode;
     channelId: string;
     channelName: string;
-
-    metadata: {
-        streamer_nicknames: string[];
-        fan_nicknames: string[];
-        streamer_sex: "남성" | "여성";
-        additional_info: string[];
-    };
+    // ✅ 내부 필드를 일일이 적지 않고 공통 타입을 재사용 (CamelCase)
+    metadata: ChannelMetadata;
 };
 
 // 응답 데이터 타입 정의 (필요시 구체화)

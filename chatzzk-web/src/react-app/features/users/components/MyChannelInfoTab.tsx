@@ -17,7 +17,7 @@ import {
 import { Save, Info, RotateCcw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { StringListInput } from "./StringListInput";
-import { MyChannelData } from "@shared/types/channel";
+import { ChannelMetadata, MyChannelData } from "@shared/types/channel";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { updateChannelMetadata } from "../api/myChannel";
 import { cn } from "@/lib/utils";
@@ -31,40 +31,23 @@ export function MyChannelInfoTab({ channel, isOwner }: Props) {
     const queryClient = useQueryClient();
 
     // 1. 폼 상태 관리 (Props 데이터를 초기값으로 사용)
-    const [formData, setFormData] = useState({
-        streamerNicknames: channel.streamerNicknames,
-        fanNicknames: channel.fanNicknames,
-        streamerSex: channel.streamerSex || "", // null일 경우 빈 문자열 처리
-        additionalInfo: channel.additionalInfo,
-    });
+    const [formData, setFormData] = useState<ChannelMetadata>(channel.channelMetadata);
 
-    // 다이얼로그 상태
     const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
 
-    // 2. Props가 변경되면(예: 리패칭 후) 폼 데이터도 동기화
+    // 2. Props 동기화: 리패칭 등으로 데이터가 갱신되면 폼 상태도 업데이트
     useEffect(() => {
-        setFormData({
-            streamerNicknames: channel.streamerNicknames,
-            fanNicknames: channel.fanNicknames,
-            streamerSex: channel.streamerSex || "",
-            additionalInfo: channel.additionalInfo,
-        });
+        setFormData(channel.channelMetadata);
     }, [channel]);
 
     // 3. 변경 사항 감지 (Dirty Check)
-    // 배열 순서나 내용이 다르면 Dirty로 간주
-    const isDirty = JSON.stringify(formData) !== JSON.stringify({
-        streamerNicknames: channel.streamerNicknames,
-        fanNicknames: channel.fanNicknames,
-        streamerSex: channel.streamerSex || "",
-        additionalInfo: channel.additionalInfo,
-    });
+    const isDirty = JSON.stringify(formData) !== JSON.stringify(channel.channelMetadata);
 
     // 4. 저장 Mutation
     const { mutate: saveMetadata, isPending } = useMutation({
         mutationFn: updateChannelMetadata,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['myChannel'] }); // 데이터 갱신
+            queryClient.invalidateQueries({ queryKey: ['myChannel'] });
             toast.success("채널 정보가 저장되었습니다.");
         },
         onError: () => {
@@ -80,12 +63,7 @@ export function MyChannelInfoTab({ channel, isOwner }: Props) {
 
     // 핸들러: 초기화 확정
     const handleConfirmReset = () => {
-        setFormData({
-            streamerNicknames: channel.streamerNicknames,
-            fanNicknames: channel.fanNicknames,
-            streamerSex: channel.streamerSex || "",
-            additionalInfo: channel.additionalInfo,
-        });
+        setFormData(channel.channelMetadata);
         setIsResetDialogOpen(false);
         toast.info("변경 사항이 초기화되었습니다.");
     };
@@ -135,7 +113,7 @@ export function MyChannelInfoTab({ channel, isOwner }: Props) {
                         <Card className="p-4 border bg-muted/20 w-fit">
                             <RadioGroup
                                 value={formData.streamerSex}
-                                onValueChange={(val) => isOwner && setFormData(prev => ({ ...prev, streamerSex: val }))}
+                                onValueChange={(val) => isOwner && setFormData(prev => ({ ...prev, streamerSex: val as any }))}
                                 className="flex gap-8"
                                 disabled={!isOwner}
                             >

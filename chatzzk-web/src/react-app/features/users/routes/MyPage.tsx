@@ -49,7 +49,7 @@ export function MyPage() {
         );
     }
 
-    const myChannel = myChannelRes?.data;
+    const myChannel = myChannelRes;
     const isOwner = userProfile.role === USER_ROLE.OWNER;
 
     // 탭 관련 로직

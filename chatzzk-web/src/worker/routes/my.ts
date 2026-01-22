@@ -3,7 +3,7 @@ import { HonoEnv } from '../types';
 
 import { z } from 'zod';
 
-import { MyChannelSchema } from '@shared/types/channel';
+import { ChannelMetadataUpdateSchema, MyChannelSchema } from '@shared/types/channel';
 import { VOD_ITEMS_PER_PAGE } from '@shared/constants/ui';
 import { MyVodDataSchema } from '@shared/types/vod';
 
@@ -14,18 +14,9 @@ app.get('/channel', async (c) => {
     // ✅ 미들웨어가 이미 생성하고 인증을 마친 클라이언트를 가져옴
     const supabase = c.get('supabase');
 
-    // 필요하다면 유저 정보도 바로 가져올 수 있음
-    // const user = c.get('user');
+    const { data, error } = await supabase.rpc('get_my_channel').single();
 
-    // RPC 호출 (auth.uid()가 자동으로 인식됨)
-    const { data, error } = await supabase
-        .rpc('get_my_channel')
-        .single();
-
-    if (error) return c.json({ error: error.message }, 500);
-
-    // 일반 유저라 채널이 없는 경우 등
-    if (!data) return c.json({ error: 'Channel not found or permission denied' }, 404);
+    if (error || !data) return c.json({ error: 'Channel Not Found' }, 404);
 
     try {
         const myChannel = MyChannelSchema.parse(data);
@@ -123,38 +114,20 @@ app.patch('/vods/:videoNo/exposure', async (c) => {
 
 app.put('/channel/metadata', async (c) => {
     const supabase = c.get('supabase');
+    const body = await c.req.json().catch(() => ({}));
 
-    // Validation
-    const bodySchema = z.object({
-        streamerNicknames: z.array(z.string()),
-        fanNicknames: z.array(z.string()),
-        streamerSex: z.string(),
-        additionalInfo: z.array(z.string()),
+    const result = ChannelMetadataUpdateSchema.safeParse(body);
+
+    if (!result.success) {
+        return c.json({ error: 'Invalid body', details: result.error }, 400);
+    }
+
+    // 3. RPC 호출 (JSONB 통째로 전달)
+    const { data: success, error } = await supabase.rpc('update_channel_metadata', {
+        p_attributes: result.data // 변환된 데이터를 통째로 전달
     });
 
-    const body = await c.req.json().catch(() => null);
-    const parsed = bodySchema.safeParse(body);
-
-    if (!parsed.success) {
-        return c.json({ error: 'Invalid body', details: parsed.error }, 400);
-    }
-
-    const { streamerNicknames, fanNicknames, streamerSex, additionalInfo } = parsed.data;
-
-    // RPC 호출
-    const { data: success, error } = await supabase
-        .rpc('update_channel_metadata', {
-            p_streamer_nicknames: streamerNicknames,
-            p_fan_nicknames: fanNicknames,
-            p_streamer_sex: streamerSex,
-            p_additional_info: additionalInfo
-        });
-
-    if (error) return c.json({ error: error.message }, 500);
-
-    if (!success) {
-        return c.json({ error: 'Update failed. Channel not found or permission denied.' }, 403);
-    }
+    if (error || !success) return c.json({ error: 'Update failed' }, 500);
 
     return c.json({ success: true });
 });

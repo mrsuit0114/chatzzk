@@ -6,7 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { StringListInput } from "@/features/users/components/StringListInput";
-import { AUTH_DOMAIN, PASSWORD_MIN_LENGTH, PLATFORM_CODE, PlatformCodeSchema } from "@shared/constants/service_codes";
+import { AUTH_DOMAIN, PasswordSchema, PLATFORM_CODE, PlatformCodeSchema, UserIdSchema } from "@shared/constants/service_codes";
 import { AlertCircle, Loader2, Save } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import z from "zod";
@@ -17,21 +17,18 @@ import { provisionChannel, ProvisionRequest } from "../api/provision";
 
 // ✅ 백엔드와 동일한 Zod 스키마 정의 (프론트용)
 const formSchema = z.object({
-    userId: z.string().min(4, "4자 이상 입력하세요.").regex(/^[a-zA-Z0-9_]+$/, "영문, 숫자, 언더바만 가능합니다."),
-    password: z.string().min(PASSWORD_MIN_LENGTH, `비밀번호는 ${PASSWORD_MIN_LENGTH}자 이상이어야 합니다.`),
-
+    userId: UserIdSchema,
+    password: PasswordSchema,
     platform: PlatformCodeSchema,
     channelId: z.string().min(1, "채널 ID를 입력하세요."),
     channelName: z.string().min(1, "채널명을 입력하세요."),
 
-    // Metadata
+    // ✅ Metadata 구조를 CamelCase로 통일
     metadata: z.object({
-        streamer_nicknames: z.array(z.string()).default([]),
-        fan_nicknames: z.array(z.string()).default([]),
-
-        streamer_sex: z.enum(["남성", "여성"]),
-
-        additional_info: z.array(z.string()).default([]),
+        streamerNicknames: z.array(z.string()).default([]),
+        fanNicknames: z.array(z.string()).default([]),
+        streamerSex: z.enum(["남성", "여성"]),
+        additionalInfo: z.array(z.string()).default([]),
     }),
 });
 
@@ -62,19 +59,16 @@ export function ChannelProvisionPage() {
             channelId: "",
             channelName: "",
             metadata: {
-                streamer_nicknames: [],
-                fan_nicknames: [],
-                streamer_sex: "남성",
-                additional_info: [],
+                streamerNicknames: [], // ✅ CamelCase
+                fanNicknames: [],
+                streamerSex: "남성",
+                additionalInfo: [],
             }
         },
     });
 
     const onSubmit = (values: z.infer<typeof formSchema>) => {
         if (!confirm(`[${values.channelName}] 채널과 계정을 생성하시겠습니까?`)) return;
-
-        // 2. Mutation 실행 (타입 캐스팅 또는 호환성 확인)
-        // Zod 스키마와 API 요청 타입이 호환되므로 바로 전달
         runProvision(values as ProvisionRequest);
     };
 
@@ -157,7 +151,6 @@ export function ChannelProvisionPage() {
                                                 </FormControl>
                                                 <SelectContent>
                                                     <SelectItem value={PLATFORM_CODE.CHZZK}>치지직 (CHZZK)</SelectItem>
-                                                    <SelectItem value={PLATFORM_CODE.SOOP}>숲 (SOOP)</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />
@@ -201,7 +194,7 @@ export function ChannelProvisionPage() {
                             {/* 성별 선택 */}
                             <FormField
                                 control={form.control}
-                                name="metadata.streamer_sex"
+                                name="metadata.streamerSex"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>스트리머 성별</FormLabel>
@@ -222,7 +215,7 @@ export function ChannelProvisionPage() {
                             {/* ✅ StringListInput 재사용 */}
                             <Controller
                                 control={form.control}
-                                name="metadata.streamer_nicknames"
+                                name="metadata.streamerNicknames"
                                 render={({ field }) => (
                                     <StringListInput
                                         label="스트리머 호칭 (Aliases)"
@@ -235,7 +228,7 @@ export function ChannelProvisionPage() {
 
                             <Controller
                                 control={form.control}
-                                name="metadata.fan_nicknames"
+                                name="metadata.fanNicknames"
                                 render={({ field }) => (
                                     <StringListInput
                                         label="팬 호칭 (Fan Aliases)"
@@ -248,7 +241,7 @@ export function ChannelProvisionPage() {
 
                             <Controller
                                 control={form.control}
-                                name="metadata.additional_info"
+                                name="metadata.additionalInfo"
                                 render={({ field }) => (
                                     <StringListInput
                                         label="추가 배경 정보"

@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Eye, EyeOff, UserPlus, Save, Power, Ban, LockKeyhole, Loader2, Info, UserCog, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { DELAY_OPTIONS, ID_REGEX } from "@shared/constants/service_codes";
+import { DELAY_OPTIONS, UserIdSchema } from "@shared/constants/service_codes";
 import { MyChannelData } from "@shared/types/channel";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { updateChannelSettings, getEditorAccount, createEditorAccount, updateEditorAccount, toggleEditorStatus } from "../api/myChannel";
@@ -111,7 +111,7 @@ export function MySettingsTab({ channel, isOwner }: Props) {
 
     // 핸들러: 생성 요청
     const handleCreate = () => {
-        if (!ID_REGEX.test(editId)) {
+        if (!UserIdSchema.safeParse(editId).success) {
             toast.error("아이디는 4~20자의 영문 소문자와 숫자만 가능합니다.");
             return;
         }
@@ -124,7 +124,7 @@ export function MySettingsTab({ channel, isOwner }: Props) {
 
     // 핸들러: 수정 요청
     const handleUpdate = () => {
-        if (!ID_REGEX.test(editId)) {
+        if (!UserIdSchema.safeParse(editId).success) {
             toast.error("아이디 형식이 올바르지 않습니다.");
             return;
         }

@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { z } from 'zod';
 import { HonoEnv } from '../types';
 import { createAdminClient } from '../utils/supabase';
-import { AUTH_DOMAIN, BAN_DURATION, ID_REGEX, PASSWORD_MIN_LENGTH, USER_ROLE } from '@shared/constants/service_codes';
+import { AUTH_DOMAIN, BAN_DURATION, PasswordSchema, USER_ROLE, UserIdSchema } from '@shared/constants/service_codes';
 
 const app = new Hono<HonoEnv>();
 
@@ -89,8 +89,8 @@ app.post('/', async (c) => {
 
     // ✅ 상수 정규식 활용
     const schema = z.object({
-        id: z.string().regex(ID_REGEX, "아이디는 4~20자의 영문 소문자와 숫자만 가능합니다."),
-        password: z.string().min(PASSWORD_MIN_LENGTH, `비밀번호는 최소 ${PASSWORD_MIN_LENGTH}자 이상이어야 합니다.`)
+        id: UserIdSchema,
+        password: PasswordSchema
     });
 
     const body = await c.req.json().catch(() => null);
@@ -187,8 +187,8 @@ app.put('/', async (c) => {
     const adminSupabase = createAdminClient(c.env);
 
     const schema = z.object({
-        id: z.string().regex(ID_REGEX).optional(),
-        password: z.string().min(PASSWORD_MIN_LENGTH).optional()
+        id: UserIdSchema.optional(),
+        password: PasswordSchema.optional()
     });
 
     const body = await c.req.json().catch(() => null);
