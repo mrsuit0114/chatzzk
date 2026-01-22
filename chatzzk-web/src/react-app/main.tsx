@@ -17,9 +17,29 @@ Sentry.init({
 	// npm run build -> 'production' 으로 자동 설정됩니다.
 	environment: import.meta.env.MODE,
 
+	sendDefaultPii: false,
+
+	beforeSend(event, _hint) {
+		// 2. 특정 민감한 데이터 필터링 (예: 사용자 이메일, 전화번호 패턴)
+		if (event.user) {
+			delete event.user.email;
+			delete event.user.ip_address;
+		}
+
+		// 3. breadcrumbs(사용자 행동 로그) 내 민감 정보 제거
+		event.breadcrumbs = event.breadcrumbs?.filter(breadcrumb => {
+			const sensitiveKeywords = ['password', 'token', 'email', 'secret'];
+			return !sensitiveKeywords.some(key => breadcrumb.message?.toLowerCase().includes(key));
+		});
+		return event;
+	},
+
 	integrations: [
 		Sentry.browserTracingIntegration(),
-		Sentry.replayIntegration(),
+		Sentry.replayIntegration({
+			maskAllText: true,
+			blockAllMedia: true,
+		}),
 	],
 
 	// ✅ (선택 사항) 로컬 개발(localhost)에서는 아예 Sentry로 에러를 보내지 않기

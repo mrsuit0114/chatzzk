@@ -12,7 +12,21 @@ import adminRoute from './routes/admin';
 
 const app = new Hono<HonoEnv>();
 
-app.use("*", sentry())
+app.use("*", (c, next) => {
+    return sentry({
+        dsn: c.env.SENTRY_DSN,
+
+        sendDefaultPii: false,
+        beforeSend(event) {
+            // 요청(request) 바디나 헤더에서 쿠키, 인증 토큰 제거
+            if (event.request && event.request.headers) {
+                delete event.request.headers["Authorization"];
+                delete event.request.headers["Cookie"];
+            }
+            return event;
+        }
+    })(c, next);
+});
 
 app.use("/api/*", async (c, next) => {
     // 환경 변수에서 값 가져오기
