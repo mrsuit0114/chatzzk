@@ -1,8 +1,9 @@
-import { AUTH_DOMAIN, PASSWORD_MIN_LENGTH, PlatformCodeSchema, USER_ROLE } from "@shared/constants/service_codes";
+import { AUTH_DOMAIN, PasswordSchema, PlatformCodeSchema, USER_ROLE, UserIdSchema } from "@shared/constants/service_codes";
 import { Hono } from "hono";
 import { HonoEnv } from "../types";
 import z from "zod";
 import { createAdminClient } from "../utils/supabase";
+import { ChannelMetadataUpdateSchema } from "@shared/types/channel";
 
 
 const app = new Hono<HonoEnv>();
@@ -45,28 +46,18 @@ app.post('/channels/provision', async (c) => {
     const adminSupabase = createAdminClient(c.env);
 
     // 1. 입력값 검증
-    const schema = z.object({
-        // User Info
-        userId: z.string().min(4).regex(/^[a-zA-Z0-9_]+$/, "아이디는 영문 소문자, 숫자, 언더바만 가능합니다."),
-        password: z.string().min(PASSWORD_MIN_LENGTH),
-
-        // Channel Info
+    const provisionSchema = z.object({
+        userId: UserIdSchema,
+        password: PasswordSchema,
         platform: PlatformCodeSchema,
         channelId: z.string().min(1),
         channelName: z.string().min(1),
-
-        // Metadata Info (JSONB)
-        metadata: z.object({
-            streamer_nicknames: z.array(z.string()).optional(),
-            fan_nicknames: z.array(z.string()).optional(),
-            // 제공하신 코드에 맞춰 한글 Enum 유지 (필요시 'MALE' | 'FEMALE'로 변경 고려)
-            streamer_sex: z.enum(['남성', '여성']).optional(),
-            additional_info: z.array(z.string()).optional(),
-        }).optional().default({})
+        // ✅ 공유 스키마를 사용하여 Camel -> Snake 자동 변환 및 기본값 적용
+        metadata: ChannelMetadataUpdateSchema
     });
 
     const body = await c.req.json().catch(() => null);
-    const parsed = schema.safeParse(body);
+    const parsed = provisionSchema.safeParse(body);
     if (!parsed.success) return c.json({ error: parsed.error }, 400);
 
     const { userId, password, platform, channelId, channelName, metadata } = parsed.data;
@@ -84,22 +75,14 @@ app.post('/channels/provision', async (c) => {
             user_metadata: { user_name: userId }
         });
 
-        if (authError) return c.json({ error: `User creation failed: ${authError.message}` }, 400);
-        if (!authData.user) throw new Error("Auth user is null");
+        if (authError) throw new Error(`User creation failed: ${authError.message}`);
+        createdAuthUid = authData.user.id;
 
-        createdAuthUid = authData.user.id; // 롤백을 위한 ID 저장
-
-        // ---------------------------------------------------------
-        // Step 2: Public User 확보 및 설정
-        // ---------------------------------------------------------
         const publicId = await waitForPublicUser(adminSupabase, createdAuthUid);
 
         const { error: updateError } = await adminSupabase
             .from('users')
-            .update({
-                role: USER_ROLE.OWNER, // 또는 USER_ROLE.OWNER (정책에 따라 결정)
-                user_name: userId
-            })
+            .update({ role: USER_ROLE.OWNER, user_name: userId })
             .eq('id', publicId);
 
         if (updateError) throw new Error(`User profile update failed: ${updateError.message}`);
@@ -124,14 +107,13 @@ app.post('/channels/provision', async (c) => {
         const { data: channelData, error: channelError } = await adminSupabase
             .from('channels')
             .insert({
-                platform_id: platformData.id, // ✅ DB에서 조회한 ID 사용
+                platform_id: platformData.id,
                 platform_channel_id: channelId,
                 channel_name: channelName,
                 user_id: publicId,
                 is_collection_enabled: true
             })
-            .select()
-            .single();
+            .select().single();
 
         if (channelError) {
             if (channelError.code === '23505') throw new Error('이미 등록된 채널입니다.');
@@ -156,7 +138,7 @@ app.post('/channels/provision', async (c) => {
         return c.json({
             success: true,
             data: {
-                user: { id: publicId, userId: userId, email: internalEmail },
+                user: { id: publicId, userName: userId, email: internalEmail },
                 channel: channelData,
                 metadata: metadata
             }

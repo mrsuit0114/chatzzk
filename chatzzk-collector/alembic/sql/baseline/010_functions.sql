@@ -218,10 +218,7 @@ RETURNS TABLE (
   vod_exposure_delay_hours int,
   vod_detail_exposure_delay_hours int,
   is_collection_enabled bool,
-  streamer_nicknames text[],
-  streamer_sex text,
-  fan_nicknames text[],
-  additional_info text[]
+  metadata jsonb
 )
 SET search_path = public
 AS $$
@@ -246,11 +243,7 @@ BEGIN
     c.vod_exposure_delay_hours::int,
     c.vod_detail_exposure_delay_hours::int,
     c.is_collection_enabled,
-    -- JSONB -> Text Array 변환
-    ARRAY(SELECT jsonb_array_elements_text(COALESCE(cm.attributes->'streamer_nicknames', '[]'::jsonb)))::text[],
-    (cm.attributes->>'streamer_sex')::text,
-    ARRAY(SELECT jsonb_array_elements_text(COALESCE(cm.attributes->'fan_nicknames', '[]'::jsonb)))::text[],
-    ARRAY(SELECT jsonb_array_elements_text(COALESCE(cm.attributes->'additional_info', '[]'::jsonb)))::text[]
+    COALESCE(cm.attributes, '{}'::jsonb)
   FROM channels c
   JOIN platforms p ON c.platform_id = p.id
   LEFT JOIN channel_metadata cm ON c.id = cm.channel_id
@@ -378,10 +371,7 @@ $$ LANGUAGE plpgsql;
 
 -- [마이페이지] 채널 메타데이터 업데이트 (Upsert 적용)
 CREATE OR REPLACE FUNCTION update_channel_metadata(
-  p_streamer_nicknames text[],
-  p_fan_nicknames text[],
-  p_streamer_sex text,
-  p_additional_info text[]
+  p_attributes jsonb
 )
 RETURNS boolean
 SET search_path = public
@@ -404,16 +394,8 @@ BEGIN
     RETURN false;
   END IF;
 
-  v_new_attributes := jsonb_build_object(
-    'streamer_nicknames', to_jsonb(p_streamer_nicknames),
-    'fan_nicknames', to_jsonb(p_fan_nicknames),
-    'streamer_sex', to_jsonb(p_streamer_sex),
-    'additional_info', to_jsonb(p_additional_info)
-  );
-
-  -- UPSERT 로직 (존재하면 수정, 없으면 생성)
   INSERT INTO channel_metadata (channel_id, attributes, updated_at)
-  VALUES (v_channel_id, v_new_attributes, now())
+  VALUES (v_channel_id, p_attributes, now())
   ON CONFLICT (channel_id)
   DO UPDATE SET
     attributes = EXCLUDED.attributes,
