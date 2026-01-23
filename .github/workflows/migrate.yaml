@@ -37,7 +37,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv sync --frozen --package db-migration
+          uv sync --frozen --extra db-migration
 
       # 1. 공통 Alembic 마이그레이션 실행
       - name: Run Alembic Upgrade
