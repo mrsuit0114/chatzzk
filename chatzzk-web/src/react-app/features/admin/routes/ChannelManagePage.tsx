@@ -354,7 +354,7 @@ function OwnershipManager({ channel, onSuccess }: { channel: AdminChannelDetail,
 
     const { mutate, isPending } = useMutation({
         mutationFn: (userName: string) => transferOwnership(channel.id, userName),
-        onSuccess: (data) => {
+        onSuccess: (_data) => {
             toast.success("소유권이 성공적으로 이전되었습니다.");
             setTargetUser("");
             onSuccess(); // 데이터 리패치
