@@ -20,7 +20,7 @@ pipeline = [
 ]
 
 db-migration = [
-    "chatzzk-data-access"
+    "chatzzk-data-access",
     "alembic>=1.17.2",
     "alembic-postgresql-enum>=1.8.0",
     "psycopg2-binary>=2.9.11",
