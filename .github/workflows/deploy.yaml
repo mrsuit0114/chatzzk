@@ -6,6 +6,9 @@ on:
       - main       # main에 푸시하면 Production 배포
       - develop    # develop에 푸시하면 Development 배포
 
+    paths:
+      - 'chatzzk-web/**'
+
   workflow_dispatch:
 
 jobs:
