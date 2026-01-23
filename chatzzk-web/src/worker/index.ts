@@ -31,6 +31,7 @@ app.use("*", (c, next) => {
 app.use("/api/*", async (c, next) => {
     // 환경 변수에서 값 가져오기
     const allowOrigin = c.env.ALLOWED_ORIGIN;
+    const requestOrigin = c.req.header('Origin');
 
     // CORS 미들웨어 동적 생성
     const corsMiddleware = cors({
@@ -40,6 +41,25 @@ app.use("/api/*", async (c, next) => {
         exposeHeaders: ['ETag'],
         maxAge: 600,
     });
+
+    if (requestOrigin) {
+        let isAllowed = false;
+
+        if (Array.isArray(allowOrigin)) {
+            // dev 환경: 배열(["http://...", "https://..."])인 경우
+            isAllowed = allowOrigin.includes(requestOrigin);
+        } else {
+            // production 환경: 문자열("https://...")인 경우
+            isAllowed = allowOrigin === requestOrigin;
+        }
+
+        if (!isAllowed) {
+            // 여기서 서버가 강제로 끊어버립니다. Curl도 데이터 못 가져갑니다.
+            return c.json({ error: '허용되지 않은 출처입니다. (Invalid Origin)' }, 403);
+        }
+    }
+    // 주의: curl로 보낼 때 Origin 헤더를 아예 안 보내면(requestOrigin이 null) 통과될 수 있습니다.
+    // 그래서 공개 API에는 보통 1) Origin 체크 + 2) Turnstile 같은 추가 방어가 필요합니다.
 
     return corsMiddleware(c, next);
 });
