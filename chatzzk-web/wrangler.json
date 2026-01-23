@@ -18,7 +18,10 @@
 		"dev": {
 			"name": "chatzzk-web-dev",
 			"vars": {
-				"ALLOWED_ORIGIN": "*",
+				"ALLOWED_ORIGIN": [
+					"https://chatzzk-web-dev.woosa0114.workers.dev",
+					"http://localhost:5173"
+				],
 				"SENTRY_ENVIRONMENT": "development"
 			},
 			"r2_buckets": [

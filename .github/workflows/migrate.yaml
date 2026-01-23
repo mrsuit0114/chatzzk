@@ -19,9 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     # 브랜치에 따라 사용할 DB 시크릿을 결정합니다.
-    # main이면 PROD_DB_URL, 그 외(develop 등)는 DEV_DB_URL을 사용합니다.
-    env:
-      TARGET_DB_URL: ${{ github.ref == 'refs/heads/main' && secrets.PROD_DB_URL || secrets.DEV_DB_URL }}
+    environment: ${{ github.ref == 'refs/heads/main' && 'Production' || 'Development' }}
 
     defaults:
       run:
@@ -44,6 +42,6 @@ jobs:
       # 1. 공통 Alembic 마이그레이션 실행
       - name: Run Alembic Upgrade
         env:
-          DATABASE_URL: ${{ env.TARGET_DB_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           uv run alembic upgrade head
