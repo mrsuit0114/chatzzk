@@ -143,18 +143,28 @@ export const LoginPage = () => {
 
                 {/* 3. 계정 문의 안내 (Footer) */}
                 <CardFooter className="flex flex-col gap-4 border-t pt-6 bg-muted/20 rounded-b-xl">
-                    <div className="text-center space-y-2 w-full">
-                        <p className="text-sm font-medium text-foreground">
-                            아직 계정이 없으신가요?
-                        </p>
-                        <p className="text-xs text-muted-foreground leading-relaxed px-4">
-                            본 서비스는 현재 사전 협의된 스트리머와 편집자만 이용할 수 있습니다.<br />
-                            이용을 원하신다면 아래 이메일로 문의해주세요.
-                        </p>
-                        <span className="inline-flex items-center gap-1 text-sm text-primary font-medium">
-                            <Mail className="h-4 w-4" />
-                            {CONTACT_EMAIL}
-                        </span>
+                    <div className="text-center space-y-4 w-full">
+                        <div className="space-y-1">
+                            <p className="text-sm font-medium text-foreground">
+                                일반 사용자는 로그인 여부 관계 없이<br />공개된 모든 기능을 이용할 수 있습니다.
+                            </p>
+                            <p className="text-xs text-muted-foreground pb-4">
+                                스트리머 및 관계자 전용 서비스입니다.
+                            </p>
+                        </div>
+
+                        <Link to="/signup">
+                            <Button variant="outline" className="w-full border-primary/20 hover:bg-primary/5 text-primary">
+                                스트리머 계정 생성하기
+                            </Button>
+                        </Link>
+
+                        <div className="pt-2 border-t border-border/50">
+                            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                                <Mail className="h-3 w-3" />
+                                문의: {CONTACT_EMAIL}
+                            </span>
+                        </div>
                     </div>
                 </CardFooter>
             </Card>

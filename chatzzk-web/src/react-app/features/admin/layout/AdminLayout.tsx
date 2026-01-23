@@ -12,11 +12,11 @@ export function AdminLayout() {
                         🆕 채널/유저 등록
                     </a>
                     {/* 추후 추가될 메뉴들 */}
-                    <a href="/admin/channels" className="p-2 hover:bg-gray-100 rounded text-gray-500">
-                        📋 채널 목록 (준비중)
+                    <a href="/admin/channel-add" className="p-2 hover:bg-gray-100 rounded text-gray-500">
+                        📋 채널 추가
                     </a>
-                    <a href="/admin/vods" className="p-2 hover:bg-gray-100 rounded text-gray-500">
-                        📺 VOD 관리 (준비중)
+                    <a href="/admin/channel-manage" className="p-2 hover:bg-gray-100 rounded text-gray-500">
+                        📺 채널 관리
                     </a>
                 </nav>
             </aside>

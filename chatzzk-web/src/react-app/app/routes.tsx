@@ -16,6 +16,9 @@ const LoginPage = lazy(() => import("@/features/auth/routes/LoginPage").then(m =
 const MyPage = lazy(() => import("@/features/users/routes/MyPage").then(m => ({ default: m.MyPage })));
 const VodAnalysisPage = lazy(() => import("@/features/analysis/routes/VodAnalysisPage").then(m => ({ default: m.VodAnalysisPage })));
 const ChannelProvisionPage = lazy(() => import("@/features/admin/routes/ChannelProvisionPage").then(m => ({ default: m.ChannelProvisionPage })));
+const ChannelAddPage = lazy(() => import("@/features/admin/routes/ChannelAddPage").then(m => ({ default: m.ChannelAddPage })));
+const ChannelManagePage = lazy(() => import("@/features/admin/routes/ChannelManagePage").then(m => ({ default: m.ChannelManagePage })));
+const SignUpPage = lazy(() => import("@/features/auth/routes/SignupPage").then(m => ({ default: m.SignUpPage })));
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -64,12 +67,19 @@ const router = createBrowserRouter(
                     <Route path="provision" element={
                         <Suspense fallback={null}><ChannelProvisionPage /></Suspense>
                     } />
+                    <Route path="channel-add" element={
+                        <Suspense fallback={null}><ChannelAddPage /></Suspense>
+                    } />
+                    <Route path="channel-manage" element={
+                        <Suspense fallback={null}><ChannelManagePage /></Suspense>
+                    } />
                 </Route>
             </Route>
 
 
             {/* ✅ Auth Layout (헤더/사이드바 없는 페이지) */}
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
 
             {/* ✅ 404 처리 (맨 마지막에 배치) */}
             <Route path="*" element={<Navigate to="/" replace />} />

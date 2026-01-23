@@ -69,7 +69,7 @@ class Channel(Base):
     __tablename__ = "channels"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", name="channels_user_id_fkey"), unique=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", name="channels_user_id_fkey"), unique=True)
     editor_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", name="channels_editor_id_fkey"), unique=True)
     platform_id: Mapped[int] = mapped_column(ForeignKey("platforms.id"))
 

@@ -1,8 +1,8 @@
 """apply_baseline_sql_logic
 
-Revision ID: 711300608f82
-Revises: a6e1135502cd
-Create Date: 2026-01-17 21:16:13.351691
+Revision ID: 236bfdffb57e
+Revises: 89b8bb695807
+Create Date: 2026-01-23 11:19:36.669163
 
 """
 
@@ -13,8 +13,8 @@ from utils import load_sql_file
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "711300608f82"
-down_revision: str | Sequence[str] | None = "a6e1135502cd"
+revision: str = "236bfdffb57e"
+down_revision: str | Sequence[str] | None = "89b8bb695807"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

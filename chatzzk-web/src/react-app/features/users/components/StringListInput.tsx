@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 interface StringListInputProps {
     label: string;
-    description: string;
+    description?: string;
     items: string[];
     onChange: (items: string[]) => void;
     disabled?: boolean;
