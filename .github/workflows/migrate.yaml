@@ -9,7 +9,6 @@ on:
       - 'chatzzk-collector/alembic/**'
       - 'chatzzk-collector/alembic.ini'
       - 'chatzzk-collector/packages/data_access/src/chatzzk_data_access/orm/**'
-      - 'chatzzk-collector/scripts/**'
       - 'chatzzk-collector/uv.lock'
 
   workflow_dispatch:

@@ -29,9 +29,40 @@ app.use("*", (c, next) => {
 });
 
 app.use("/api/*", async (c, next) => {
-    // 환경 변수에서 값 가져오기
-    const allowOrigin = c.env.ALLOWED_ORIGIN;
+    const allowOrigin = c.env.ALLOWED_ORIGIN; // 환경변수 (배열 또는 문자열)
     const requestOrigin = c.req.header('Origin');
+    const requestReferer = c.req.header('Referer'); // 주의: HTTP 표준 스펠링은 'Referer' (R이 하나 빠짐)
+
+    // 1. 검증 로직 함수화
+    const isAllowedDomain = (domain: string) => {
+        if (Array.isArray(allowOrigin)) {
+            // dev 환경: 배열(["https://...", "http://..."])
+            return allowOrigin.some(allowed => domain.startsWith(allowed));
+        } else {
+            // production 환경: 문자열("https://...")
+            return domain.startsWith(allowOrigin);
+        }
+    };
+
+    // 2. [단계별 검증]
+    // Case A: Origin 헤더가 있는 경우 (주로 CORS 요청, POST 요청 등)
+    if (requestOrigin) {
+        if (!isAllowedDomain(requestOrigin)) {
+            return c.json({ error: 'Access Denied: Invalid Origin' }, 403);
+        }
+    }
+    // Case B: Origin은 없지만 Referer가 있는 경우 (Same-Origin GET 요청 등 - 현재 선생님 로그 상황)
+    else if (requestReferer) {
+        if (!isAllowedDomain(requestReferer)) {
+            return c.json({ error: 'Access Denied: Invalid Referer' }, 403);
+        }
+    }
+    // Case C: Origin도 없고 Referer도 없는 경우 (Curl, Python 스크립트 등)
+    else {
+        return c.json({
+            error: 'Access Denied: Missing Origin/Referer. (브라우저로 접속해주세요)'
+        }, 403);
+    }
 
     // CORS 미들웨어 동적 생성
     const corsMiddleware = cors({
@@ -41,25 +72,6 @@ app.use("/api/*", async (c, next) => {
         exposeHeaders: ['ETag'],
         maxAge: 600,
     });
-
-    if (requestOrigin) {
-        let isAllowed = false;
-
-        if (Array.isArray(allowOrigin)) {
-            // dev 환경: 배열(["http://...", "https://..."])인 경우
-            isAllowed = allowOrigin.includes(requestOrigin);
-        } else {
-            // production 환경: 문자열("https://...")인 경우
-            isAllowed = allowOrigin === requestOrigin;
-        }
-
-        if (!isAllowed) {
-            // 여기서 서버가 강제로 끊어버립니다. Curl도 데이터 못 가져갑니다.
-            return c.json({ error: '허용되지 않은 출처입니다. (Invalid Origin)' }, 403);
-        }
-    }
-    // 주의: curl로 보낼 때 Origin 헤더를 아예 안 보내면(requestOrigin이 null) 통과될 수 있습니다.
-    // 그래서 공개 API에는 보통 1) Origin 체크 + 2) Turnstile 같은 추가 방어가 필요합니다.
 
     return corsMiddleware(c, next);
 });
