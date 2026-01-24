@@ -143,7 +143,7 @@ export function StringListInput({ label, description, items, onChange, disabled 
                             "max-h-[150px]" // ✅ 일정 높이 이상 시 스크롤 발생
                         )}
                     />
-                    <Button variant="secondary" onClick={handleAdd} disabled={!inputValue.trim()} className="mt-0.5">
+                    <Button type="button" variant="secondary" onClick={handleAdd} disabled={!inputValue.trim()} className="mt-0.5">
                         추가
                     </Button>
                 </div>
@@ -178,12 +178,14 @@ export function StringListInput({ label, description, items, onChange, disabled 
                                     {/* 버튼 그룹 (상단 고정) */}
                                     <div className="flex shrink-0 mt-0.5 gap-1">
                                         <Button
+                                            type="button"
                                             size="icon" variant="ghost" className="h-8 w-8 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600"
                                             onMouseDown={(e) => e.preventDefault()} onClick={saveEdit}
                                         >
                                             <Check className="h-4 w-4" />
                                         </Button>
                                         <Button
+                                            type="button"
                                             size="icon" variant="ghost" className="h-8 w-8 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600"
                                             onMouseDown={(e) => e.preventDefault()} onClick={cancelEdit}
                                         >
@@ -212,6 +214,7 @@ export function StringListInput({ label, description, items, onChange, disabled 
                                     <div className="flex items-center shrink-0 ml-1">
                                         <div className="w-px h-3 bg-border mr-2" />
                                         <button
+                                            type="button"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleRemove(index);

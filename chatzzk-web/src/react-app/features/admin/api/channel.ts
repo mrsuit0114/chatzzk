@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import { PlatformCode } from "@shared/constants/service_codes";
-import { ChannelMetadata } from "@shared/types/channel";
+import { ChannelMetadata, ChannelMetadataSchema } from "@shared/types/channel";
 
 export type AddChannelRequest = {
     platform: PlatformCode;
@@ -35,7 +35,14 @@ export type AdminChannelDetail = {
 export const getChannelDetail = async (params: { platform: string; channelId: string }) => {
     // GET /api/admin/channels/detail?platform=CHZZK&channelId=...
     const { data } = await api.get<{ data: AdminChannelDetail }>('/admin/channels/detail', { params });
-    return data.data;
+    const raw = data.data;
+    return {
+        ...raw,
+        // attributes(snake_case)를 스키마에 넣어 camelCase로 변환된 객체로 덮어씌움
+        channel_metadata: raw.channel_metadata ? {
+            attributes: ChannelMetadataSchema.parse(raw.channel_metadata.attributes)
+        } : null
+    } as AdminChannelDetail;
 };
 
 // 3. 일반 정보 수정 요청 타입
