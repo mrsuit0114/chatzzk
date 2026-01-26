@@ -62,7 +62,7 @@ export function ChapterItem({ chapter, isSelected, isOpen, onSelect }: ChapterIt
                 }}
             >
                 <div className={cn(
-                    "relative transition-all duration-300 text-sm leading-relaxed",
+                    "relative transition-all duration-300 text-sm leading-relaxed whitespace-pre-line",
                     // ✅ [요청 반영] 선택 시 텍스트 뚜렷하게 (text-foreground), 아닐 땐 흐리게
                     isSelected
                         ? "border-primary text-foreground font-medium"

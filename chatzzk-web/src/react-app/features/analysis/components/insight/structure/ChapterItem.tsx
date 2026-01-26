@@ -47,7 +47,7 @@ export function ChapterItem({ chapter, isActive, children, rootRef }: StructureC
 
             <AccordionContent className="pb-2 cursor-default">
                 {/* 1. 챕터 요약문 (Insight View 전용) */}
-                <div className="mb-4 p-3 bg-muted/30 rounded-md border-l-2 border-primary/40 text-sm text-foreground/80 leading-relaxed">
+                <div className="mb-4 p-3 bg-muted/30 rounded-md border-l-2 border-primary/40 text-sm text-foreground/80 leading-relaxed whitespace-pre-line">
                     <span className="font-bold text-foreground/80 block mb-1 text-xs">Chapter Summary</span>
                     {chapter.summary}
                 </div>
