@@ -1,0 +1,85 @@
+# 프로젝트 이름 (임의 지정)
+name: chatzzk-collector
+prefect-version: 3.0.0
+
+build: null
+push: null
+pull:  # 도커에서 설정할 것, 기본값은 prefect.yaml의 위치
+  - prefect.deployments.steps.set_working_directory:
+      directory: /app
+
+deployments:
+  - name: discovery-cron
+    description: "30분마다 전체 활성 채널을 탐색합니다."
+    entrypoint: "app/pipeline/workflows/discovery_flow.py:discovery_flow"
+    work_pool:
+      name: "process-pool-dev"
+    work_queue_name: "queue-low-priority-discovery"
+    schedule:
+      cron: "*/30 * * * *"
+      timezone: "Asia/Seoul"
+    parameters:
+      target_channel_id: null
+      lookback_days: 3
+
+  - name: discovery-manual-onboarding
+    description: "특정 채널 ID를 입력받아 과거 데이터를 수집합니다."
+    entrypoint: "app/pipeline/workflows/discovery_flow.py:discovery_flow"
+    work_pool:
+      name: "process-pool-dev"
+    work_queue_name: "queue-high-priority-discovery"
+    schedule: null
+    parameters:
+      target_channel_id: null
+      lookback_days: 3
+
+  - name: processing-batch-cron
+    entrypoint: "app/pipeline/workflows/processing_flow.py:processing_flow"
+    work_pool:
+      name: "process-pool-dev"
+    work_queue_name: "queue-low-priority-processing"
+    schedule:
+      cron: "*/30 * * * *"
+      timezone: "Asia/Seoul"
+    parameters:
+      mode: "BATCH"
+      batch_size: 5
+      vod_id: null
+
+  - name: processing-single-manual
+    entrypoint: "app/pipeline/workflows/processing_flow.py:processing_flow"
+    work_pool:
+      name: "process-pool-dev"
+    work_queue_name: "queue-high-priority-processing"
+    schedule: null
+    parameters:
+      mode: "SINGLE"
+      batch_size: 1
+      vod_id: null
+    description: "특정 VOD ID를 입력하여 파이프라인을 재실행합니다."
+
+  - name: processing-retry-cron
+    entrypoint: app/pipeline/workflows/processing_flow.py:processing_flow
+    work_pool:
+      name: process-pool-dev
+    work_queue_name: queue-retry-processing
+    schedule:
+      cron: "0 * * * *"
+      timezone: "Asia/Seoul"
+    parameters:
+      mode: "RETRY"
+      batch_size: 3
+      vod_id: null
+    description: "실패한 VOD를 재시도합니다."
+
+  - name: maintenance-zombie-cleanup
+    entrypoint: app/pipeline/workflows/maintenance_flow.py:maintenance_flow
+    work_pool:
+      name: process-pool-dev
+    work_queue_name: default
+    schedule:
+      cron: "0 * * * *"
+      timezone: "Asia/Seoul"
+    parameters:
+      threshold_minutes: 60
+    description: "60분 이상 처리 중인 좀비 VOD를 정리합니다."

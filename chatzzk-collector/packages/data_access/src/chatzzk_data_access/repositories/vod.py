@@ -1,4 +1,6 @@
-from sqlalchemy import select, update
+from datetime import datetime
+
+from sqlalchemy import and_, select, update
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -65,7 +67,7 @@ class VODRepository:
         await session.execute(stmt)
 
     async def get_by_id(self, session: AsyncSession, vod_id: int) -> VOD | None:
-        stmt = select(VOD).where(VOD.id == vod_id)
+        stmt = select(VOD).where(VOD.id == vod_id).options(joinedload(VOD.channel).joinedload(Channel.platform))
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -82,6 +84,19 @@ class VODRepository:
             .limit(limit)
             # 2. of=VOD 옵션 추가
             # 조인된 테이블(Channel, Platform)은 건드리지 않고, 'VOD' 테이블의 행만 락을 겁니다.
+            .with_for_update(skip_locked=True, of=VOD)
+        )
+        result = await session.execute(stmt)
+        return result.scalars().all()
+
+    async def get_stale_processing_vods(
+        self, session: AsyncSession, threshold_time: datetime, limit: int = 100
+    ) -> list[VOD]:
+        stmt = (
+            select(VOD)
+            .options(joinedload(VOD.channel, innerjoin=True).joinedload(Channel.platform, innerjoin=True))
+            .where(and_(VOD.pipeline_status == VODPipelineStatus.PROCESSING, VOD.updated_at < threshold_time))
+            .limit(limit)
             .with_for_update(skip_locked=True, of=VOD)
         )
         result = await session.execute(stmt)

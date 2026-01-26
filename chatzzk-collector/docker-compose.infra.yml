@@ -1,0 +1,48 @@
+# docker-compose.infra.yml
+name: pipeline-infra
+services:
+  # 1. Prefect의 기억 저장소
+  postgres:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: prefect
+      POSTGRES_PASSWORD: prefect
+      POSTGRES_DB: prefect
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U prefect" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pipeline-network
+
+  # 2. Prefect API 서버 (UI 포함)
+  prefect-server:
+    image: prefecthq/prefect:3-latest
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "4200:4200" # 호스트 및 다른 컨테이너가 접속할 포트
+    environment:
+      PREFECT_API_DATABASE_CONNECTION_URL: postgresql+asyncpg://prefect:prefect@postgres:5432/prefect
+      PREFECT_SERVER_API_HOST: 0.0.0.0
+
+      PREFECT_UI_API_URL: http://localhost:4200/api
+    command: prefect server start
+
+    # [중요] 애플리케이션 컨테이너들이 이 서버를 찾을 수 있도록 네트워크 생성
+    networks:
+      - pipeline-network
+
+networks:
+  pipeline-network:
+    name: pipeline-shared-network # 고정 이름 부여
+    driver: bridge
+
+volumes:
+  postgres_data:
