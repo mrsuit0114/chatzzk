@@ -198,7 +198,7 @@ export function ChannelProvisionPage() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel>스트리머 성별</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <Select onValueChange={field.onChange} value={field.value}>
                                             <FormControl>
                                                 <SelectTrigger><SelectValue /></SelectTrigger>
                                             </FormControl>
