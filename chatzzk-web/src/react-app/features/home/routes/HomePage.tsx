@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tv, BarChart3, ChevronRight } from "lucide-react";
+import { Tv, BarChart3, ChevronRight, BookOpenText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PLATFORM_CODE } from "@shared/constants/service_codes";
 
@@ -37,6 +37,17 @@ export function HomePage() {
                     지난 방송, 보고싶은 부분을 빠르게 탐색하세요.<br />
                     AI가 분석한 방송의 흐름과 핵심 요약을 제공합니다.
                 </p>
+                <div className="pt-2 flex justify-center">
+                    <a
+                        href="https://www.notion.so/CHATZZK-2eead172fa21808f9f49dcbaae9a8710?source=copy_link"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center text-sm font-medium text-muted-foreground/80 hover:text-primary transition-colors hover:underline underline-offset-4 group"
+                    >
+                        <BookOpenText className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
+                        서비스 소개
+                    </a>
+                </div>
             </div>
 
             {/* 2. Main Action (단일 플랫폼 카드) */}
