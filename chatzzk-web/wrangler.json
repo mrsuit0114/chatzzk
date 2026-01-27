@@ -27,7 +27,7 @@
 			"r2_buckets": [
 				{
 					"binding": "MY_BUCKET",
-					"bucket_name": "chatzzk-dev",
+					"bucket_name": "chatzzk-beta",
 					"remote": true
 				}
 			]
