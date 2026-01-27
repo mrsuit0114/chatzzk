@@ -1,11 +1,29 @@
 services:
-  # chatzzk-collector-dev: 디버깅을 위해 로컬에서 수행
-  #   image: chatzzk/chatzzk-collector-dev
-  #   build:
-  #     context: .
-  #     dockerfile: app/pipeline/Dockerfile
-  #   env_file:
-  #     - dev.env
+  chatzzk-collector-dev:
+    image: chatzzk/chatzzk-collector-dev
+    build:
+      context: .
+      dockerfile: app/pipeline/Dockerfile
+    command: prefect worker start --pool "process-pool-dev"
+    depends_on:
+      - asr-inference-server-dev
+      - llm-proxy-server-dev
+    env_file:
+      - dev.env
+    environment:
+      PREFECT_API_URL: http://prefect-server:4200/api
+      ASR_SERVER_URL: http://asr-inference-server-dev:8000
+      LLM_SERVER_URL: http://llm-proxy-server-dev:4000
+    networks:
+      - default # ASR, LLM과 통신
+      - pipeline-shared-network # Prefect Server와 통신
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # 24/7 구동 시 예상치 못한 종료 대비
+    restart: unless-stopped
 
   asr-inference-server-dev:
     image: chatzzk/asr-inference-server-dev
@@ -23,6 +41,7 @@ services:
             - driver: nvidia
               count: all
               capabilities: [ gpu ]
+    restart: unless-stopped
 
   llm-proxy-server-dev:
     image: chatzzk/llm-proxy-server-dev
@@ -33,6 +52,10 @@ services:
       - "4000:4000" # 로컬 수행 용
     env_file:
       - dev.env
+    restart: unless-stopped
+networks:
+  pipeline-shared-network:
+    external: true
 
 volumes:
   dev-models:

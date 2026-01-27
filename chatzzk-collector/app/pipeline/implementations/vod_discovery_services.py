@@ -61,15 +61,16 @@ class ChzzkVODDiscoveryService:
 
         return target_channels
 
-    async def scan_new_vods(self, target_channel: dict) -> tuple[list[ChzzkVODMeta], datetime]:
+    async def scan_new_vods(self, target_channel: dict, lookback_days: int) -> tuple[list[ChzzkVODMeta], datetime]:
         # 수집해야할 vod 리스트와 탐색 datetime(utc)를 반환
+        # lookback_days는 last_vod_crawled_at이 없을 때, 즉 채널을 처음 등록했을 때 동작
         now_utc = datetime.now(UTC)
 
         platform_channel_id = target_channel["platform_channel_id"]
         last_crawled_at = (
             target_channel["last_vod_crawled_at"]
             if target_channel["last_vod_crawled_at"]
-            else now_utc - timedelta(days=3)
+            else now_utc - timedelta(days=lookback_days)
         )
 
         recent_vods = await self.chzzk_api_client.fetch_recent_vod_metas(

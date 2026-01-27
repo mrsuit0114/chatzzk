@@ -1,5 +1,5 @@
 import asyncio
-import os
+from enum import StrEnum
 
 from prefect import flow, task
 from prefect.cache_policies import NO_CACHE
@@ -10,12 +10,31 @@ from chatzzk_core.constants import PlatformCode
 from chatzzk_core.schemas.config import Settings
 from chatzzk_core.schemas.internal import TargetVODInfo
 
-PROCESSING_BATCH_SIZE = os.getenv("PROCESSING_BATCH_SIZE", 5)
+
+class ProcessingMode(StrEnum):
+    BATCH = "BATCH"  # 신규 처리
+    SINGLE = "SINGLE"  # 수동 단건
+    RETRY = "RETRY"  # 실패 재시도
 
 
 @task(cache_policy=NO_CACHE)
-async def task_dispatch_vod_info(dispatch_service, batch_size: int) -> list[TargetVODInfo]:
-    return await dispatch_service.allocate_next_batch(batch_size)
+async def task_dispatch_vod_info(
+    dispatch_service,
+    mode: ProcessingMode,
+    batch_size: int,
+    vod_id: int | None = None,
+) -> list[TargetVODInfo]:
+    """
+    vod_id가 있으면 해당 VOD만 가져오고 (Single Mode),
+    없으면 batch_size만큼 가져옵니다 (Batch Mode).
+    """
+    if mode == ProcessingMode.SINGLE:
+        target = await dispatch_service.get_target_vod(vod_id)
+        return [target] if target else []
+    elif mode == ProcessingMode.RETRY:
+        return await dispatch_service.allocate_failed_batch(batch_size)
+    else:
+        return await dispatch_service.allocate_next_batch(batch_size)
 
 
 @task(cache_policy=NO_CACHE, tags=["limit-chat-collection"])
@@ -62,6 +81,8 @@ async def process_single_vod(vod_info: TargetVODInfo, services: dict):
     duration = vod_info.vod.duration
     channel_id = vod_info.channel.id
 
+    print(f"Processing VOD: {vod_id} ({video_no}, {platform_code}, {duration}, {channel_id})")
+
     # 주입받은 서비스 딕셔너리에서 필요한 서비스 추출 (quote 처리된 상태로 넘어옴)
     await task_collect_chat(quote(services["chat"][platform_code]), vod_id, video_no, duration)
     await task_collect_audio(quote(services["audio"][platform_code]), vod_id, video_no)
@@ -73,7 +94,11 @@ async def process_single_vod(vod_info: TargetVODInfo, services: dict):
 
 
 @flow(name="VOD Processing Entrypoint", log_prints=True)
-async def processing_flow():
+async def processing_flow(
+    mode: ProcessingMode = ProcessingMode.BATCH,
+    batch_size: int = 5,
+    vod_id: int | None = None,
+):
     container = AppContainer(settings=Settings())
     await container.init_resources()
 
@@ -91,7 +116,7 @@ async def processing_flow():
         }
 
         # 2. 배치 할당
-        vod_info_list = await task_dispatch_vod_info(quote(dispatch_service), PROCESSING_BATCH_SIZE)
+        vod_info_list = await task_dispatch_vod_info(quote(dispatch_service), mode, batch_size, vod_id)
 
         if not vod_info_list:
             print("No VODs to process.")

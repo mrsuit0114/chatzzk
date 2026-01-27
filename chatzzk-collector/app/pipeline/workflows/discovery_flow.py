@@ -10,22 +10,30 @@ from chatzzk_core.schemas.config import Settings
 
 
 @task(cache_policy=NO_CACHE)
-async def task_get_discovery_targets(platform_service, discovery_services) -> list[dict]:
+async def task_get_discovery_targets(platform_service, discovery_services, target_channel_id: int = None) -> list[dict]:
     """플랫폼 서비스와 디스커버리 서비스 목록을 주입받아 대상 채널들을 확정"""
     platform_codes = await platform_service.list_all_platform_codes()
-
     targets = []
+
     for code in platform_codes:
         service = discovery_services[code]
-        channels = await service.list_active_channels()
-        targets.append({"platform_code": code, "channels": channels})
+        # 1. 전체 채널 목록 조회
+        all_channels = await service.list_active_channels()
+
+        # 2. 만약 특정 채널 ID가 지정되었다면 필터링
+        if target_channel_id:
+            filtered = [c for c in all_channels if c["channel_id"] == target_channel_id]
+        else:
+            filtered = all_channels
+
+        targets.append({"platform_code": code, "channels": filtered})
     return targets
 
 
 @task(cache_policy=NO_CACHE)
-async def task_search_new_vods(service, target_channel: dict) -> tuple[list, datetime]:
+async def task_search_new_vods(service, target_channel: dict, lookback_days: int) -> tuple[list, datetime]:
     """특정 플랫폼 서비스 인스턴스를 주입받아 스캔 수행"""
-    return await service.scan_new_vods(target_channel)
+    return await service.scan_new_vods(target_channel, lookback_days)
 
 
 @task(cache_policy=NO_CACHE)
@@ -43,7 +51,10 @@ async def task_save_discovery_results(
 
 
 @flow(name="VOD Discovery", log_prints=True)
-async def discovery_flow():
+async def discovery_flow(
+    target_channel_id: int | None = None,  # 수동 실행 시 입력
+    lookback_days: int = 3,  # 기본값 3일, 수동 시 확장 가능
+):
     # 1. Flow가 시작될 때 리소스 초기화 (크론 주기마다 새로 실행됨)
     container = AppContainer(settings=Settings())
     await container.init_resources()
@@ -54,7 +65,9 @@ async def discovery_flow():
         discovery_services = await container.service_package.vod_discovery_services()
 
         # 2. 첫 번째 Task 실행 (서비스 객체를 quote로 감싸서 전달)
-        discovery_targets = await task_get_discovery_targets(quote(platform_service), quote(discovery_services))
+        discovery_targets = await task_get_discovery_targets(
+            quote(platform_service), quote(discovery_services), target_channel_id
+        )
 
         for target in discovery_targets:
             platform_code = target["platform_code"]
@@ -63,7 +76,7 @@ async def discovery_flow():
 
             for target_channel in target_channels:
                 # 3. 개별 채널 스캔 및 저장 (동일한 서비스 객체 재사용)
-                new_vods, scanned_at = await task_search_new_vods(quote(service), target_channel)
+                new_vods, scanned_at = await task_search_new_vods(quote(service), target_channel, lookback_days)
                 await task_save_discovery_results(quote(service), target_channel["channel_id"], new_vods, scanned_at)
 
     finally:
