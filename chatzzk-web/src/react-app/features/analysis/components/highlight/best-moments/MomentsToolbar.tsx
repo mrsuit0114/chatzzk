@@ -68,14 +68,11 @@ export function MomentsToolbar({
 
     const metricIntroMap: Record<SortOption, string> = {
         [SORT_OPTIONS.VOLUME]:
-            "전체 방송 기준 시청자의 참여도를 기준으로 선정\n" +
-            "0은 이번 방송에서 가장 화력이 낮은 구간이며 1은 가장 화력이 높은 구간입니다.",
+            "전체 방송 기준 시청자의 참여도를 기준으로 선정",
         [SORT_OPTIONS.MOMENTUM]:
-            "최근 짧은 시간 내 급격한 참여도 상승을 기준으로 선정\n" +
-            "0을 초과하는 값은 상승을 의미하며 수치가 클수록 상승 폭이 큽니다.",
+            "최근 짧은 시간 내 급격한 참여도 상승을 기준으로 선정",
         [SORT_OPTIONS.SCORE]:
-            "AI가 측정한 종합 평점(0~10)을 기준으로 선정\n" +
-            "상황, 스트리머와 시청자의 반응을 종합적으로 고려하여 매겨진 점수입니다.",
+            "AI가 측정한 종합 평점(1~10)을 기준으로 선정",
     };
 
     return (
@@ -91,7 +88,7 @@ export function MomentsToolbar({
                     </Badge>
                     <BestMomentsTooltip />
                 </h2>
-                <p className="text-sm leading-5 text-muted-foreground max-w-md whitespace-pre-line h-[2.5rem]">
+                <p className="text-sm leading-5 text-muted-foreground max-w-md whitespace-pre-line h-[0.5rem]">
                     {metricIntroMap[currentSort]}
                 </p>
             </div>
@@ -205,10 +202,10 @@ function BestMomentsTooltip() {
                     <div className="space-y-1">
                         <h4 className="font-bold text-foreground">📊 분석 및 정렬 기준</h4>
                         <p className="text-muted-foreground leading-relaxed">
-                            요약과 평점은 <span className="text-foreground font-medium">5분 단위 데이터</span>를 기준으로 산출됩니다.
+                            요약과 평점은 <span className="text-foreground font-medium">5분 단위 데이터(세그먼트)</span>를 기준으로 산출됩니다.
                         </p>
                         <p className="text-muted-foreground leading-relaxed">
-                            순위는 피크를 기준으로 정렬됩니다. 예를 들어 화력순 정렬 시, 각 구간의 <span className="text-red-500 font-medium">화력 피크</span> 값을 기준으로 순위가 매겨집니다.
+                            화력과 변동성 순위는 각 피크를 기준으로 정렬됩니다. <br />예를 들어 화력순 정렬 시, 각 구간의 <span className="text-red-500 font-medium">화력 피크</span> 값을 기준으로 순위가 매겨집니다.
                         </p>
                     </div>
 
@@ -217,15 +214,17 @@ function BestMomentsTooltip() {
                         <h4 className="font-bold text-foreground">💡 지표 설명</h4>
                         <ul className="space-y-1.5 text-muted-foreground">
                             <li>
-                                <span className="text-red-500 font-bold">화력 (Volume):</span> 0~1 사이의 상대값.
+                                <span className="text-red-500 font-bold">화력 (시청자 참여도):</span> 0~1 사이의 상대값.
                                 <br />1에 가까울수록 이번 방송 중 가장 활발했음을 의미합니다.
                             </li>
                             <li>
-                                <span className="text-blue-500 font-bold">변동 (Momentum):</span> 약 -3~3 사이의 값.
+                                <span className="text-blue-500 font-bold">변동 (화력의 변화):</span> 약 -3~3 사이의 값.
+                                <br />0보다 큰 경우는 상승, 작은 경우는 하락을 의미합니다.
                                 <br />0에서 멀어질수록 급격한 변화를 의미합니다.
                             </li>
                             <li>
                                 <span className="text-yellow-500 font-bold">평점 (Score):</span> 10점 만점.
+                                <br />상황, 스트리머와 시청자의 반응을 종합적으로<br /> 고려하여 매겨진 점수입니다.
                                 <br />AI가 평가한 점수입니다. (방송 역량과는 무관)
                             </li>
                         </ul>
@@ -235,7 +234,8 @@ function BestMomentsTooltip() {
                     <div className="space-y-1">
                         <h4 className="font-bold text-foreground">📈 PEAK 구간</h4>
                         <p className="text-muted-foreground leading-relaxed">
-                            5분 구간 내에서 <span className="text-foreground font-medium">30초 단위</span>로 가장 높은 지점을 별도로 표시합니다. 따라서 화력 피크와 변동 피크의 시점은 다를 수 있습니다.
+                            5분 구간 내에서 <span className="text-foreground font-medium">30초 단위</span>로 가장 높은 지점을 대푯값으로 사용합니다.
+                            <br />화력 피크와 변동 피크의 시점은 다를 수 있습니다.
                         </p>
                     </div>
 
