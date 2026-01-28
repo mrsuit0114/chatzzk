@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Eye, EyeOff, UserPlus, Save, Power, Ban, LockKeyhole, Loader2, Info, UserCog, Lock } from "lucide-react";
 import { toast } from "sonner";
-import { DELAY_OPTIONS, UserIdSchema } from "@shared/constants/service_codes";
+import { DELAY_OPTIONS, PasswordSchema, UserIdSchema } from "@shared/constants/service_codes";
 import { MyChannelData } from "@shared/types/channel";
 import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { updateChannelSettings, getEditorAccount, createEditorAccount, updateEditorAccount, toggleEditorStatus } from "../api/myChannel";
@@ -83,7 +83,7 @@ export function MySettingsTab({ channel, isOwner }: Props) {
             queryClient.invalidateQueries({ queryKey: ['myEditor'] });
             toast.success("편집자 계정이 생성되었습니다.");
         },
-        onError: (err: any) => toast.error(err.message || "계정 생성 실패")
+        onError: (err: any) => toast.error(err.response?.data?.error || "계정 생성 실패")
     });
 
     // [Mutation] 편집자 정보 수정
@@ -94,7 +94,7 @@ export function MySettingsTab({ channel, isOwner }: Props) {
             toast.success("계정 정보가 수정되었습니다.");
             setEditPw(""); // 수정 후 비번창 초기화
         },
-        onError: (err: any) => toast.error(err.message || "수정 실패")
+        onError: (err: any) => toast.error(err.response?.data?.error || "계정 정보 수정 실패")
     });
 
     // [Mutation] 상태 토글 (Ban/Unban)
@@ -111,12 +111,15 @@ export function MySettingsTab({ channel, isOwner }: Props) {
 
     // 핸들러: 생성 요청
     const handleCreate = () => {
-        if (!UserIdSchema.safeParse(editId).success) {
-            toast.error("아이디는 4~20자의 영문 소문자와 숫자만 가능합니다.");
+        const idResult = UserIdSchema.safeParse(editId);
+        if (!idResult.success) {
+            toast.error(idResult.error.issues[0].message);
             return;
         }
-        if (editPw.length < 8) {
-            toast.error("비밀번호는 최소 8자 이상이어야 합니다.");
+
+        const pwResult = PasswordSchema.safeParse(editPw);
+        if (!pwResult.success) {
+            toast.error(pwResult.error.issues[0].message);
             return;
         }
         createEditor();
@@ -124,10 +127,18 @@ export function MySettingsTab({ channel, isOwner }: Props) {
 
     // 핸들러: 수정 요청
     const handleUpdate = () => {
-        if (!UserIdSchema.safeParse(editId).success) {
-            toast.error("아이디 형식이 올바르지 않습니다.");
+        const idResult = UserIdSchema.safeParse(editId);
+        if (!idResult.success) {
+            toast.error(idResult.error.issues[0].message);
             return;
         }
+
+        const pwResult = PasswordSchema.safeParse(editPw);
+        if (!pwResult.success) {
+            toast.error(pwResult.error.issues[0].message);
+            return;
+        }
+
         updateEditor();
     };
 
