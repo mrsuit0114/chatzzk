@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { CHART_KEYS, ChartKey, METRIC_LABELS, MetricType } from "@/features/analysis/constants";
 import { Slider } from "@/components/ui/slider";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 
 interface TrendToolbarProps {
@@ -150,86 +150,102 @@ export function TrendToolbar({
 
 function TrendTooltip() {
     return (
-        <TooltipProvider delayDuration={200}>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <button className="p-1 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50" aria-label="그래프 도움말">
-                        <Info className="h-4 w-4 text-primary" />
-                    </button>
-                </TooltipTrigger>
-                <TooltipContent side="right" align="start" className="max-w-[360px] p-5 text-xs bg-popover/95 backdrop-blur shadow-xl border-border">
-                    <div className="space-y-4">
+        <Popover>
+            <PopoverTrigger asChild>
+                <button
+                    className="p-1 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    aria-label="그래프 도움말"
+                >
+                    <Info className="h-4 w-4 text-primary" />
+                </button>
+            </PopoverTrigger>
+
+            <PopoverContent
+                side="bottom"
+                align="center" // 모바일 중앙 정렬이 안전함
+                sideOffset={8}
+                collisionPadding={10}
+                // [핵심 변경]
+                // 1. w-[90vw]: 모바일 좌우 꽉 차게
+                // 2. max-h-[80vh] overflow-y-auto: 내용이 길어 화면을 넘어가면 스크롤 생성
+                className="w-[90vw] max-w-[360px] max-h-[80vh] overflow-y-auto p-5 text-xs bg-popover/95 backdrop-blur shadow-xl border-border"
+            >
+                <div className="space-y-4">
+                    <div className="space-y-1">
+                        <p className="text-muted-foreground leading-relaxed">
+                            방송 전체 흐름 비교를 위해 0~1 사이로 정규화되었습니다.
+                        </p>
+                    </div>
+
+                    <Separator />
+
+                    {/* 그래프 설명 그리드 */}
+                    <div className="grid grid-cols-[20px_1fr] gap-3 items-start">
+                        <BarChart3 className="h-4 w-4 text-orange-500 mt-0.5" />
                         <div className="space-y-1">
-                            <p className="text-muted-foreground leading-relaxed">
-                                방송 전체 흐름 비교를 위해 0~1 사이로 정규화되었습니다.
-                            </p>
+                            <span className="font-bold text-foreground">화력 (막대)</span>
+                            <p className="text-muted-foreground">채팅 및 후원의 발생 빈도(화력)입니다.</p>
+                            <p className="text-muted-foreground">전체 방송을 기준으로 계산된 값입니다.</p>
+                            <ul className="list-disc list-inside text-muted-foreground/80 mt-1 pl-1 space-y-0.5">
+                                <li><span className="font-semibold text-foreground">1.0</span> : 방송 최고 화력 시점</li>
+                                <li><span className="font-semibold text-foreground">0.5</span> : 평균적인 수준</li>
+                                <li><span className="font-semibold text-foreground">0.0</span> : 가장 조용한 시점</li>
+                            </ul>
                         </div>
 
-                        <Separator />
-
-                        <div className="grid grid-cols-[20px_1fr] gap-3 items-start">
-                            <BarChart3 className="h-4 w-4 text-orange-500 mt-0.5" />
-                            <div className="space-y-1">
-                                <span className="font-bold text-foreground">화력 (막대)</span>
-                                <p className="text-muted-foreground">채팅 및 후원의 발생 빈도(화력)입니다.</p>
-                                <p className="text-muted-foreground">전체 방송을 기준으로 계산된 값입니다.</p>
-                                <ul className="list-disc list-inside text-muted-foreground/80 mt-1 pl-1 space-y-0.5">
-                                    <li><span className="font-semibold text-foreground">1.0</span> : 방송 최고 화력 시점</li>
-                                    <li><span className="font-semibold text-foreground">0.5</span> : 평균적인 수준</li>
-                                    <li><span className="font-semibold text-foreground">0.0</span> : 가장 조용한 시점</li>
-                                </ul>
-                            </div>
-
-                            <LineChart className="h-4 w-4 text-blue-600 mt-0.5" />
-                            <div className="space-y-1">
-                                <span className="font-bold text-foreground">변동성 (선)</span>
-                                <p className="text-muted-foreground">화력의 변화 수치이며 괄호의 값은 참고용 실제 값입니다.</p>
-                                <p className="text-muted-foreground">인접 구간을 반영하여 시청자 수 변화를 고려하였습니다.</p>
-                                <ul className="list-disc list-inside text-muted-foreground/80 mt-1 pl-1 space-y-0.5">
-                                    <li><span className="font-semibold text-foreground">0.8↑</span> : 폭발적인 급상승</li>
-                                    <li><span className="font-semibold text-foreground">0.5↑</span> : 화력 증가 추세</li>
-                                    <li><span className="font-semibold text-foreground">0.5↓</span> : 화력 감소 추세</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div className="pt-3 border-t bg-muted/20 -mx-5 mb-5 p-4 rounded-b-md">
-                            <span className="font-semibold text-foreground block mb-1.5 text-[11px] uppercase tracking-wider">데이터 기준 옵션</span>
-                            <ul className="grid grid-rows-2 gap-2 text-muted-foreground">
-                                <li>
-                                    <span className="font-medium text-foreground mr-1">세그먼트:</span>
-                                    5분 단위 기준
-                                </li>
-                                <li>
-                                    <span className="font-medium text-foreground mr-1">피크:</span>
-                                    세그먼트 내 최고 시점(30초 단위)
-                                </li>
+                        <LineChart className="h-4 w-4 text-blue-600 mt-0.5" />
+                        <div className="space-y-1">
+                            <span className="font-bold text-foreground">변동성 (선)</span>
+                            <p className="text-muted-foreground">화력의 변화 수치이며 괄호의 값은 참고용 실제 값입니다.</p>
+                            <p className="text-muted-foreground">인접 구간을 반영하여 시청자 수 변화를 고려하였습니다.</p>
+                            <ul className="list-disc list-inside text-muted-foreground/80 mt-1 pl-1 space-y-0.5">
+                                <li><span className="font-semibold text-foreground">0.8↑</span> : 폭발적인 급상승</li>
+                                <li><span className="font-semibold text-foreground">0.5↑</span> : 화력 증가 추세</li>
+                                <li><span className="font-semibold text-foreground">0.5↓</span> : 화력 감소 추세</li>
                             </ul>
                         </div>
                     </div>
-                    <div className="pt-3 border-t bg-muted/10 -mx-5 -mb-5 p-4 rounded-b-md">
-                        <span className="font-semibold text-foreground block mb-2 text-[11px] uppercase tracking-wider">
-                            분석 하는 법
-                        </span>
 
-                        <ul className="space-y-1.5 text-muted-foreground leading-relaxed">
-                            <li className="flex gap-2">
-                                <span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-foreground/60 shrink-0" />
-                                <span>
-                                    상단 그래프에서 큰 단위로 탐색하고 30초 단위로 표현된 하단 그래프에서 세부 변화를 확인하세요.
-                                </span>
+                    {/* 데이터 기준 옵션 (회색 박스 1) */}
+                    {/* -mx-5는 부모의 p-5를 상쇄하여 꽉 찬 배경을 만듭니다 */}
+                    <div className="pt-3 border-t bg-muted/20 -mx-5 -mb-4 p-4">
+                        <span className="font-semibold text-foreground block mb-1.5 text-[11px] uppercase tracking-wider">데이터 기준 옵션</span>
+                        <ul className="grid grid-rows-2 gap-2 text-muted-foreground">
+                            <li>
+                                <span className="font-medium text-foreground mr-1">세그먼트:</span>
+                                5분 단위 기준
                             </li>
-
-                            <li className="flex gap-2">
-                                <span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-foreground/60 shrink-0" />
-                                <span>
-                                    차트와 타임라인을 클릭하여 해당 시점으로 즉시 이동할 수 있습니다.
-                                </span>
+                            <li>
+                                <span className="font-medium text-foreground mr-1">피크:</span>
+                                세그먼트 내 최고 시점(30초 단위)
                             </li>
                         </ul>
                     </div>
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+                </div>
+
+                {/* 분석 하는 법 (회색 박스 2 - 하단 고정 느낌) */}
+                <div className="pt-3 border-t bg-muted/10 -mx-5 -mb-5 p-4 rounded-b-md mt-4">
+                    <span className="font-semibold text-foreground block mb-2 text-[11px] uppercase tracking-wider">
+                        분석 하는 법
+                    </span>
+
+                    <ul className="space-y-1.5 text-muted-foreground leading-relaxed">
+                        <li className="flex gap-2">
+                            <span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-foreground/60 shrink-0" />
+                            <span>
+                                상단 그래프에서 큰 단위로 탐색하고 30초 단위로 표현된 하단 그래프에서 세부 변화를 확인하세요.
+                            </span>
+                        </li>
+
+                        <li className="flex gap-2">
+                            <span className="mt-[3px] h-1.5 w-1.5 rounded-full bg-foreground/60 shrink-0" />
+                            <span>
+                                차트와 타임라인을 클릭하여 해당 시점으로 즉시 이동할 수 있습니다.
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </PopoverContent>
+        </Popover>
     )
 }
