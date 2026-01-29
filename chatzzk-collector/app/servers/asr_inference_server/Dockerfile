@@ -21,4 +21,8 @@ RUN uv python install 3.11 && \
 
 ENV PATH="/app/.venv/bin:$PATH"
 
-CMD ["uvicorn", "app.servers.asr_inference_server.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["gunicorn", "app.servers.asr_inference_server.main:app", \
+    "--workers", "3", \
+    "--worker-class", "uvicorn.workers.UvicornWorker", \
+    "--bind", "0.0.0.0:8000", \
+    "--timeout", "120"]

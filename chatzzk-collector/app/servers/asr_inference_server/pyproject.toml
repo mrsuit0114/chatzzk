@@ -9,6 +9,7 @@ dependencies = [
     "uvicorn>=0.38.0",
     "chatzzk_core",
     "chatzzk-clients[numpy]",
+    "gunicorn>=24.1.1",
 ]
 
 [project.optional-dependencies]

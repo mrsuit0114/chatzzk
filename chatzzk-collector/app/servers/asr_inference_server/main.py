@@ -1,28 +1,44 @@
+import asyncio
 import time
 from contextlib import asynccontextmanager
 from typing import Annotated
 
 import numpy as np
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, UploadFile
 from loguru import logger
 
 from app.servers.asr_inference_server.settings import InferenceServerSettings
-from chatzzk_clients.ml.asr import ASRClientInterface, create_asr_client
+from chatzzk_clients.ml.asr import create_asr_client
 from chatzzk_core.schemas.internal import ASRResponse
 
-asr_client: ASRClientInterface = None
 settings = InferenceServerSettings()
 TARGET_SAMPLE_RATE = settings.target_sample_rate
 MAX_SPEECH_DURATION_S = settings.max_speech_duration_s
 MAX_SAMPLES = TARGET_SAMPLE_RATE * MAX_SPEECH_DURATION_S
+WORKER_NUM = settings.worker_num
+
+
+class ASRPool:
+    def __init__(self, clients: list):
+        self.clients = clients
+        self._queue = asyncio.Queue()
+
+        for client in clients:
+            self._queue.put_nowait(client)
+
+    async def acquire(self):
+        return await self._queue.get()
+
+    async def release(self, client):
+        await self._queue.put(client)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global asr_client
     logger.info("🚀 ASR Inference Server is starting up...")
     try:
-        asr_client = create_asr_client(settings.asr_model_config)
+        clients = [create_asr_client(settings.asr_model_config) for _ in range(WORKER_NUM)]
+        app.state.asr_pool = ASRPool(clients)
         logger.success("✅ ASR model initialized successfully.")
     except Exception as e:
         logger.opt(exception=True).critical(f"❌ Failed to initialize ASR model: {e}")
@@ -47,8 +63,8 @@ async def transcribe_chunk(
     단일 오디오 청크(NumPy 배열)를 받아 ASR 추론을 수행하고,
     인식된 텍스트를 반환합니다.
     """
-    if not asr_client:
-        raise HTTPException(status_code=503, detail="Server is not ready, ASR model not initialized.")
+    pool = app.state.asr_pool
+    asr_client = await pool.acquire()
 
     try:
         # 1. 수신된 바이트를 NumPy 배열로 변환
@@ -69,17 +85,19 @@ async def transcribe_chunk(
         transcription_text = await asr_client.transcribe(audio_chunk_np)
         inference_time = time.time() - inference_start
         logger.info(
-            f"Transcription successful. Text length: {len(transcription_text)}, inference time: {inference_time}"
+            f"Transcription successful. Text: {transcription_text}, [ASR] model_id={id(asr_client)}, inference time: {inference_time}"
         )
         return ASRResponse(text=transcription_text)
 
-    except Exception as e:
-        logger.opt(exception=True).error(f"Error during transcription: {e}")
-        raise e
+    finally:
+        await pool.release(asr_client)
 
 
 @app.get("/health")
 def health_check():
-    """서버 상태 및 모델 로드 여부 확인."""
-    is_ready = asr_client is not None
-    return {"status": "ok" if is_ready else "loading", "models_loaded": is_ready}
+    pool = getattr(app.state, "asr_pool", None)
+    is_ready = pool is not None and len(pool.clients) > 0
+    return {
+        "status": "ok" if is_ready else "loading",
+        "models_loaded": len(pool.clients) if pool else 0,
+    }
