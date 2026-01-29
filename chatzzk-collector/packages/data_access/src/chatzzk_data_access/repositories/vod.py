@@ -67,7 +67,11 @@ class VODRepository:
         await session.execute(stmt)
 
     async def get_by_id(self, session: AsyncSession, vod_id: int) -> VOD | None:
-        stmt = select(VOD).where(VOD.id == vod_id).options(joinedload(VOD.channel).joinedload(Channel.platform))
+        stmt = (
+            select(VOD)
+            .where(VOD.id == vod_id)
+            .options(joinedload(VOD.channel).joinedload(Channel.platform), joinedload(VOD.pipeline_log))
+        )
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -93,10 +97,7 @@ class VODRepository:
     ) -> list[VOD]:
         stmt = (
             select(VOD)
-            .options(
-                joinedload(VOD.channel, innerjoin=True).joinedload(Channel.platform, innerjoin=True),
-                joinedload(VOD.pipeline_log),
-            )
+            .options(joinedload(VOD.channel, innerjoin=True).joinedload(Channel.platform, innerjoin=True))
             .where(and_(VOD.pipeline_status == VODPipelineStatus.PROCESSING, VOD.updated_at < threshold_time))
             .limit(limit)
             .with_for_update(skip_locked=True, of=VOD)

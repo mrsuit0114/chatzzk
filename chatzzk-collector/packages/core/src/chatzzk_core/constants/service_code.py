@@ -46,6 +46,8 @@ class AudioDataConstant:
     AUDIO_DTYPE_STR = "float32"
     ACODEC = "pcm_s32le"
     MAX_SPEECH_DURATION_S = 30
+    MIN_SILENCE_DURATION_MS = 500
+    CHUNK_DURATION_S = 600.0  # 스트리밍 과정에서 한 번에 로드할 오디오 청크의 길이
 
 
 class MLModelPaths:
@@ -83,6 +85,7 @@ ASR_HALLUCINATION_KEYWORDS = [
     "다음 주에 만나요",
     "자막 제공",
     "날씨였습니다",
+    "영상편집 및 자료조사",
 ]
 
 
