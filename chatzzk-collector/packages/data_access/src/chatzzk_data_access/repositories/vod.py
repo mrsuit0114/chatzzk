@@ -75,9 +75,8 @@ class VODRepository:
         stmt = (
             select(VOD)
             .options(
-                # 1. innerjoin=True 옵션 추가
-                # VOD가 있으면 반드시 Channel/Platform이 존재한다는 가정 하에 Inner Join을 강제합니다.
-                joinedload(VOD.channel, innerjoin=True).joinedload(Channel.platform, innerjoin=True)
+                joinedload(VOD.channel, innerjoin=True).joinedload(Channel.platform, innerjoin=True),
+                joinedload(VOD.pipeline_log),
             )
             .where(VOD.pipeline_status == status)
             .order_by(VOD.publish_date.asc())
@@ -94,7 +93,10 @@ class VODRepository:
     ) -> list[VOD]:
         stmt = (
             select(VOD)
-            .options(joinedload(VOD.channel, innerjoin=True).joinedload(Channel.platform, innerjoin=True))
+            .options(
+                joinedload(VOD.channel, innerjoin=True).joinedload(Channel.platform, innerjoin=True),
+                joinedload(VOD.pipeline_log),
+            )
             .where(and_(VOD.pipeline_status == VODPipelineStatus.PROCESSING, VOD.updated_at < threshold_time))
             .limit(limit)
             .with_for_update(skip_locked=True, of=VOD)

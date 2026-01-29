@@ -34,11 +34,13 @@ class VODDispatchService:
                     return []
 
                 for vod in pending_vods:
+                    process_details = vod.pipeline_log.process_details if vod.pipeline_log else {}
                     target_vod_info.append(
                         TargetVODInfo(
                             vod=VODDTO.from_orm(vod),
                             channel=ChannelDTO.from_orm(vod.channel),
                             platform=PlatformDTO.from_orm(vod.channel.platform),
+                            pipeline_log=process_details,
                         )
                     )
 
@@ -58,12 +60,13 @@ class VODDispatchService:
 
                 # 2. 상태를 PROCESSING으로 변경 (중복 실행 방지 및 상태 표시)
                 vod.pipeline_status = VODPipelineStatus.PROCESSING
-
+                process_details = vod.pipeline_log.process_details if vod.pipeline_log else {}
                 # 3. DTO 변환 및 반환
                 return TargetVODInfo(
                     vod=VODDTO.from_orm(vod),
                     channel=ChannelDTO.from_orm(vod.channel),
                     platform=PlatformDTO.from_orm(vod.channel.platform),
+                    pipeline_log=process_details,
                 )
 
     async def allocate_failed_batch(self, batch_size: int) -> list[TargetVODInfo]:
@@ -82,11 +85,13 @@ class VODDispatchService:
                     return []
 
                 for vod in failed_vods:
+                    process_details = vod.pipeline_log.process_details if vod.pipeline_log else {}
                     target_vod_info.append(
                         TargetVODInfo(
                             vod=VODDTO.from_orm(vod),
                             channel=ChannelDTO.from_orm(vod.channel),
                             platform=PlatformDTO.from_orm(vod.channel.platform),
+                            pipeline_log=process_details,
                         )
                     )
 

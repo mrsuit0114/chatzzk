@@ -14,6 +14,7 @@ asr_client: ASRClientInterface = None
 settings = InferenceServerSettings()
 TARGET_SAMPLE_RATE = settings.target_sample_rate
 MAX_SPEECH_DURATION_S = settings.max_speech_duration_s
+MAX_SAMPLES = TARGET_SAMPLE_RATE * MAX_SPEECH_DURATION_S
 
 
 @asynccontextmanager
@@ -54,11 +55,14 @@ async def transcribe_chunk(
         byte_data = await audio_bytes.read()
         audio_chunk_np = np.frombuffer(byte_data, dtype=np.dtype(dtype))
 
-        # 입력 오디오의 길이를 검증 (예: 최대 30초)
-        if len(audio_chunk_np) > TARGET_SAMPLE_RATE * MAX_SPEECH_DURATION_S:
-            raise HTTPException(
-                status_code=413, detail=f"Audio chunk exceeds max duration of {MAX_SPEECH_DURATION_S}s."
+        current_samples = len(audio_chunk_np)
+
+        if current_samples > MAX_SAMPLES:
+            logger.warning(
+                f"⚠️ Audio chunk exceeds limit ({current_samples} samples). "
+                f"Truncating to {MAX_SPEECH_DURATION_S}s ({MAX_SAMPLES} samples)."
             )
+            audio_chunk_np = audio_chunk_np[:MAX_SAMPLES]
 
         # 2. ASR 클라이언트를 사용하여 추론
         inference_start = time.time()
