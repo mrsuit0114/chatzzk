@@ -14,7 +14,7 @@ class BaseStreamEntry(BaseModel):
     model_config = ConfigDict(use_enum_values=True, populate_by_name=True, alias_generator=to_camel)
 
     timestamp: int
-    content: str
+    content: str | list[str]
     entry_type: EntryType
 
     def __lt__(self, other: "BaseStreamEntry") -> bool:
@@ -149,9 +149,6 @@ class ChapterSummaryEntry(BaseStreamEntry):
     title: str
     entry_type: Literal[EntryType.CHAPTER_SUMMARY] = EntryType.CHAPTER_SUMMARY
 
-    def to_context_string(self) -> str:
-        return self.content
-
     @classmethod
     def from_generation_output(
         cls,
@@ -160,7 +157,7 @@ class ChapterSummaryEntry(BaseStreamEntry):
     ) -> "ChapterSummaryEntry":
         return cls(
             timestamp=timestamp,
-            content=generation_output.summary_text,
+            content=generation_output.key_topics,
             entry_type=EntryType.CHAPTER_SUMMARY,
             title=generation_output.title,
         )
@@ -181,5 +178,5 @@ class SegmentSummaryDict(TypedDict):
 
 class ChapterSummaryDict(TypedDict):
     timestamp: int
-    content: str
+    content: list[str]
     title: str

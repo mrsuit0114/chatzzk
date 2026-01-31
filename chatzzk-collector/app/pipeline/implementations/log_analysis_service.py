@@ -116,7 +116,7 @@ class LogAnalysisService(BasePipelineService):
             avg_score=overall_avg_score,
         )
 
-        chapter_items = [ChapterItem(title=chap["title"], txt=chap["content"]) for chap in chapters]
+        chapter_items = [ChapterItem(title=chap["title"], key_topics=chap["content"]) for chap in chapters]
 
         # 5. 최종 Root 모델 반환
         return DashboardResponse(

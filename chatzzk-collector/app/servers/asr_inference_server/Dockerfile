@@ -20,9 +20,3 @@ RUN uv python install 3.11 && \
     uv sync --frozen --no-dev --package asr-inference-server --extra whisperx
 
 ENV PATH="/app/.venv/bin:$PATH"
-
-CMD ["gunicorn", "app.servers.asr_inference_server.main:app", \
-    "--workers", "3", \
-    "--worker-class", "uvicorn.workers.UvicornWorker", \
-    "--bind", "0.0.0.0:8000", \
-    "--timeout", "120"]
