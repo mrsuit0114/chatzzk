@@ -12,8 +12,8 @@ services:
       - dev.env
     environment:
       PREFECT_API_URL: http://prefect-server:4200/api
-      ASR_SERVER_URL: http://asr-inference-server-dev:8000
-      LLM_SERVER_URL: http://llm-proxy-server-dev:4000
+    volumes:
+      - dev-samples:/app/samples-dev
     networks:
       - default # ASR, LLM과 통신
       - pipeline-shared-network # Prefect Server와 통신
@@ -30,6 +30,7 @@ services:
     build:
       context: .
       dockerfile: app/servers/asr_inference_server/Dockerfile
+    command: gunicorn app.servers.asr_inference_server.main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000 --timeout 120
     ports:
       - 8000:8000 # 로컬 수행 용
     volumes:
@@ -41,6 +42,11 @@ services:
             - driver: nvidia
               count: all
               capabilities: [ gpu ]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
 
   llm-proxy-server-dev:
@@ -52,6 +58,11 @@ services:
       - "4000:4000" # 로컬 수행 용
     env_file:
       - dev.env
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
     restart: unless-stopped
 networks:
   pipeline-shared-network:
@@ -59,3 +70,4 @@ networks:
 
 volumes:
   dev-models:
+  dev-samples:

@@ -65,26 +65,36 @@ class ASRService(BasePipelineService):
                 f"🔄 Resuming ASR for vod_id={vod_id}. Total: {len(vad_entries)}, Skipped: {processed_count}, Remaining: {len(remaining_tasks)}"
             )
 
-            # 4. 오디오 메모리 로드 (전체 로드 전략)
-            audio_np, sr = self.audio_loader.load(audio_abs_path)
-
-            if sr != self.target_sr:
-                logger.warning(
-                    f"Sample rate mismatch: expected {self.target_sr}, got {sr}. ASR results might be inaccurate."
-                )
+            decoder = self.audio_loader.get_decoder(audio_abs_path)
 
             # 5. 순차 처리 (Sequential Processing)
             for idx, segment in enumerate(remaining_tasks):
-                start_sample = segment["start"]
-                end_sample = segment["end"]
+                # VAD 타임스탬프 (샘플 단위)
+                start_sample = int(segment["start"])
+                end_sample = int(segment["end"])
 
-                chunk_np = audio_np[start_sample:end_sample]
+                # [중요] 샘플 -> 초(Seconds) 변환
+                # torchcodec의 get_samples_played_in_range는 '초' 단위를 받습니다.
+                start_sec = start_sample / self.target_sr
+                stop_sec = end_sample / self.target_sr
+
+                try:
+                    # -------------------------------------------------------
+                    # ✨ 핵심: 디스크에서 딱 이 구간만 읽어옴 (메모리 절약)
+                    # -------------------------------------------------------
+                    chunk_samples = decoder.get_samples_played_in_range(start_seconds=start_sec, stop_seconds=stop_sec)
+
+                    chunk_np = self.audio_loader.to_numpy(chunk_samples)
+
+                except Exception as decode_err:
+                    logger.error(f"Failed to decode chunk {start_sec:.2f}s ~ {stop_sec:.2f}s: {decode_err}")
+                    raise
 
                 # ASR 추론 요청
                 try:
                     text = await self.asr_client.transcribe(chunk_np)
                 except Exception as e:
-                    logger.error(f"❌ ASR failed at segment {processed_count + idx} (start={start_sample}): {e}")
+                    logger.error(f"❌ ASR failed at segment {processed_count + idx}: {e}")
                     raise
 
                 entry = ASREntry(

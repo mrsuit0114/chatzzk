@@ -29,6 +29,12 @@ class VODPublishingService:
         self.tmp_storage = tmp_storage
         self.cloud_storage = cloud_storage
 
+    async def _fail_pipeline(self, vod_id: int) -> None:
+        # BasePipelineService의 fail_pipeline과 동일한 로직
+        async with self.db_session_factory() as session:
+            async with session.begin():
+                await self.vod_repo.update_vod_pipeline_status(session, vod_id, VODPipelineStatus.FAILED)
+
     async def _evaluate_vod(self, vod_id: int) -> None:
         """
         검증 실패 시 False 반환 대신 명확한 예외를 발생시킵니다.
@@ -92,6 +98,7 @@ class VODPublishingService:
             logger.info(f"[Finalize] VOD {vod_id} successfully finalized.")
 
         except Exception as e:
-            # 로그에 에러를 남기고 다시 상위로 던져서 API 응답이나 Worker 처리에 알림
+            # db에 실패처리 반영해야함
             logger.error(f"[Finalize Error] VOD {vod_id} failed: {str(e)}")
+            await self._fail_pipeline(vod_id)
             raise e

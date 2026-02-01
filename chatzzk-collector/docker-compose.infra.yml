@@ -18,6 +18,11 @@ services:
       retries: 5
     networks:
       - pipeline-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # 2. Prefect API 서버 (UI 포함)
   prefect-server:
@@ -38,6 +43,11 @@ services:
     # [중요] 애플리케이션 컨테이너들이 이 서버를 찾을 수 있도록 네트워크 생성
     networks:
       - pipeline-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
   pipeline-network:

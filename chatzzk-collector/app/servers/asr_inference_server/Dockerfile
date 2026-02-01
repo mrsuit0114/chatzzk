@@ -20,5 +20,3 @@ RUN uv python install 3.11 && \
     uv sync --frozen --no-dev --package asr-inference-server --extra whisperx
 
 ENV PATH="/app/.venv/bin:$PATH"
-
-CMD ["uvicorn", "app.servers.asr_inference_server.main:app", "--host", "0.0.0.0", "--port", "8000"]

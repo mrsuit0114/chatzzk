@@ -6,7 +6,7 @@ from prefect.cache_policies import NO_CACHE
 from prefect.utilities.annotations import quote
 
 from app.pipeline.containers import AppContainer
-from chatzzk_core.constants import PlatformCode
+from chatzzk_core.constants import PlatformCode, VODPipelineStepStatus, VODProcessingStep
 from chatzzk_core.schemas.config import Settings
 from chatzzk_core.schemas.internal import TargetVODInfo
 
@@ -15,6 +15,13 @@ class ProcessingMode(StrEnum):
     BATCH = "BATCH"  # 신규 처리
     SINGLE = "SINGLE"  # 수동 단건
     RETRY = "RETRY"  # 실패 재시도
+
+
+def is_step_completed(logs: dict, step_key: str) -> bool:
+    step_info = logs.get(step_key)
+    if not step_info:
+        return False
+    return step_info.get("status") == VODPipelineStepStatus.COMPLETED
 
 
 @task(cache_policy=NO_CACHE)
@@ -80,23 +87,48 @@ async def process_single_vod(vod_info: TargetVODInfo, services: dict):
     video_no = vod_info.vod.video_no
     duration = vod_info.vod.duration
     channel_id = vod_info.channel.id
+    logs = vod_info.pipeline_log
 
     print(f"Processing VOD: {vod_id} ({video_no}, {platform_code}, {duration}, {channel_id})")
 
-    # 주입받은 서비스 딕셔너리에서 필요한 서비스 추출 (quote 처리된 상태로 넘어옴)
-    await task_collect_chat(quote(services["chat"][platform_code]), vod_id, video_no, duration)
-    await task_collect_audio(quote(services["audio"][platform_code]), vod_id, video_no)
-    await task_perform_vad(quote(services["vad"]), vod_id)
-    await task_perform_asr(quote(services["asr"]), vod_id)
-    await task_generate_summaries(quote(services["llm"]), vod_id, channel_id, platform_code)
-    await task_process_analysis(quote(services["log"]), vod_id, platform_code)
+    if not is_step_completed(logs, VODProcessingStep.CRAWL_CHATS):
+        await task_collect_chat(quote(services["chat"][platform_code]), vod_id, video_no, duration)
+    else:
+        print(f"⏩ Skipping Chat Collection for {vod_id}")
+
+    # 2. 오디오 수집
+    if not is_step_completed(logs, VODProcessingStep.DOWNLOAD_AUDIO):
+        await task_collect_audio(quote(services["audio"][platform_code]), vod_id, video_no)
+    else:
+        print(f"⏩ Skipping Audio Collection for {vod_id}")
+
+    # 3. VAD 수행
+    if not is_step_completed(logs, VODProcessingStep.PERFORM_VAD):
+        await task_perform_vad(quote(services["vad"]), vod_id)
+
+    # 4. ASR 수행
+    if not is_step_completed(logs, VODProcessingStep.PERFORM_ASR):
+        await task_perform_asr(quote(services["asr"]), vod_id)
+
+    # 5. 요약 생성 (Segment & Chapter) - 보통 같이 묶여 있다면 하나만 체크하거나 둘 다 체크
+    segment_done = is_step_completed(logs, VODProcessingStep.GENERATE_SEGMENT_SUMMARY)
+    chapter_done = is_step_completed(logs, VODProcessingStep.GENERATE_CHAPTER_SUMMARY)
+
+    if not (segment_done and chapter_done):
+        await task_generate_summaries(quote(services["llm"]), vod_id, channel_id, platform_code)
+
+    # 6. 분석 데이터 생성
+    if not is_step_completed(logs, VODProcessingStep.GENERATE_ANALYSIS):
+        await task_process_analysis(quote(services["log"]), vod_id, platform_code)
+
+    # 7. 파이널라이즈
     await task_finalize_vod(quote(services["publish"]), vod_id)
 
 
 @flow(name="VOD Processing Entrypoint", log_prints=True)
 async def processing_flow(
     mode: ProcessingMode = ProcessingMode.BATCH,
-    batch_size: int = 5,
+    batch_size: int = 3,
     vod_id: int | None = None,
 ):
     container = AppContainer(settings=Settings())
