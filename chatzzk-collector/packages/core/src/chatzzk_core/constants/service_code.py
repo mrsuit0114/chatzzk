@@ -187,7 +187,7 @@ class StoragePaths:
 
 
 class BucketPaths:
-    VOD_DIR = "vods/{vod_id}"
+    VOD_DIR = "vods-0202/{vod_id}"
 
     @classmethod
     def get_vod_prefix(cls, vod_id: str | int) -> str:
