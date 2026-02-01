@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import {
     Select,
     SelectContent,
@@ -78,7 +77,7 @@ export function GlobalSearchBar() {
         >
             <Select value={platform} onValueChange={handlePlatformChange}>
                 <SelectTrigger
-                    className="w-[110px] border-none shadow-none focus:ring-0 rounded-none bg-transparent h-10 gap-1 pl-3"
+                    className="w-[75px] sm:w-[110px] border-none shadow-none focus:ring-0 rounded-none bg-transparent h-10 gap-1 px-2 sm:pl-3 text-xs sm:text-sm"
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
                     onKeyDown={handleKeyDown}
@@ -105,17 +104,10 @@ export function GlobalSearchBar() {
                 onKeyDown={handleKeyDown}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
-                className="flex-1 border-none shadow-none focus-visible:ring-0 h-10 rounded-none px-3"
+                className="flex-1 border-none shadow-none focus-visible:ring-0 h-10 rounded-none px-2 sm:px-3 min-w-0"
             />
 
-            <Button
-                size="icon"
-                variant="ghost"
-                className="h-10 w-10 rounded-none hover:bg-transparent text-muted-foreground"
-                onClick={handleSearch}
-            >
-                <Search className="h-4 w-4" />
-            </Button>
+            <Search className="hidden sm:inline-flex h-6 w-6 mr-2 rounded-none hover:bg-transparent text-muted-foreground shrink-0" />
         </div>
     );
 }

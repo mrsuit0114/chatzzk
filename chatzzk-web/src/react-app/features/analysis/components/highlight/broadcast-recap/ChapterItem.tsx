@@ -45,10 +45,7 @@ export function ChapterItem({ chapter, isSelected, isOpen, onSelect }: ChapterIt
                         </span>
                     </div>
 
-                    <span className={cn(
-                        "text-sm font-semibold leading-tight break-keep transition-all",
-                        isOpen ? "line-clamp-none" : "line-clamp-1"
-                    )}>
+                    <span className="font-semibold text-sm px-2 line-clamp-2 break-keep group-data-[state=open]:line-clamp-none transition-all">
                         {chapter.title}
                     </span>
                 </div>

@@ -37,7 +37,10 @@ const ID_REGEX = /^[a-z0-9]{4,20}$/;
 const PASSWORD_MIN_LENGTH = 8;
 
 
-export const UserIdSchema = z.string().min(4).max(20).regex(ID_REGEX, "4~20자의 영문 소문자, 숫자만 사용 가능합니다.");
+export const UserIdSchema = z.string()
+    .min(4, "아이디는 최소 4자 이상이어야 합니다.")
+    .max(20, "아이디는 최대 20자까지 가능합니다.")
+    .regex(ID_REGEX, "아이디는 영문 소문자, 숫자만 사용 가능합니다.");
 export type UserId = z.infer<typeof UserIdSchema>;
 
 export const PasswordSchema = z.string().min(PASSWORD_MIN_LENGTH, `비밀번호는 최소 ${PASSWORD_MIN_LENGTH}자 이상이어야 합니다.`);

@@ -36,11 +36,11 @@ export function Header() {
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background">
-            <div className="container mx-auto flex h-14 items-center justify-between gap-4">
-
+            <div className="container mx-auto flex h-14 items-center justify-between gap-2 md:gap-4 px-2 md:px-4">
                 {/* 1. 로고 */}
-                <div className="flex items-center">
-                    <Link to="/" className="mr-6 flex items-center ps-2 space-x-2">
+                <div className="flex items-center shrink-0"> {/* shrink-0: 로고 찌그러짐 방지 */}
+                    {/* ✅ [수정 2] mr-6 -> mr-2 md:mr-6 (모바일에서 로고 우측 여백 축소) */}
+                    <Link to="/" className="mr-2 md:mr-6 flex items-center ps-2 space-x-2">
                         <span className="text-xl font-bold whitespace-nowrap">CHATZZK</span>
                     </Link>
                 </div>

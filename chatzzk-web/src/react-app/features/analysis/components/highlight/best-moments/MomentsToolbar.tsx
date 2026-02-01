@@ -20,7 +20,7 @@ import { Separator } from "@/components/ui/separator";
 
 import { SORT_OPTIONS, SortOption } from "@/features/analysis/constants";
 import { ATMOSPHERE_LABELS } from "@/constants";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface MomentsToolbarProps {
     // Atmosphere Filter Props
@@ -189,58 +189,72 @@ export function MomentsToolbar({
 
 function BestMomentsTooltip() {
     return (
-        <TooltipProvider delayDuration={100}>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-5 w-5 rounded-full text-muted-foreground hover:text-primary">
-                        <Info className="h-4 w-4" />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right" align="start" className="max-w-sm p-4 bg-popover/95 backdrop-blur shadow-xl text-xs space-y-4">
+        <Popover>
+            <PopoverTrigger asChild>
+                {/* 터치/클릭 영역 확보를 위해 Button 컴포넌트 유지 */}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-5 w-5 rounded-full text-muted-foreground hover:text-primary"
+                >
+                    <Info className="h-4 w-4" />
+                    <span className="sr-only">도움말</span>
+                </Button>
+            </PopoverTrigger>
 
-                    {/* 1. 분석 기준 */}
-                    <div className="space-y-1">
-                        <h4 className="font-bold text-foreground">📊 분석 및 정렬 기준</h4>
-                        <p className="text-muted-foreground leading-relaxed">
-                            요약과 평점은 <span className="text-foreground font-medium">5분 단위 데이터(세그먼트)</span>를 기준으로 산출됩니다.
-                        </p>
-                        <p className="text-muted-foreground leading-relaxed">
-                            화력과 변동성 순위는 각 피크를 기준으로 정렬됩니다. <br />예를 들어 화력순 정렬 시, 각 구간의 <span className="text-red-500 font-medium">화력 피크</span> 값을 기준으로 순위가 매겨집니다.
-                        </p>
-                    </div>
+            <PopoverContent
+                side="bottom"       // 모바일 공간 확보를 위해 아래쪽 우선
+                align="start"       // 아이콘 시작점 정렬
+                sideOffset={8}      // 아이콘과의 간격
+                collisionPadding={10} // 화면 끝에서 10px 여백 확보 (잘림 방지)
 
-                    {/* 2. 지표 상세 */}
-                    <div className="space-y-2">
-                        <h4 className="font-bold text-foreground">💡 지표 설명</h4>
-                        <ul className="space-y-1.5 text-muted-foreground">
-                            <li>
-                                <span className="text-red-500 font-bold">화력 (시청자 참여도):</span> 0~1 사이의 상대값.
-                                <br />1에 가까울수록 이번 방송 중 가장 활발했음을 의미합니다.
-                            </li>
-                            <li>
-                                <span className="text-blue-500 font-bold">변동 (화력의 변화):</span> 약 -3~3 사이의 값.
-                                <br />0보다 큰 경우는 상승, 작은 경우는 하락을 의미합니다.
-                                <br />0에서 멀어질수록 급격한 변화를 의미합니다.
-                            </li>
-                            <li>
-                                <span className="text-yellow-500 font-bold">평점 (Score):</span> 10점 만점.
-                                <br />상황, 스트리머와 시청자의 반응을 종합적으로<br /> 고려하여 매겨진 점수입니다.
-                                <br />AI가 평가한 점수입니다. (방송 역량과는 무관)
-                            </li>
-                        </ul>
-                    </div>
+                // 모바일: 화면의 90% 너비 / 데스크탑: 최대 24rem(약 384px)
+                className="w-[90vw] max-w-sm p-4 bg-popover/95 backdrop-blur shadow-xl text-xs space-y-4"
+            >
 
-                    {/* 3. PEAK 정보 */}
-                    <div className="space-y-1">
-                        <h4 className="font-bold text-foreground">📈 PEAK 구간</h4>
-                        <p className="text-muted-foreground leading-relaxed">
-                            5분 구간 내에서 <span className="text-foreground font-medium">30초 단위</span>로 가장 높은 지점을 대푯값으로 사용합니다.
-                            <br />화력 피크와 변동 피크의 시점은 다를 수 있습니다.
-                        </p>
-                    </div>
+                {/* 1. 분석 기준 */}
+                <div className="space-y-1">
+                    <h4 className="font-bold text-foreground">📊 분석 및 정렬 기준</h4>
+                    <p className="text-muted-foreground leading-relaxed">
+                        요약과 평점은 <span className="text-foreground font-medium">5분 단위 데이터(세그먼트)</span>를 기준으로 산출됩니다.
+                    </p>
+                    <p className="text-muted-foreground leading-relaxed">
+                        화력과 변동성 순위는 각 피크를 기준으로 정렬됩니다. <br />
+                        예를 들어 화력순 정렬 시, 각 구간의 <span className="text-red-500 font-medium">화력 피크</span> 값을 기준으로 순위가 매겨집니다.
+                    </p>
+                </div>
 
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+                {/* 2. 지표 상세 */}
+                <div className="space-y-2">
+                    <h4 className="font-bold text-foreground">💡 지표 설명</h4>
+                    <ul className="space-y-1.5 text-muted-foreground">
+                        <li>
+                            <span className="text-red-500 font-bold">화력 (시청자 참여도):</span> 0~1 사이의 상대값.
+                            <br />1에 가까울수록 이번 방송 중 가장 활발했음을 의미합니다.
+                        </li>
+                        <li>
+                            <span className="text-blue-500 font-bold">변동 (화력의 변화):</span> 약 -3~3 사이의 값.
+                            <br />0보다 큰 경우는 상승, 작은 경우는 하락을 의미합니다.
+                            <br />0에서 멀어질수록 급격한 변화를 의미합니다.
+                        </li>
+                        <li>
+                            <span className="text-yellow-500 font-bold">평점 (Score):</span> 10점 만점.
+                            <br />상황, 스트리머와 시청자의 반응을 종합적으로 고려하여 매겨진 점수입니다.
+                            <br />AI가 평가한 점수입니다. (방송 역량과는 무관)
+                        </li>
+                    </ul>
+                </div>
+
+                {/* 3. PEAK 정보 */}
+                <div className="space-y-1">
+                    <h4 className="font-bold text-foreground">📈 PEAK 구간</h4>
+                    <p className="text-muted-foreground leading-relaxed">
+                        5분 구간 내에서 <span className="text-foreground font-medium">30초 단위</span>로 가장 높은 지점을 대푯값으로 사용합니다.
+                        <br />화력 피크와 변동 피크의 시점은 다를 수 있습니다.
+                    </p>
+                </div>
+
+            </PopoverContent>
+        </Popover>
     )
 }

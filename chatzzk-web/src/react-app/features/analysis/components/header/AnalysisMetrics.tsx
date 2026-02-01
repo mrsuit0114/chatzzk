@@ -2,13 +2,8 @@
 
 import { Star } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Atmosphere, ATMOSPHERE_LABELS, KOREAN_TO_ATMOSPHERE } from "@/constants";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface AnalysisMetricsProps {
     atmosphereRatio: Record<Atmosphere, number>;
@@ -31,36 +26,45 @@ export function AnalysisMetrics({ atmosphereRatio, avgScore }: AnalysisMetricsPr
     return (
         <div className="flex items-center gap-3 bg-secondary/20 px-3 py-1.5 rounded-lg border border-border/60 h-auto min-h-[3rem]">
             {/* 1. 분위기 비율 (Tooltip) */}
-            <TooltipProvider delayDuration={0}>
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <div className="flex flex-col justify-center gap-0.5 cursor-help select-none">
-                            {top3.map((item) => (
-                                <div key={item.type} className="flex items-center justify-between w-[5rem] text-[10px] leading-tight">
-                                    <span className="text-muted-foreground truncate max-w-[3rem]">{item.label}</span>
-                                    <span className="font-semibold tabular-nums text-foreground">
-                                        {item.score.toFixed(1)}%
-                                    </span>
-                                </div>
-                            ))}
-                        </div>
-                    </TooltipTrigger>
+            <Popover>
+                <PopoverTrigger asChild>
+                    {/* [변경 1] div -> button 변경: 키보드 접근성 및 클릭 동작 명확화 */}
+                    {/* [변경 2] cursor-help -> cursor-pointer: 클릭 가능함 표시 */}
+                    <button
+                        type="button"
+                        className="flex flex-col justify-center gap-0.5 cursor-pointer select-none text-left rounded-sm hover:bg-muted/50 transition-colors py-0.5 px-1 -mx-1"
+                    >
+                        {top3.map((item) => (
+                            <div key={item.type} className="flex items-center justify-between w-[5rem] text-[10px] leading-tight">
+                                <span className="text-muted-foreground truncate max-w-[3rem]">{item.label}</span>
+                                <span className="font-semibold tabular-nums text-foreground">
+                                    {item.score.toFixed(1)}%
+                                </span>
+                            </div>
+                        ))}
+                    </button>
+                </PopoverTrigger>
 
-                    <TooltipContent side="bottom" className="p-3 z-50">
-                        <div className="space-y-2">
-                            <p className="font-semibold text-xs mb-2 text-muted-foreground">전체 분위기 분석</p>
-                            {sortedAtmospheres.map((item) => (
-                                <div key={item.type} className="flex items-center justify-between gap-8 text-sm">
-                                    <div className="flex items-center gap-2">
-                                        <span>{item.label}</span>
-                                    </div>
-                                    <span className="font-bold tabular-nums">{item.score.toFixed(1)}%</span>
+                <PopoverContent
+                    side="bottom"
+                    align="start"
+                    sideOffset={8}
+                    // [변경 3] 너비 설정: 내용물에 맞게(w-auto) 하되 너무 작지 않게(min-w)
+                    className="p-3 z-50 w-auto min-w-[120px] bg-muted/90 text-foreground border border-border shadow-xl backdrop-blur-sm">
+                    <div className="space-y-2">
+                        <p className="font-semibold text-xs mb-2 text-muted-foreground">전체 분위기 분석</p>
+                        {sortedAtmospheres.map((item) => (
+                            <div key={item.type} className="flex items-center justify-between gap-6 text-sm">
+                                <div className="flex items-center gap-2">
+                                    {/* 아이콘이 있다면 여기에 추가 가능 */}
+                                    <span>{item.label}</span>
                                 </div>
-                            ))}
-                        </div>
-                    </TooltipContent>
-                </Tooltip>
-            </TooltipProvider>
+                                <span className="font-bold tabular-nums">{item.score.toFixed(1)}%</span>
+                            </div>
+                        ))}
+                    </div>
+                </PopoverContent>
+            </Popover>
 
             <Separator orientation="vertical" className="h-8 bg-border/60" />
 
