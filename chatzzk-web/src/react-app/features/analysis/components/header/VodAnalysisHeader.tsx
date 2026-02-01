@@ -10,7 +10,7 @@ export function VodAnalysisHeader({
     isInsightLocked = false,
 }: VodAnalysisHeaderProps) {
     return (
-        <header className="relative lg:sticky z-40 w-full border-b bg-background transition-all">
+        <header className="relative lg:sticky lg:top-14 z-40 w-full border-b bg-background transition-all">
             <div className="container mx-auto">
                 <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 py-4 lg:py-0 lg:h-16">
                     {/* [Left] VOD Info */}

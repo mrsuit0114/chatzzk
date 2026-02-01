@@ -59,7 +59,7 @@ export interface SegmentSummaryData {
 export interface ChapterSummaryData {
     id: string;             // UI용 고유 ID (예: ch-0)
     title: string;
-    summary: string;
+    keyTopics: string[];
     startTime: number;
     endTime: number;
 }

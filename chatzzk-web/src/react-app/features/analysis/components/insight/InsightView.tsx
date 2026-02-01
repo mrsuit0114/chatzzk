@@ -29,8 +29,13 @@ export function InsightView({ viewData, intervals }: InsightViewProps) {
             />
 
             {/* Bottom Layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-2 h-[60vh] max-h-[800px]">
-                <div className="col-span-6 border h-full overflow-hidden rounded">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-auto lg:h-[60vh] lg:min-h-[600px]">
+
+                {/* Left: Structure List (Chapters) */}
+                {/* ✅ 모바일: h-[450px] 고정, 데스크탑: h-full */}
+                <div className="col-span-1 lg:col-span-6
+                                h-[350px] lg:h-full
+                                border rounded-lg overflow-hidden bg-card shadow-sm">
                     <StructureListSection
                         data={viewData.segments}
                         chapters={viewData.chapters}
@@ -38,7 +43,12 @@ export function InsightView({ viewData, intervals }: InsightViewProps) {
                         onSeek={handleTrendClick}
                     />
                 </div>
-                <div className="col-span-6 border h-full overflow-hidden rounded">
+
+                {/* Right: Detail Section (Clips/Logs) */}
+                {/* ✅ 모바일: h-[500px] 고정, 데스크탑: h-full */}
+                <div className="col-span-1 lg:col-span-6
+                                h-[350px] lg:h-full
+                                border rounded-lg overflow-hidden bg-card shadow-sm">
                     <DetailSection
                         intervals={intervals}
                         clips={viewData.clips}

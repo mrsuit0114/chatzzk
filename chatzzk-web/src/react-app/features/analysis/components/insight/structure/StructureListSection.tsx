@@ -6,6 +6,7 @@ import { SegmentDetailCard } from "../../common/SegmentDetailCard";
 import { cn } from "@/lib/utils";
 import { useStructureScroll } from "@/features/analysis/hooks/use-structure-scroll";
 import { ChapterSummaryData, SegmentSummaryData } from "@/features/analysis/types";
+import { findSegmentIndexBinary } from "@/features/analysis/utils/chart-helper";
 
 interface StructureListSectionProps {
     chapters: ChapterSummaryData[];
@@ -58,9 +59,8 @@ export function StructureListSection({
     useEffect(() => {
         if (focusedTimestamp === null) return;
 
-        const activeChapter = chapters.find(
-            ch => focusedTimestamp >= ch.startTime && focusedTimestamp < ch.endTime
-        );
+        const activeIndex = findSegmentIndexBinary(chapters, focusedTimestamp);
+        const activeChapter = activeIndex !== -1 ? chapters[activeIndex] : null;
 
         if (activeChapter) {
             if (activeChapter.id !== openItemId) {

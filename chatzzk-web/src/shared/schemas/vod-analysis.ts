@@ -55,7 +55,7 @@ export const SegmentItemSchema = z.object({
 
 export const ChapterItemSchema = z.object({
     title: z.string(),
-    txt: z.string(),
+    keyTopics: z.array(z.string()),
 });
 
 export const StreamLogItemSchema = z.object({

@@ -1,5 +1,5 @@
 // src/react-app/app/routes.tsx
-import { createBrowserRouter, Route, createRoutesFromElements, RouterProvider, Navigate } from "react-router-dom";
+import { createBrowserRouter, Route, createRoutesFromElements, RouterProvider, Navigate, Outlet } from "react-router-dom";
 import { lazy, Suspense } from "react"
 
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -7,6 +7,7 @@ import { ProtectedRoute } from "@/features/auth/components/ProtectedRoute";
 import { AdminGuard } from "@/features/admin/AdminGuard";
 import { AdminLayout } from "@/features/admin/layout/AdminLayout";
 import { Loader2 } from "lucide-react";
+import { ScrollToTop } from "@/components/common/ScrollToTop";
 
 const HomePage = lazy(() => import("@/features/home/routes/HomePage").then(m => ({ default: m.HomePage })));
 const SearchPage = lazy(() => import("@/features/search/routes/SearchPage").then(m => ({ default: m.SearchPage })));
@@ -20,9 +21,18 @@ const ChannelAddPage = lazy(() => import("@/features/admin/routes/ChannelAddPage
 const ChannelManagePage = lazy(() => import("@/features/admin/routes/ChannelManagePage").then(m => ({ default: m.ChannelManagePage })));
 const SignUpPage = lazy(() => import("@/features/auth/routes/SignupPage").then(m => ({ default: m.SignUpPage })));
 
+const GlobalLayout = () => {
+    return (
+        <>
+            <ScrollToTop /> {/* 경로 변경 시 스크롤 초기화 */}
+            <Outlet />      {/* 실제 페이지 렌더링 */}
+        </>
+    );
+};
+
 const router = createBrowserRouter(
     createRoutesFromElements(
-        <>
+        <Route element={<GlobalLayout />}>
             {/* ✅ Main Layout (헤더/사이드바가 필요한 페이지들) */}
             <Route element={<MainLayout />}>
 
@@ -83,7 +93,7 @@ const router = createBrowserRouter(
 
             {/* ✅ 404 처리 (맨 마지막에 배치) */}
             <Route path="*" element={<Navigate to="/" replace />} />
-        </>
+        </Route>
     )
 );
 

@@ -1,4 +1,4 @@
-import { Clock } from "lucide-react";
+import { ChevronRight, Clock } from "lucide-react";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import { ChapterSummaryData } from "@/features/analysis/types";
@@ -12,6 +12,8 @@ interface StructureChapterItemProps {
 }
 
 export function ChapterItem({ chapter, isActive, children, rootRef }: StructureChapterItemProps) {
+    const hasTopics = chapter.keyTopics && chapter.keyTopics.length > 0;
+
     return (
         <AccordionItem
             value={chapter.id}
@@ -46,11 +48,30 @@ export function ChapterItem({ chapter, isActive, children, rootRef }: StructureC
             </AccordionTrigger>
 
             <AccordionContent className="pb-2 cursor-default">
-                {/* 1. 챕터 요약문 (Insight View 전용) */}
-                <div className="mb-4 p-3 bg-muted/30 rounded-md border-l-2 border-primary/40 text-sm text-foreground/80 leading-relaxed whitespace-pre-line">
-                    <span className="font-bold text-foreground/80 block mb-1 text-xs">Chapter Summary</span>
-                    {chapter.summary}
-                </div>
+                {/* 1. Key Topics Area (기존 Summary 대체) */}
+                {hasTopics && (
+                    <div className="mb-4 mx-1 p-3 bg-muted/40 rounded-md border border-border/50">
+                        <span className="font-bold text-muted-foreground/80 block mb-2 text-[11px] uppercase tracking-wider">
+                            Key Topics
+                        </span>
+
+                        <ul className="flex flex-col gap-2">
+                            {chapter.keyTopics.map((topic, index) => (
+                                <li key={index} className="flex items-start gap-2 text-sm">
+                                    {/* 불릿 아이콘 (RecapSection과 스타일 통일) */}
+                                    <div className="mt-[5px] min-w-[12px] flex justify-center">
+                                        <ChevronRight className="h-4 w-4 text-primary/70 stroke-[2.5px]" />
+                                    </div>
+
+                                    {/* 토픽 내용 */}
+                                    <span className="text-foreground/90 leading-relaxed break-keep">
+                                        {topic}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
 
                 {/* 2. Segment Detail Cards (children으로 주입) */}
                 <div className="space-y-3">

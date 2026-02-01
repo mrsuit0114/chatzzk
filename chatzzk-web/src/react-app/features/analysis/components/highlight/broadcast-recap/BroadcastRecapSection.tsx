@@ -29,10 +29,13 @@ export function BroadcastRecapSection({ chapters, allSegments }: BroadcastRecapS
                 </h2>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 h-[80vh] min-h-[600px]">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 h-auto md:h-[80vh] md:min-h-[600px]">
 
                 {/* [Left] Chapter List Container */}
-                <div className="md:col-span-6 lg:col-span-6 h-full border-r pr-2 overflow-hidden">
+                <div className="md:col-span-6 lg:col-span-6 overflow-hidden
+                                h-[350px] md:h-full
+                                border-b md:border-b-0 md:border-r
+                                pb-4 md:pb-0 md:pr-2">
                     <ChapterList
                         chapters={chapters}
                         selectedChapterId={selectedChapterId}
@@ -41,7 +44,9 @@ export function BroadcastRecapSection({ chapters, allSegments }: BroadcastRecapS
                 </div>
 
                 {/* [Right] Segment List Container */}
-                <div className="md:col-span-6 lg:col-span-6 h-full overflow-hidden -pl-2">
+                <div className="md:col-span-6 lg:col-span-6 overflow-hidden
+                                h-[350px] md:h-full
+                                pt-4 md:pt-0 -pl-2">
                     <SegmentList segments={currentSegments} />
                 </div>
 
