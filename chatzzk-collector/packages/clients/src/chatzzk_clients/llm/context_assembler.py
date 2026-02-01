@@ -76,14 +76,14 @@ class ContextAssembler:
             if window_buffer[0].timestamp > current_window_start + window_size_ms + padding_ms:
                 break
 
-    def format_window_to_text(self, entries: list[T]) -> str:
+    def format_window_to_text(self, entries: list[T], delimiter: str = "\n") -> str:
         lines = []
         for entry in entries:
             try:
                 lines.append(entry.to_context_string())
             except NotImplementedError:
                 continue
-        return "\n".join(lines)
+        return delimiter.join(lines)
 
     # -------------------------------------------------------------------------
     # Internal Helpers

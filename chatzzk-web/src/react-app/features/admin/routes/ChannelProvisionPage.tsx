@@ -145,7 +145,7 @@ export function ChannelProvisionPage() {
                                     render={({ field }) => (
                                         <FormItem>
                                             <FormLabel>플랫폼</FormLabel>
-                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <Select onValueChange={field.onChange} value={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger><SelectValue placeholder="플랫폼 선택" /></SelectTrigger>
                                                 </FormControl>

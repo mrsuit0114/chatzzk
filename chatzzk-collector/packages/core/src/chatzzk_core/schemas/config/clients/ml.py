@@ -16,6 +16,7 @@ class SileroVADConfig(BaseModel):
     min_silence_duration_ms: int = SileroVADConstant.MIN_SILENCE_DURATION_MS
     max_speech_duration_s: int = SileroVADConstant.MAX_SPEECH_DURATION_S
     min_silence_duration_samples: int = SileroVADConstant.MIN_SILENCE_DURATION_SAMPLES
+    max_speech_duration_samples: int = SileroVADConstant.MAX_SPEECH_DURATION_SAMPLES
     threshold: float = SileroVADConstant.THRESHOLD
 
     worker_num: int = SileroVADConstant.WORKER_NUM

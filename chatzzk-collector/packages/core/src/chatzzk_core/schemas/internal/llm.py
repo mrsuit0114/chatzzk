@@ -134,4 +134,6 @@ class ChapterSummaryGenerationInput(BaseModel):
 
 class ChapterSummaryGenerationOutput(BaseModel):
     title: str = Field(..., description="챕터 내용을 대표하는 제목")
-    summary_text: str = Field(..., description="챕터 내용을 요약한 텍스트")
+    key_topics: list[str] = Field(
+        ..., description="제공된 요약의 주요 사건이나 화제 (순서대로 나열)", min_length=1, max_length=12
+    )

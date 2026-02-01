@@ -40,7 +40,7 @@ export function transformHighlightData(rawData: RawDashboardResponse): {
         return {
             id: `ch-${index}`, // UI용 ID 생성
             title: raw.title,
-            summary: raw.txt,
+            keyTopics: raw.keyTopics,
             startTime: startTime,
             endTime: startTime + chapterStep,
         };

@@ -61,7 +61,7 @@ class SegmentItem(CamelBaseModel):
 
 class ChapterItem(CamelBaseModel):
     title: str
-    txt: str
+    key_topics: list[str]
 
 
 class DashboardResponse(CamelBaseModel):

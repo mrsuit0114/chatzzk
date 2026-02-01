@@ -67,7 +67,11 @@ class VODRepository:
         await session.execute(stmt)
 
     async def get_by_id(self, session: AsyncSession, vod_id: int) -> VOD | None:
-        stmt = select(VOD).where(VOD.id == vod_id).options(joinedload(VOD.channel).joinedload(Channel.platform))
+        stmt = (
+            select(VOD)
+            .where(VOD.id == vod_id)
+            .options(joinedload(VOD.channel).joinedload(Channel.platform), joinedload(VOD.pipeline_log))
+        )
         result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -75,9 +79,8 @@ class VODRepository:
         stmt = (
             select(VOD)
             .options(
-                # 1. innerjoin=True 옵션 추가
-                # VOD가 있으면 반드시 Channel/Platform이 존재한다는 가정 하에 Inner Join을 강제합니다.
-                joinedload(VOD.channel, innerjoin=True).joinedload(Channel.platform, innerjoin=True)
+                joinedload(VOD.channel, innerjoin=True).joinedload(Channel.platform, innerjoin=True),
+                joinedload(VOD.pipeline_log),
             )
             .where(VOD.pipeline_status == status)
             .order_by(VOD.publish_date.asc())

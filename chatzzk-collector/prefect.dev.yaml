@@ -43,7 +43,7 @@ deployments:
       timezone: "Asia/Seoul"
     parameters:
       mode: "BATCH"
-      batch_size: 5
+      batch_size: 3
       vod_id: null
 
   - name: processing-single-manual
@@ -81,5 +81,5 @@ deployments:
       cron: "0 * * * *"
       timezone: "Asia/Seoul"
     parameters:
-      threshold_minutes: 60
-    description: "60분 이상 처리 중인 좀비 VOD를 정리합니다."
+      threshold_minutes: 120
+    description: "좀비 VOD를 정리합니다."

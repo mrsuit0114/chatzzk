@@ -141,9 +141,15 @@ class SileroVADClient(VADClientInterface):
             cur = chunk_segments[0]
 
             if cur["start"] - prev["end"] <= min_silence_samples:
-                # 이전 segment와 병합
-                combined_timestamps[-1] = {"start": prev["start"], "end": cur["end"]}
-                combined_timestamps.extend(chunk_segments[1:])
+                new_duration = cur["end"] - prev["start"]
+
+                if new_duration <= self.config.max_speech_duration_samples:
+                    # 안전하면 병합
+                    combined_timestamps[-1] = {"start": prev["start"], "end": cur["end"]}
+                    combined_timestamps.extend(chunk_segments[1:])
+                else:
+                    # 위험하면 병합 안 하고 그냥 추가
+                    combined_timestamps.extend(chunk_segments)
             else:
                 combined_timestamps.extend(chunk_segments)
 

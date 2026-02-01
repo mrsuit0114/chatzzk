@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from chatzzk_core.constants import PlatformCode, VODPipelineStatus
 
@@ -41,3 +41,4 @@ class TargetVODInfo(BaseModel):
     vod: VODDTO
     channel: ChannelDTO
     platform: PlatformDTO
+    pipeline_log: dict = Field(default_factory=dict)

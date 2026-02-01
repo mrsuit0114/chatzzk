@@ -49,7 +49,7 @@ export interface RawSegmentItem {
 
 export interface RawChapterItem {
     title: string;
-    txt: string;
+    keyTopics: string[];
 }
 
 export interface RawStreamLogItem {

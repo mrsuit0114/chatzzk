@@ -391,7 +391,7 @@ class LLMGenerationService(BasePipelineService):
         """
         # 1. 텍스트 변환
         # ContextAssembler가 SegmentSummaryEntry 리스트를 적절한 텍스트(시간대별 나열 등)로 변환한다고 가정
-        segment_summaries_text = self.context_assembler.format_window_to_text(window_entries)
+        segment_summaries_text = self.context_assembler.format_window_to_text(window_entries, delimiter="\n\n")
 
         # 2. 내용 부족 처리
         if not segment_summaries_text:
@@ -445,12 +445,8 @@ class LLMGenerationService(BasePipelineService):
 
     def _create_empty_chapter_summary_entry(self, timestamp: int) -> ChapterSummaryEntry:
         """데이터 부족 시 사용할 기본 챕터 엔트리"""
-        empty_output = ChapterSummaryGenerationOutput(
-            chapter_title="요약 정보 없음",
-            summary_text="해당 구간의 세그먼트 데이터가 부족하여 챕터 요약을 생성할 수 없습니다.",
-            # 필요한 경우 추가 필드 기본값 설정
-            tags=[],
-            topic=None,
+        empty_output = ChapterSummaryGenerationOutput.model_validate(
+            {"title": "요약 정보 없음", "key_topics": ["데이터 없음"]}
         )
 
         return ChapterSummaryEntry.from_generation_output(generation_output=empty_output, timestamp=timestamp)
