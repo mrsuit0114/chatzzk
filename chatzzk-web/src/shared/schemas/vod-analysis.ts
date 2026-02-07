@@ -53,9 +53,14 @@ export const SegmentItemSchema = z.object({
     mmtPeak: SegmentPeakSchema,
 });
 
+export const ChapterTopicSchema = z.object({
+    timestamp: z.string(), // "HH:MM:SS" 형식
+    topic: z.string(),
+});
+
 export const ChapterItemSchema = z.object({
     title: z.string(),
-    keyTopics: z.array(z.string()),
+    keyTopics: z.array(ChapterTopicSchema),
 });
 
 export const StreamLogItemSchema = z.object({

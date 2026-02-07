@@ -1,8 +1,11 @@
-import { ChevronRight, Clock } from "lucide-react";
+import { Check, Clock, Copy } from "lucide-react";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import { ChapterSummaryData } from "@/features/analysis/types";
 import { formatTime } from "@/utils/time-formatter";
+import { useState } from "react";
+import { toast } from "sonner";
+import { buttonVariants } from "@/components/ui/button";
 
 interface StructureChapterItemProps {
     chapter: ChapterSummaryData;
@@ -12,7 +15,35 @@ interface StructureChapterItemProps {
 }
 
 export function ChapterItem({ chapter, isActive, children, rootRef }: StructureChapterItemProps) {
+    const [isCopied, setIsCopied] = useState(false);
     const hasTopics = chapter.keyTopics && chapter.keyTopics.length > 0;
+
+
+    const handleCopy = (e: React.MouseEvent) => {
+        e.stopPropagation(); // 아코디언 토글 방지
+
+        if (!hasTopics) {
+            toast.error("복사할 내용이 없습니다.");
+            return;
+        }
+
+        // 포맷팅: HH:MM:00 내용
+        const textToCopy = chapter.keyTopics?.map(topicItem => {
+            const timeStr = topicItem.timestamp;
+            const contentStr = topicItem.topic;
+            // ss는 00으로 고정
+            return `${timeStr}:00 ${contentStr}`;
+        }).join('\n');
+
+        if (textToCopy) {
+            navigator.clipboard.writeText(textToCopy);
+            setIsCopied(true);
+            toast.success("타임라인이 복사되었습니다.");
+
+            // 2초 후 아이콘 원상복구
+            setTimeout(() => setIsCopied(false), 2000);
+        }
+    };
 
     return (
         <AccordionItem
@@ -32,15 +63,31 @@ export function ChapterItem({ chapter, isActive, children, rootRef }: StructureC
             <AccordionTrigger className="py-3 hover:no-underline group text-left">
                 <div className="flex flex-col items-start gap-1 w-full">
                     {/* 시간 정보 */}
-                    <span className="text-xs font-mono px-2 text-muted-foreground flex items-center gap-1 group-hover:text-primary transition-colors">
-                        <Clock className="h-3 w-3" />
-                        {formatTime(chapter.startTime)} ~ {formatTime(chapter.endTime)}
-                    </span>
+                    <div className="flex items-center justify-between w-full pr-2">
+                        <span className="text-xs font-mono px-2 text-muted-foreground flex items-center gap-1 group-hover:text-primary transition-colors">
+                            <Clock className="h-3 w-3" />
+                            {formatTime(chapter.startTime)} ~ {formatTime(chapter.endTime)}
+                        </span>
 
-                    {/* ✅ [제목 길이 제어]
-                      기본: line-clamp-2 (2줄 제한)
-                      Open 상태: line-clamp-none (제한 해제, 전체 표시)
-                    */}
+                        {/* ✅ 복사 버튼 추가 */}
+                        <span
+                            role="button"
+                            tabIndex={0}
+                            className={cn(
+                                // Button 컴포넌트의 스타일(ghost, icon)을 그대로 가져옴
+                                buttonVariants({ variant: "ghost", size: "icon" }),
+                                "h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
+                            )}
+                            onClick={handleCopy}
+                            title="타임라인 복사"
+                        >
+                            {isCopied ? (
+                                <Check className="h-3.5 w-3.5 text-green-500" />
+                            ) : (
+                                <Copy className="h-3.5 w-3.5" />
+                            )}
+                        </span>
+                    </div>
                     <span className="font-semibold text-sm px-2 line-clamp-2 break-keep group-data-[state=open]:line-clamp-none transition-all">
                         {chapter.title}
                     </span>
@@ -56,19 +103,19 @@ export function ChapterItem({ chapter, isActive, children, rootRef }: StructureC
                         </span>
 
                         <ul className="flex flex-col gap-2">
-                            {chapter.keyTopics.map((topic, index) => (
-                                <li key={index} className="flex items-start gap-2 text-sm">
-                                    {/* 불릿 아이콘 (RecapSection과 스타일 통일) */}
-                                    <div className="mt-[5px] min-w-[12px] flex justify-center">
-                                        <ChevronRight className="h-4 w-4 text-primary/70 stroke-[2.5px]" />
-                                    </div>
+                            {chapter.keyTopics.map((topicItem, index) => {
+                                const timeStr = topicItem ? topicItem.timestamp : '';
+                                const contentStr = topicItem ? topicItem.topic : '';
 
-                                    {/* 토픽 내용 */}
-                                    <span className="text-foreground/90 leading-relaxed break-keep">
-                                        {topic}
-                                    </span>
-                                </li>
-                            ))}
+                                return (
+                                    <li key={index} className="flex items-start gap-2 text-sm">
+                                        {/* 토픽 내용 */}
+                                        <span className="text-foreground/90 leading-relaxed break-keep">
+                                            [{timeStr}]: {contentStr}
+                                        </span>
+                                    </li>
+                                );
+                            })}
                         </ul>
                     </div>
                 )}
