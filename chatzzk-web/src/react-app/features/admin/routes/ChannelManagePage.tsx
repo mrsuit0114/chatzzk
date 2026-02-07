@@ -82,7 +82,7 @@ export function ChannelManagePage() {
                                 render={({ field }) => (
                                     <FormItem className="w-full md:w-[200px]">
                                         <FormLabel>플랫폼</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <Select onValueChange={field.onChange} value={field.value}>
                                             <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                                             <SelectContent>
                                                 <SelectItem value={PLATFORM_CODE.CHZZK}>치지직</SelectItem>
