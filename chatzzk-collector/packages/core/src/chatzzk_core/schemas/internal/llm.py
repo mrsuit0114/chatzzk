@@ -132,8 +132,26 @@ class ChapterSummaryGenerationInput(BaseModel):
         )
 
 
+class TopicItem(BaseModel):
+    timestamp: str = Field(
+        ...,
+        description="해당 토픽이 시작되는 시점 (형식: HH:MM)",
+        pattern=r"^\d{2}:\d{2}$",
+    )
+    topic: str = Field(
+        ...,
+        description="해당 시점의 핵심 사건이나 주제 서술",
+    )
+
+
 class ChapterSummaryGenerationOutput(BaseModel):
-    title: str = Field(..., description="챕터 내용을 대표하는 제목")
-    key_topics: list[str] = Field(
-        ..., description="제공된 요약의 주요 사건이나 화제 (순서대로 나열)", min_length=1, max_length=12
+    key_topics: list[TopicItem] = Field(
+        ...,
+        description="시간 순서대로 정렬된 핵심 토픽 리스트",
+        min_length=1,
+        max_length=8,
+    )
+    title: str = Field(
+        ...,
+        description="요약 내용을 대표하는 제목",
     )
