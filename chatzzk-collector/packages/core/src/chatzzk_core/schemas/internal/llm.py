@@ -140,7 +140,7 @@ class TopicItem(BaseModel):
     )
     topic: str = Field(
         ...,
-        description="해당 시점의 핵심 사건이나 주제 서술",
+        description="해당 시점의 핵심 사건이나 주제 ('~다' 형식의 서술형 문체 금지)",
     )
 
 
