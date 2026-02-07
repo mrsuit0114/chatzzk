@@ -1,5 +1,5 @@
 import re
-from typing import Literal, TypedDict, cast
+from typing import Any, Literal, TypedDict, cast
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
@@ -14,7 +14,7 @@ class BaseStreamEntry(BaseModel):
     model_config = ConfigDict(use_enum_values=True, populate_by_name=True, alias_generator=to_camel)
 
     timestamp: int
-    content: str | list[str]
+    content: str | list[dict[str, Any]]
     entry_type: EntryType
 
     def __lt__(self, other: "BaseStreamEntry") -> bool:
@@ -125,7 +125,13 @@ class SegmentSummaryEntry(BaseStreamEntry):
     scores: dict[ScoreCategory, int] = Field(default_factory=dict)
 
     def to_context_string(self) -> str:
-        return self.content
+        total_seconds = self.timestamp // 1000
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+
+        time_str = f"{hours:02}:{minutes:02}"
+
+        return f"[{time_str}]: {self.content}"
 
     @classmethod
     def from_generation_output(
@@ -155,9 +161,11 @@ class ChapterSummaryEntry(BaseStreamEntry):
         timestamp: int,
         generation_output: ChapterSummaryGenerationOutput,
     ) -> "ChapterSummaryEntry":
+        topics_data = [topic.model_dump() for topic in generation_output.key_topics]
+
         return cls(
             timestamp=timestamp,
-            content=generation_output.key_topics,
+            content=topics_data,
             entry_type=EntryType.CHAPTER_SUMMARY,
             title=generation_output.title,
         )
@@ -176,7 +184,12 @@ class SegmentSummaryDict(TypedDict):
     scores: dict[ScoreCategory, int]
 
 
+class TopicItemDict(TypedDict):
+    timestamp: str
+    topic: str
+
+
 class ChapterSummaryDict(TypedDict):
     timestamp: int
-    content: list[str]
+    content: list[TopicItemDict]
     title: str

@@ -445,9 +445,7 @@ class LLMGenerationService(BasePipelineService):
 
     def _create_empty_chapter_summary_entry(self, timestamp: int) -> ChapterSummaryEntry:
         """데이터 부족 시 사용할 기본 챕터 엔트리"""
-        empty_output = ChapterSummaryGenerationOutput.model_validate(
-            {"title": "요약 정보 없음", "key_topics": ["데이터 없음"]}
-        )
+        empty_output = ChapterSummaryGenerationOutput.model_validate({"title": "요약 정보 없음", "key_topics": []})
 
         return ChapterSummaryEntry.from_generation_output(generation_output=empty_output, timestamp=timestamp)
 

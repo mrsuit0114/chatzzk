@@ -59,9 +59,14 @@ class SegmentItem(CamelBaseModel):
     mmt_peak: SegmentPeak = Field(..., description="Momentum Peak 정보")
 
 
+class ChapterTopic(CamelBaseModel):
+    timestamp: str = Field(..., description="토픽 시작 시간 (HH:MM)")
+    topic: str = Field(..., description="핵심 주제 내용")
+
+
 class ChapterItem(CamelBaseModel):
     title: str
-    key_topics: list[str]
+    key_topics: list[ChapterTopic]
 
 
 class DashboardResponse(CamelBaseModel):
