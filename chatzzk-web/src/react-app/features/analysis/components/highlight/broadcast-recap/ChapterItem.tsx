@@ -1,8 +1,11 @@
-import { ChevronRight, Clock } from "lucide-react";
+import { Check, Clock, Copy } from "lucide-react";
 import { AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 import { ChapterSummaryData } from "@/features/analysis/types";
 import { formatTime } from "@/utils/time-formatter";
+import { toast } from "sonner";
+import { useState } from "react";
+import { buttonVariants } from "@/components/ui/button";
 
 interface ChapterItemProps {
     chapter: ChapterSummaryData;
@@ -12,11 +15,38 @@ interface ChapterItemProps {
 }
 
 export function ChapterItem({ chapter, isSelected, isOpen, onSelect }: ChapterItemProps) {
+    const [isCopied, setIsCopied] = useState(false);
     const hasTopics = chapter.keyTopics && chapter.keyTopics.length > 0;
 
     const handleTriggerClick = () => {
         if (!isOpen) {
             onSelect();
+        }
+    };
+
+    const handleCopy = (e: React.MouseEvent) => {
+        e.stopPropagation(); // 아코디언 토글 방지
+
+        if (!hasTopics) {
+            toast.error("복사할 내용이 없습니다.");
+            return;
+        }
+
+        // 포맷팅: HH:MM:00 내용
+        const textToCopy = chapter.keyTopics?.map(topicItem => {
+            const timeStr = topicItem.timestamp;
+            const contentStr = topicItem.topic;
+            // ss는 00으로 고정
+            return `${timeStr}:00 ${contentStr}`;
+        }).join('\n');
+
+        if (textToCopy) {
+            navigator.clipboard.writeText(textToCopy);
+            setIsCopied(true);
+            toast.success("타임라인이 복사되었습니다.");
+
+            // 2초 후 아이콘 원상복구
+            setTimeout(() => setIsCopied(false), 2000);
         }
     };
 
@@ -44,6 +74,24 @@ export function ChapterItem({ chapter, isSelected, isOpen, onSelect }: ChapterIt
                         )}>
                             <Clock className="h-4 w-4" />
                             {formatTime(chapter.startTime)} ~ {formatTime(chapter.endTime)}
+                        </span>
+
+                        <span
+                            role="button"
+                            tabIndex={0}
+                            className={cn(
+                                // Button 컴포넌트의 스타일(ghost, icon)을 그대로 가져옴
+                                buttonVariants({ variant: "ghost", size: "icon" }),
+                                "h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
+                            )}
+                            onClick={handleCopy}
+                            title="타임라인 복사"
+                        >
+                            {isCopied ? (
+                                <Check className="h-3.5 w-3.5 text-green-500" />
+                            ) : (
+                                <Copy className="h-3.5 w-3.5" />
+                            )}
                         </span>
                     </div>
 
@@ -73,23 +121,18 @@ export function ChapterItem({ chapter, isSelected, isOpen, onSelect }: ChapterIt
                         </span>
                         {/* Key Topics 리스트 영역 */}
                         <ul className="flex flex-col gap-2.5 pl-1">
-                            {chapter.keyTopics?.map((topic, index) => {
+                            {chapter.keyTopics?.map((topicItem, index) => {
+                                const timeStr = topicItem ? topicItem.timestamp : '';
+                                const contentStr = topicItem ? topicItem.topic : '';
+
                                 return (
                                     <li key={index} className="flex items-start gap-2.5 text-sm group/topic">
-                                        {/* 불릿 포인트 또는 아이콘 */}
-                                        <div className="mt-1 min-w-[14px] flex justify-center">
-                                            <ChevronRight className={cn(
-                                                "h-4 w-4 transition-colors",
-                                                isSelected ? "text-primary" : "text-muted-foreground/50"
-                                            )} />
-                                        </div>
-
                                         <div className="flex flex-col items-start gap-1 leading-relaxed">
                                             <span className={cn(
                                                 "transition-colors",
                                                 isSelected ? "text-foreground" : "text-muted-foreground"
                                             )}>
-                                                {topic}
+                                                [{timeStr}]: {contentStr}
                                             </span>
                                         </div>
                                     </li>

@@ -56,10 +56,15 @@ export interface SegmentSummaryData {
     mmtPeak: PeakData;
 }
 
+interface ChapterTopic {
+    timestamp: string; // "HH:MM"
+    topic: string;
+}
+
 export interface ChapterSummaryData {
     id: string;             // UI용 고유 ID (예: ch-0)
     title: string;
-    keyTopics: string[];
+    keyTopics: ChapterTopic[];
     startTime: number;
     endTime: number;
 }

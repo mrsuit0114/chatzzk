@@ -47,9 +47,14 @@ export interface RawSegmentItem {
     mmtPeak: RawSegmentPeak;
 }
 
+interface ChapterTopic {
+    timestamp: string; // "HH:MM"
+    topic: string;
+}
+
 export interface RawChapterItem {
     title: string;
-    keyTopics: string[];
+    keyTopics: ChapterTopic[];
 }
 
 export interface RawStreamLogItem {
