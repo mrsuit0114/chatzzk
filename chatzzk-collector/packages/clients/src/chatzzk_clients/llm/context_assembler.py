@@ -98,7 +98,7 @@ class ContextAssembler:
         if isinstance(entry, ASREntry):
             if entry.is_hallucination(self._hallucination_keywords):
                 return None
-            return entry
+            return entry.sanitize()
 
         # 2. Chat 및 기타 Entry
         if not preprocess_chat:
