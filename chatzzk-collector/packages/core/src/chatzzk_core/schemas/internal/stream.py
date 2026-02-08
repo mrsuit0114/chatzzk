@@ -92,6 +92,39 @@ class ChzzkChatEntry(ChatEntry):
         )
 
 
+def _compress_char_repetition(text: str, max_repeat: int = 3) -> str:
+    pattern = re.compile(r"(.)\1{" + str(max_repeat) + r",}")
+    return pattern.sub(lambda m: m.group(1) * max_repeat, text)
+
+
+def _compress_consecutive_words(text: str, max_repeat: int = 3) -> str:
+    tokens = text.split()
+    if not tokens:
+        return text
+
+    result = []
+    prev = None
+    count = 0
+
+    for token in tokens:
+        if token == prev:
+            if count < max_repeat:
+                result.append(token)
+            count += 1
+        else:
+            prev = token
+            count = 1
+            result.append(token)
+
+    return " ".join(result)
+
+
+def _preprocess_asr(content: str) -> str:
+    content = _compress_char_repetition(content)
+    content = _compress_consecutive_words(content)
+    return content
+
+
 class ASREntry(BaseStreamEntry):
     entry_type: Literal[EntryType.ASR] = EntryType.ASR
     start: int = Field(..., description="발화 시작 시점 (Sample Index 기반 환산 값)")
@@ -105,6 +138,10 @@ class ASREntry(BaseStreamEntry):
         if not self.content:
             return True
         return any(k in self.content for k in hallucination_keywords)
+
+    def sanitize(self) -> "ASREntry":
+        self.content = _preprocess_asr(self.content)
+        return self
 
     @classmethod
     def from_asr_result(cls, start: int, end: int, content: str) -> "ASREntry":
