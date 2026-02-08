@@ -53,10 +53,9 @@ class ChatEntry(BaseStreamEntry):
     nickname: str | None = Field(default=None, description="특수 권한 유저 닉네임 (일반 유저는 None)")
 
     def to_context_string(self) -> str:
-        prefix = f"[{self.entry_type}]"
         if self.nickname:
-            return f"{prefix} ({self.nickname}) {self.content}"
-        return f"{prefix} {self.content}"
+            return f"[{self.entry_type}-{self.nickname}] {self.content}"
+        return f"[{self.entry_type}] {self.content}"
 
     # 기본 sanitize는 공통적인 처리(공백 제거 등)만 수행
     def sanitize(self) -> "ChatEntry":
