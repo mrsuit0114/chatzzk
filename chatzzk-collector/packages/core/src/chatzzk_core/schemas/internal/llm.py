@@ -101,7 +101,7 @@ class EvaluationScores(BaseModel):
 
 # structured output - 필드 이름, description, enum(type), 중첩 구조 등이 성능과 비용에 영향을 미침
 class SegmentSummaryGenerationOutput(BaseModel):
-    summary_text: str = Field(..., description="방송 내용을 요약한 텍스트")
+    summary_text: str = Field(..., description="방송 내용을 요약한 텍스트 (500자 이내)")
 
     atmosphere: StreamAtmosphere = Field(
         ..., description="주어진 구간에서 시청자(CHAT, DONATION)가 느끼는 지배적인 방송 분위기"
@@ -140,7 +140,7 @@ class TopicItem(BaseModel):
     )
     topic: str = Field(
         ...,
-        description="해당 시점의 핵심 사건이나 주제 ('~다' 형식의 서술형 문체 금지)",
+        description="해당 시점의 핵심 사건이나 주제 (동사 종결 지양)",
     )
 
 
