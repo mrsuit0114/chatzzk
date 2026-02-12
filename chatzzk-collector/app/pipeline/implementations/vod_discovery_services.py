@@ -29,6 +29,9 @@ class ChzzkVODDiscoveryService:
 
     def _is_target_vod(self, vod_meta: ChzzkVODMeta, now_utc: datetime) -> bool:
         cfg = self.config
+        if vod_meta.category_type not in cfg.allow_category:
+            return False
+
         if vod_meta.duration < cfg.min_duration_s:
             return False
 
@@ -65,6 +68,7 @@ class ChzzkVODDiscoveryService:
         # 수집해야할 vod 리스트와 탐색 datetime(utc)를 반환
         # lookback_days는 last_vod_crawled_at이 없을 때, 즉 채널을 처음 등록했을 때 동작
         now_utc = datetime.now(UTC)
+        safe_cursor_at = now_utc - self.config.min_publish_date_age
 
         platform_channel_id = target_channel["platform_channel_id"]
         last_crawled_at = (
@@ -79,7 +83,7 @@ class ChzzkVODDiscoveryService:
 
         filtered_vods = [vod for vod in recent_vods if self._is_target_vod(vod, now_utc)]
 
-        return filtered_vods, now_utc
+        return filtered_vods, safe_cursor_at
 
     async def save_discovery_results(
         self, channel_id: int, vod_metas: list[ChzzkVODMeta], scanned_at: datetime

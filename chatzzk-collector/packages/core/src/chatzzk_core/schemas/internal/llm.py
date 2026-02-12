@@ -135,7 +135,7 @@ class ChapterSummaryGenerationInput(BaseModel):
 class TopicItem(BaseModel):
     timestamp: str = Field(
         ...,
-        description="해당 토픽이 시작되는 시점 (형식: HH:MM)",
+        description="해당 토픽을 추출한 요약의 시간대 (형식: HH:MM)",
         pattern=r"^\d{2}:\d{2}$",
     )
     topic: str = Field(
