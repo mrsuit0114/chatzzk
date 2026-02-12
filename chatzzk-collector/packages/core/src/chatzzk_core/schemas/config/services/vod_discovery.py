@@ -11,13 +11,16 @@ class ChzzkVODDiscoveryConfig(BaseModel):
     )
     min_publish_date_age: timedelta = Field(
         default=ChzzkVODFilterConstant.MIN_PUBLISH_DATE_AGE,
-        description="수집할 영상의 최소 게시 기간, default: 30분",
+        description="수집할 영상의 최소 게시 기간",
     )
     allow_adult: bool = Field(
         default=ChzzkVODFilterConstant.ALLOW_ADULT, description="adult 영상의 수집 여부, default: False"
     )
     live_pv: int = Field(
         default=ChzzkVODFilterConstant.LIVE_PV, description="수집할 영상의 생방송 최소 시청 횟수, default: 0"
+    )
+    allow_category: list[str] = Field(
+        default=ChzzkVODFilterConstant.ALLOW_CATEGORY, description="수집할 영상의 카테고리, default: ['GAME', 'ETC']"
     )
 
 

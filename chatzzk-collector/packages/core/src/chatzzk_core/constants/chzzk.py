@@ -56,6 +56,7 @@ class ChzzkUserRoleCode(StrEnum):
 
 class ChzzkVODFilterConstant:
     MIN_DURATION_S = 1800
-    MIN_PUBLISH_DATE_AGE = timedelta(minutes=30)
+    MIN_PUBLISH_DATE_AGE = timedelta(minutes=10)
     ALLOW_ADULT = False
     LIVE_PV = 0
+    ALLOW_CATEGORY = ["GAME", "ETC"]
