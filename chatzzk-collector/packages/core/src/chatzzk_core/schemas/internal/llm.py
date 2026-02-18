@@ -9,12 +9,15 @@ class PlatformMetadataContext(BaseModel):
     model_config = ConfigDict(from_attributes=True, extra="ignore")
     platform_name: str
     donation_unit: str | None = None
+    platform_features: list[str] = Field(default_factory=list)
 
     def to_context_string(self) -> str:
         platform_lines = []
         platform_lines.append(f"- 플랫폼 이름: {self.platform_name}")
-        if self.donation_unit is not None:
+        if self.donation_unit:
             platform_lines.append(f"- 후원 단위: {self.donation_unit}")
+        if self.platform_features:
+            platform_lines.append(f"- 플랫폼 특징: {', '.join(self.platform_features)}")
         return "\n".join(platform_lines)
 
 
