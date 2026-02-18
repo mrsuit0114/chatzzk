@@ -61,6 +61,7 @@ class Platform(Base):
     platform_url: Mapped[str] = mapped_column(Text)
     platform_name: Mapped[str] = mapped_column(Text)
     donation_unit: Mapped[str | None] = mapped_column(Text)
+    platform_features: Mapped[list[str]] = mapped_column(JSONB, server_default=text("'[]'::jsonb"))
 
     channels: Mapped[list["Channel"]] = relationship(back_populates="platform")
 

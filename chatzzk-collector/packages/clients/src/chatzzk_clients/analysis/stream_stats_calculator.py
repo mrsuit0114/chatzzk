@@ -30,10 +30,7 @@ class StreamStatsCalculator:
         3. Metrics: Volume 및 Momentum 계산
         """
         duration_ms = duration_s * 1000
-        if window_size <= 0:
-            steps = 0
-        else:
-            steps = math.ceil(duration_ms / window_size)
+        steps = math.ceil(duration_ms / window_size) if window_size > 0 else 0
 
         # 데이터가 없거나 영상 길이가 윈도우보다 짧은 경우
         if not entries or steps == 0:
@@ -44,39 +41,37 @@ class StreamStatsCalculator:
         df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
         df.set_index("timestamp", inplace=True)
 
-        # 2. Target Window Binning (핵심 수정 사항)
+        # 2. Window Binning (Raw Count)
         binned_counts = df["content"].resample(f"{window_size}ms").count()
 
-        # 전체 시간 길이 맞추기 (Padding)
-        full_idx = pd.date_range(start=pd.to_datetime(0, unit="ms"), periods=steps, freq=f"{window_size}ms")
-        binned_counts = binned_counts.reindex(full_idx, fill_value=0)
+        full_idx = pd.date_range(
+            start=pd.to_datetime(0, unit="ms"),
+            periods=steps,
+            freq=f"{window_size}ms",
+        )
+        # raw_values 확보
+        raw_values = binned_counts.reindex(full_idx, fill_value=0).to_numpy(dtype=float)
 
-        # 3. Gaussian Smoothing
-        metrics_values = gaussian_filter1d(binned_counts.values, sigma=sigma)
+        v_range = raw_values.max() - raw_values.min()
+        volume_norm = (raw_values - raw_values.min()) / v_range if v_range > 0 else np.zeros_like(raw_values)
 
-        # 4. Metric 1: Volume (Min-Max Normalization -> [0, 1])
-        min_v, max_v = metrics_values.min(), metrics_values.max()
+        # ✅ 2️⃣ Momentum (Smoothed)
+        smoothed = gaussian_filter1d(raw_values, sigma=sigma)
+        gradients = np.gradient(smoothed)
 
-        if max_v - min_v == 0:
-            volume_norm = np.zeros_like(metrics_values)
-        else:
-            volume_norm = (metrics_values - min_v) / (max_v - min_v)
+        grad_s = pd.Series(gradients)
+        rolling = grad_s.rolling(window=11, center=True, min_periods=1)
+        r_mean = rolling.mean()
+        r_std = rolling.std()
 
-        # 5. Metric 2: Momentum (Central Difference -> Local Z-Score)
-        gradients = np.gradient(metrics_values)
-
-        # Pandas Series로 변환하여 Rolling 연산 수행 (k=5)
-        # min_periods=1을 주어 데이터가 적은 초기 구간도 계산되도록 함
-        grad_series = pd.Series(gradients)
-        rolling_mean = grad_series.rolling(window=11, center=True, min_periods=1).mean()
-        rolling_std = grad_series.rolling(window=11, center=True, min_periods=1).std()
-
-        # Local Z-Score 계산 (std가 0인 경우 0으로 처리)
-        momentum_z = (grad_series - rolling_mean) / rolling_std
+        # 0으로 나누기 방지: std가 아주 작거나 0이면 z-score는 0
+        momentum_z = (grad_s - r_mean) / r_std.replace(0, np.nan)
         momentum_z = momentum_z.fillna(0).replace([np.inf, -np.inf], 0)
 
-        # 6. 포맷팅
-        return {"volume": np.round(volume_norm, 2).tolist(), "momentum": np.round(momentum_z, 2).tolist()}
+        return {
+            "volume": np.round(volume_norm, 2).tolist(),
+            "momentum": np.round(momentum_z, 2).tolist(),
+        }
 
     def calculate_atmosphere_ratio(self, summaries: list[SegmentSummaryDict]) -> dict[str, float]:
         """
