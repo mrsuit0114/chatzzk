@@ -28,7 +28,7 @@ export function SegmentDetailCard({ data }: SegmentDetailCardProps) {
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1 text-yellow-600 font-bold bg-yellow-50 px-2 py-1 rounded-full border border-yellow-100">
                         <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                        <span className="text-xs tabular-nums">{data.score.toFixed(1)}</span>
+                        <span className="text-xs tabular-nums">{data.score?.toFixed(1)}</span>
                     </div>
                     <Badge variant="outline" className={cn("px-2 py-1 text-xs font-bold", getBadgeClasses(data.atmosphere))}>
                         {ATMOSPHERE_LABELS[data.atmosphere]}
