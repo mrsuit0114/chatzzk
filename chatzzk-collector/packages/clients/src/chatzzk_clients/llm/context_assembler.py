@@ -6,7 +6,7 @@ from loguru import logger
 from pydantic import ValidationError
 
 from chatzzk_core.schemas.config.clients.llm import ContextAssemblerConfig
-from chatzzk_core.schemas.internal import ASREntry, BaseStreamEntry
+from chatzzk_core.schemas.internal import ASREntry, BaseStreamEntry, SegmentSummaryEntry
 
 T = TypeVar("T", bound=BaseStreamEntry)
 
@@ -76,14 +76,47 @@ class ContextAssembler:
             if window_buffer[0].timestamp > current_window_start + window_size_ms + padding_ms:
                 break
 
-    def format_window_to_text(self, entries: list[T], delimiter: str = "\n") -> str:
+    def format_chapter_window_to_text(self, entries: list[SegmentSummaryEntry]) -> str:
         lines = []
         for entry in entries:
             try:
                 lines.append(entry.to_context_string())
             except NotImplementedError:
                 continue
-        return delimiter.join(lines)
+        return "\n\n".join(lines)
+
+    def format_segment_window_to_text(self, entries: list[T]) -> str:
+        lines = []
+        current_tag = None
+
+        for entry in entries:
+            try:
+                raw = entry.to_context_string()
+            except NotImplementedError:
+                continue
+
+            if not raw or raw[0] != "[":
+                lines.append(raw)
+                continue
+
+            end = raw.find("]")
+            if end == -1:
+                lines.append(raw)
+                continue
+
+            tag = raw[1:end]
+            content = raw[end + 1 :].lstrip()
+
+            # --- 블록 선언 로직 ---
+            if tag != current_tag:
+                if current_tag is not None:
+                    lines.append("")  # 블록 간 공백
+                lines.append(f"{tag}:")
+                current_tag = tag
+
+            lines.append(f"- {content}")
+
+        return "\n".join(lines)
 
     # -------------------------------------------------------------------------
     # Internal Helpers

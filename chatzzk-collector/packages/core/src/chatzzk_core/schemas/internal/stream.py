@@ -26,25 +26,28 @@ class BaseStreamEntry(BaseModel):
         return self
 
 
+# 1단계: 문구/복붙 반복용 (비탐욕적 매칭)
+RE_PHRASE_REPEAT = re.compile(r"(?P<p>.+?)(?:\s?(?P=p))+")
+
+# 2단계: 단일 문자 3회 이상 반복용
+RE_CHAR_REPEAT = re.compile(r"(\S)\1{2,}")
+
+# 3단계: 연속 공백 정리용
+RE_WHITESPACE = re.compile(r"\s+")
+
+
+def shrink_phrase(match):
+    phrase = match.group("p").strip()
+    if len(phrase) > 1:
+        return f"{phrase} {phrase}"
+    return f"{phrase}{phrase}"
+
+
 def preprocess_chat(content: str) -> str:
-    def find_repeating_pattern(text: str) -> str:
-        match = re.fullmatch(r"(.+?)\1+", text)
+    content = RE_PHRASE_REPEAT.sub(shrink_phrase, content)
+    content = RE_CHAR_REPEAT.sub(r"\1\1", content)
+    content = RE_WHITESPACE.sub(" ", content).strip()
 
-        if match:
-            return match.group(1)  # 반복되는 패턴 반환 (예: "겜 켜 ")
-
-        # 2단계: 띄어쓰기가 불규칙한 경우 (공백 제거 후 검사)
-        clean_text = text.replace(" ", "")
-        match_clean = re.fullmatch(r"(.+?)\1+", clean_text)
-
-        if match_clean:
-            return match_clean.group(1)  # 공백 제외 핵심 단어 반환 (예: "대리사")
-
-        return text
-
-    content = find_repeating_pattern(content)
-    content = re.sub(r"\s+", " ", content).strip()
-    content = re.sub(r"(\S)\1{2,}", r"\1\1", content)
     return content
 
 
@@ -57,7 +60,6 @@ class ChatEntry(BaseStreamEntry):
             return f"[{self.entry_type}-{self.nickname}] {self.content}"
         return f"[{self.entry_type}] {self.content}"
 
-    # 기본 sanitize는 공통적인 처리(공백 제거 등)만 수행
     def sanitize(self) -> "ChatEntry":
         self.content = preprocess_chat(self.content)
         return self
