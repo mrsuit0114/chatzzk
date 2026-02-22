@@ -38,7 +38,7 @@ export function AnalysisMetrics({ atmosphereRatio, avgScore }: AnalysisMetricsPr
                             <div key={item.type} className="flex items-center justify-between w-[5rem] text-[10px] leading-tight">
                                 <span className="text-muted-foreground truncate max-w-[3rem]">{item.label}</span>
                                 <span className="font-semibold tabular-nums text-foreground">
-                                    {item.score.toFixed(1)}%
+                                    {item.score?.toFixed(1)}%
                                 </span>
                             </div>
                         ))}
@@ -59,7 +59,7 @@ export function AnalysisMetrics({ atmosphereRatio, avgScore }: AnalysisMetricsPr
                                     {/* 아이콘이 있다면 여기에 추가 가능 */}
                                     <span>{item.label}</span>
                                 </div>
-                                <span className="font-bold tabular-nums">{item.score.toFixed(1)}%</span>
+                                <span className="font-bold tabular-nums">{item.score?.toFixed(1)}%</span>
                             </div>
                         ))}
                     </div>
@@ -73,7 +73,7 @@ export function AnalysisMetrics({ atmosphereRatio, avgScore }: AnalysisMetricsPr
                 <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-0.5">평점 평균</span>
                 <div className="flex items-center gap-1.5 text-xl font-bold text-foreground leading-none">
                     <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                    <span className="tabular-nums tracking-tight">{avgScore.toFixed(1)}</span>
+                    <span className="tabular-nums tracking-tight">{avgScore?.toFixed(1)}</span>
                 </div>
             </div>
         </div>

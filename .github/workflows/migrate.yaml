@@ -3,7 +3,7 @@ name: Database Migration
 on:
   push:
     branches:
-      - main
+      # - main
       - develop  # 개발 브랜치 추가
     paths:
       - 'chatzzk-collector/alembic/**'

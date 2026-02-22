@@ -89,16 +89,6 @@ class StreamStatsCalculator:
 
         return {k: round((v / total) * 100, 1) for k, v in atmo_counts.items()}
 
-    def calculate_avg_score(self, scores: dict[str, int]) -> float:
-        """
-        Segment의 score 딕셔너리 값들의 평균을 계산합니다.
-        (Timeline Height 용)
-        """
-        if not scores:
-            return 0.0
-        # 소수점 1자리까지 반올림
-        return round(sum(scores.values()) / len(scores), 1)
-
     def attach_peaks_to_segments(
         self,
         segments: list[SegmentSummaryDict],

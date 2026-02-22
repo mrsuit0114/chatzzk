@@ -86,34 +86,22 @@ class LogAnalysisService(BasePipelineService):
         )
 
         segment_items = []
-        total_score_sum = 0.0
 
         for seg in segments:
-            raw_scores = seg.get("scores", {})
-            avg_score = self.calculator.calculate_avg_score(raw_scores)
-
             item = SegmentItem(
                 txt=seg["content"],
                 kwd=seg.get("keywords", []),
-                sc=avg_score,
                 atmo=seg.get("atmosphere", "중립"),
                 vol_peak=seg.get("vol_peak", {}),
                 mmt_peak=seg.get("mmt_peak", {}),
             )
             segment_items.append(item)
-            total_score_sum += avg_score
 
-        # 3. 전체 평균 점수 계산 (Segment가 없는 경우 대비)
-        overall_avg_score = 0.0
-        if segment_items:
-            overall_avg_score = round(total_score_sum / len(segment_items), 1)
-
-        # 4. 통계 정보 조립 (계산된 overall_avg_score 반영)
+        # 4. 통계 정보 조립
         stats = DashboardStats(
             clip=StatSeries(volume=stats_clip["volume"], momentum=stats_clip["momentum"]),
             segment=StatSeries(volume=stats_seg["volume"], momentum=stats_seg["momentum"]),
             atmosphere_ratio=atmo,
-            avg_score=overall_avg_score,
         )
 
         chapter_items = [ChapterItem(title=chap["title"], key_topics=chap["content"]) for chap in chapters]

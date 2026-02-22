@@ -3,7 +3,7 @@ name: Deploy Chatzzk web
 on:
   push:
     branches:
-      - main       # main에 푸시하면 Production 배포
+      # - main       # main에 푸시하면 Production 배포
       - develop    # develop에 푸시하면 Development 배포
       - beta
 

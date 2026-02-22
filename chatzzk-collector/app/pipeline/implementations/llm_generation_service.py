@@ -23,7 +23,6 @@ from chatzzk_core.schemas.internal import (
     ChapterSummaryGenerationOutput,
     ChatEntry,
     ChzzkChatEntry,
-    EvaluationScores,
     PlatformMetadataContext,
     SegmentSummaryEntry,
     SegmentSummaryGenerationInput,
@@ -238,7 +237,7 @@ class LLMGenerationService(BasePipelineService):
         단일 윈도우 처리: 텍스트 변환 -> (빈 경우 Empty 생성) OR (내용 있으면 LLM 호출) -> 저장
         """
         # 1. 텍스트 변환
-        broadcast_logs_text = self.context_assembler.format_window_to_text(window_entries)
+        broadcast_logs_text = self.context_assembler.format_segment_window_to_text(window_entries)
 
         # 2. 로그가 없는 경우 (Empty Data Handling)
         # 윈도우는 열렸으나 내용이 비어있는 경우입니다.
@@ -251,8 +250,8 @@ class LLMGenerationService(BasePipelineService):
         input_vars = SegmentSummaryGenerationInput.assemble(
             platform_metadata_context=platform_metadata_context,
             channel_metadata_context=channel_metadata_context,
-            broadcast_logs=broadcast_logs_text,
             previous_summary=previous_summary,
+            broadcast_logs=broadcast_logs_text,
         )
 
         # 4. 프롬프트 및 LLM 요청
@@ -279,7 +278,6 @@ class LLMGenerationService(BasePipelineService):
         empty_output = SegmentSummaryGenerationOutput(
             summary_text="방송 내용이나 채팅 기록이 충분하지 않아 요약할 수 없습니다.",
             atmosphere=StreamAtmosphere.NEUTRAL,
-            scores=EvaluationScores(expressiveness=1, reaction_unity=1, significance=1),
             top_keywords=[],
         )
 
@@ -391,7 +389,7 @@ class LLMGenerationService(BasePipelineService):
         """
         # 1. 텍스트 변환
         # ContextAssembler가 SegmentSummaryEntry 리스트를 적절한 텍스트(시간대별 나열 등)로 변환한다고 가정
-        segment_summaries_text = self.context_assembler.format_window_to_text(window_entries, delimiter="\n\n")
+        segment_summaries_text = self.context_assembler.format_chapter_window_to_text(window_entries)
 
         # 2. 내용 부족 처리
         if not segment_summaries_text:

@@ -90,31 +90,17 @@ class SegmentSummaryGenerationInput(BaseModel):
         )
 
 
-class EvaluationScores(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    expressiveness: int = Field(
-        ..., description="방송 로그(ASR, CHAT, DONATION)이 얼마나 구체적이고 풍부한 표현을 담고 있는가?", ge=1, le=10
-    )
-    reaction_unity: int = Field(
-        ..., description="시청자들의 반응이 통일된 구간이 얼마나 명확하게 구분되는가?", ge=1, le=10
-    )
-    significance: int = Field(..., description="제공된 구간이 하이라이트로서 얼마나 가치가 있는가?", ge=1, le=10)
-
-
 # structured output - 필드 이름, description, enum(type), 중첩 구조 등이 성능과 비용에 영향을 미침
 class SegmentSummaryGenerationOutput(BaseModel):
     summary_text: str = Field(..., description="방송 내용을 요약한 텍스트 (500자 이내)")
-
-    atmosphere: StreamAtmosphere = Field(
-        ..., description="주어진 구간에서 시청자(CHAT, DONATION)가 느끼는 지배적인 방송 분위기"
-    )
 
     keywords: list[str] = Field(
         ..., description="stream logs와 요약문을 관통하는 키워드 리스트 (5개 이내)", min_length=3, max_length=5
     )
 
-    scores: EvaluationScores = Field(..., description="방송 내용에 대한 정량적 평가")
+    atmosphere: StreamAtmosphere = Field(
+        ..., description="주어진 구간에서 시청자(CHAT, DONATION)가 느끼는 지배적인 방송 분위기"
+    )
 
 
 class ChapterSummaryGenerationInput(BaseModel):
@@ -143,7 +129,7 @@ class TopicItem(BaseModel):
     )
     topic: str = Field(
         ...,
-        description="해당 시점의 핵심 사건이나 주제 (동사 종결 지양)",
+        description="해당 시점의 핵심 사건이나 주제",
     )
 
 
@@ -152,7 +138,7 @@ class ChapterSummaryGenerationOutput(BaseModel):
         ...,
         description="시간 순서대로 정렬된 핵심 토픽 리스트",
         min_length=1,
-        max_length=8,
+        max_length=9,
     )
     title: str = Field(
         ...,
