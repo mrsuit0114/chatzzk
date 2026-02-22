@@ -113,12 +113,6 @@ class StreamAtmosphere(StrEnum):
     ENCOURAGEMENT = "격려"
 
 
-class ScoreCategory(StrEnum):
-    EXPRESSIVENESS = "expressiveness"
-    REACTION_UNITY = "reaction_unity"
-    SIGNIFICANCE = "significance"
-
-
 class StreamWindowConstant:
     # ms
     CLIP_SIZE: int = 30 * 1000

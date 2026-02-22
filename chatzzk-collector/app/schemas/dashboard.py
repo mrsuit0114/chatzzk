@@ -40,7 +40,6 @@ class DashboardStats(CamelBaseModel):
     clip: StatSeries = Field(..., description="clip window 단위 상세 그래프 데이터")
     segment: StatSeries = Field(..., description="segment window 단위 요약 그래프 데이터")
     atmosphere_ratio: dict[str, float]  # StrEnum key 직렬화 불가능
-    avg_score: float = Field(..., description="해당 방송의 모든 세그먼트 score의 평균 값")
 
 
 class SegmentPeak(CamelBaseModel):
@@ -52,7 +51,6 @@ class SegmentPeak(CamelBaseModel):
 class SegmentItem(CamelBaseModel):
     txt: str = Field(..., description="세그먼트 요약 텍스트")
     kwd: list[str] = Field(..., description="주요 키워드 리스트")
-    sc: float = Field(..., description="해당 세그먼트의 중요도/흥미도 점수 (Score)")
     atmo: StreamAtmosphere
 
     vol_peak: SegmentPeak = Field(..., description="Volume Peak 정보")

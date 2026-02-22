@@ -23,7 +23,6 @@ from chatzzk_core.schemas.internal import (
     ChapterSummaryGenerationOutput,
     ChatEntry,
     ChzzkChatEntry,
-    EvaluationScores,
     PlatformMetadataContext,
     SegmentSummaryEntry,
     SegmentSummaryGenerationInput,
@@ -279,7 +278,6 @@ class LLMGenerationService(BasePipelineService):
         empty_output = SegmentSummaryGenerationOutput(
             summary_text="방송 내용이나 채팅 기록이 충분하지 않아 요약할 수 없습니다.",
             atmosphere=StreamAtmosphere.NEUTRAL,
-            scores=EvaluationScores(expressiveness=1, reaction_unity=1, significance=1),
             top_keywords=[],
         )
 

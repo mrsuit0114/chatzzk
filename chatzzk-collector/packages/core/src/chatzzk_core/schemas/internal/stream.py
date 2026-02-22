@@ -1,10 +1,10 @@
 import re
-from typing import Any, Literal, TypedDict, cast
+from typing import Any, Literal, TypedDict
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
-from chatzzk_core.constants import ChzzkUserRoleCode, EntryType, ScoreCategory, StreamAtmosphere
+from chatzzk_core.constants import ChzzkUserRoleCode, EntryType, StreamAtmosphere
 from chatzzk_core.schemas.external import ChzzkVideoChat
 from chatzzk_core.schemas.internal.llm import ChapterSummaryGenerationOutput, SegmentSummaryGenerationOutput
 
@@ -160,7 +160,6 @@ class SegmentSummaryEntry(BaseStreamEntry):
     entry_type: Literal[EntryType.SEGMENT_SUMMARY] = EntryType.SEGMENT_SUMMARY
     keywords: list[str] = Field(default_factory=list)
     atmosphere: StreamAtmosphere
-    scores: dict[ScoreCategory, int] = Field(default_factory=dict)
 
     def to_context_string(self) -> str:
         total_seconds = self.timestamp // 1000
@@ -177,15 +176,12 @@ class SegmentSummaryEntry(BaseStreamEntry):
         timestamp: int,
         generation_output: SegmentSummaryGenerationOutput,
     ) -> "SegmentSummaryEntry":
-        scores_dict = cast(dict[ScoreCategory, int], generation_output.scores.model_dump())
-
         return cls(
             timestamp=timestamp,
             content=generation_output.summary_text,
             entry_type=EntryType.SEGMENT_SUMMARY,
             keywords=generation_output.keywords,
             atmosphere=generation_output.atmosphere,
-            scores=scores_dict,
         )
 
 
@@ -219,7 +215,6 @@ class SegmentSummaryDict(TypedDict):
     content: str
     atmosphere: StreamAtmosphere
     keywords: list[str]
-    scores: dict[ScoreCategory, int]
 
 
 class TopicItemDict(TypedDict):

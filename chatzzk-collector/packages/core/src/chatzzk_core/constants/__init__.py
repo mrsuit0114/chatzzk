@@ -23,7 +23,6 @@ from .service_code import (
     LLMTask,
     MLModelPaths,
     PlatformCode,
-    ScoreCategory,
     StoragePaths,
     StreamAtmosphere,
     StreamWindowConstant,
@@ -63,6 +62,5 @@ __all__ = [
     "VODPipelineStatus",
     "VODPipelineStepStatus",
     "VODProcessingStep",
-    "ScoreCategory",
     "UserRole",
 ]

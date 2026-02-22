@@ -2,14 +2,14 @@ model_list:
   - model_name: segment_summarize
     litellm_params:
       model: gemini/gemini-2.0-flash
-      temperature: 0.1
-      top_p: 0.95
+      temperature: 0
+      top_p: 1
 
   - model_name: chapter_summarize
     litellm_params:
       model: gemini/gemini-2.0-flash
-      temperature: 0.1
-      top_p: 0.95
+      temperature: 0
+      top_p: 1
 
 
 litellm_settings:
