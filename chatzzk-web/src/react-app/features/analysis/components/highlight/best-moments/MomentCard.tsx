@@ -56,7 +56,7 @@ export function MomentCard({ data, interval, sortBy, onClick }: MomentCardProps)
                         sortBy === SORT_OPTIONS.SCORE ? "text-yellow-600 font-bold" : "text-muted-foreground"
                     )}>
                         <Star className={cn("h-3 w-3", sortBy === SORT_OPTIONS.SCORE ? "fill-yellow-500 text-yellow-500" : "")} />
-                        {data.score.toFixed(1)}
+                        {data.score?.toFixed(1)}
                     </div>
                     <Badge variant="outline" className={cn("text-[10px] font-bold px-2 py-0.5", getBadgeClasses(data.atmosphere))}>
                         {ATMOSPHERE_LABELS[data.atmosphere]}

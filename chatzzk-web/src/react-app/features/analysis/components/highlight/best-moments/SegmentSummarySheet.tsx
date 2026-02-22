@@ -58,7 +58,7 @@ export function SegmentSummarySheet({ data, isOpen, onClose }: SegmentSummaryShe
                         <div className="flex items-center gap-2">
                             <div className="flex items-center gap-1 text-yellow-600 font-bold bg-yellow-50 px-2 py-0.5 rounded-md border border-yellow-100 text-xs shadow-sm">
                                 <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                                {data.score.toFixed(1)}
+                                {data.score?.toFixed(1)}
                             </div>
                             <Badge variant="outline" className={cn("px-2 py-0.5 text-xs font-bold border-transparent", getBadgeClasses(data.atmosphere))}>
                                 {ATMOSPHERE_LABELS[data.atmosphere]}
