@@ -92,7 +92,7 @@ class SegmentSummaryGenerationInput(BaseModel):
 
 # structured output - 필드 이름, description, enum(type), 중첩 구조 등이 성능과 비용에 영향을 미침
 class SegmentSummaryGenerationOutput(BaseModel):
-    summary_text: str = Field(..., description="방송 내용을 요약한 텍스트 (500자 이내)")
+    summary_text: str = Field(..., description="방송 내용을 요약한 텍스트 (300자 이내)")
 
     keywords: list[str] = Field(
         ..., description="stream logs와 요약문을 관통하는 키워드 리스트 (5개 이내)", min_length=3, max_length=5
@@ -138,7 +138,7 @@ class ChapterSummaryGenerationOutput(BaseModel):
         ...,
         description="시간 순서대로 정렬된 핵심 토픽 리스트",
         min_length=1,
-        max_length=9,
+        max_length=12,
     )
     title: str = Field(
         ...,
