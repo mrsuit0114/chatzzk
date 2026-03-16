@@ -71,6 +71,9 @@ class ChzzkChatEntry(ChatEntry):
     """
 
     def sanitize(self) -> "ChzzkChatEntry":
+        if "!투표" in self.content:
+            self.content = ""
+
         self.content = re.sub(r"\{:[^}]*:\}", "", self.content).strip()
 
         super().sanitize()
@@ -162,13 +165,7 @@ class SegmentSummaryEntry(BaseStreamEntry):
     atmosphere: StreamAtmosphere
 
     def to_context_string(self) -> str:
-        total_seconds = self.timestamp // 1000
-        hours = total_seconds // 3600
-        minutes = (total_seconds % 3600) // 60
-
-        time_str = f"{hours:02}:{minutes:02}"
-
-        return f"[{time_str}]: {self.content}"
+        return f"{self.content}"
 
     @classmethod
     def from_generation_output(
