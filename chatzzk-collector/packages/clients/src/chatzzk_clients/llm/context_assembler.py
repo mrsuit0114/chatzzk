@@ -83,38 +83,55 @@ class ContextAssembler:
                 lines.append(entry.to_context_string())
             except NotImplementedError:
                 continue
-        return "\n\n".join(lines)
+        return "\n".join(lines)
 
     def format_segment_window_to_text(self, entries: list[T]) -> str:
         lines = []
         current_tag = None
+        last_content = None
+        current_minute = None
 
         for entry in entries:
+            # --- timestamp 처리 ---
+            ts_ms = entry.timestamp
+            if ts_ms is not None:
+                minute = ts_ms // 60000
+
+                if minute != current_minute:
+                    hh = minute // 60
+                    mm = minute % 60
+                    if lines:
+                        lines.append(f"\n--- [{hh:02d}:{mm:02d}] ---\n")
+                    else:
+                        lines.append(f"--- [{hh:02d}:{mm:02d}] ---\n")
+                    current_minute = minute
+
             try:
                 raw = entry.to_context_string()
             except NotImplementedError:
                 continue
 
-            if not raw or raw[0] != "[":
-                lines.append(raw)
+            if not raw:
                 continue
 
             end = raw.find("]")
-            if end == -1:
-                lines.append(raw)
-                continue
-
             tag = raw[1:end]
             content = raw[end + 1 :].lstrip()
 
             # --- 블록 선언 로직 ---
             if tag != current_tag:
                 if current_tag is not None:
-                    lines.append("")  # 블록 간 공백
+                    lines.append("")
                 lines.append(f"{tag}:")
                 current_tag = tag
+                last_content = None  # 태그 바뀌면 중복 검사 리셋
 
-            lines.append(f"- {content}")
+            # --- 동일 content 생략 ---
+            if content == last_content:
+                continue
+
+            lines.append(content)
+            last_content = content
 
         return "\n".join(lines)
 
