@@ -29,6 +29,9 @@ class ChzzkChatCollectionService(BasePipelineService):
     ) -> AsyncIterable[dict]:
         async for batch in async_logs_iterable:
             for log in batch:
+                if log.extras and log.extras.donation_type == "VIDEO":
+                    continue
+
                 yield ChzzkChatEntry.from_chzzk_video_chat(log).model_dump()
 
     async def collect_and_save_chats(self, vod_id: int, video_no: str, duration: int) -> str:
