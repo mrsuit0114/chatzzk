@@ -9,7 +9,6 @@ export type ViewType = typeof VIEW_TYPE[keyof typeof VIEW_TYPE];
 export const SORT_OPTIONS = {
     VOLUME: "volume",
     MOMENTUM: "momentum",
-    SCORE: "score",
 } as const;
 
 export type SortOption = typeof SORT_OPTIONS[keyof typeof SORT_OPTIONS];

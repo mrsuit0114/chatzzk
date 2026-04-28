@@ -43,17 +43,12 @@ export function ChannelPage() {
     const totalCount = vodData?.meta.total || 0;
     const totalPages = vodData?.meta.totalPages || 0;
 
-    // 예외 처리
-    if (isChannelError || (!isChannelLoading && !channel)) {
-        return <div className="container py-20 text-center">존재하지 않는 채널입니다.</div>;
-    }
-
     if (isChannelError || (!isChannelLoading && !channel)) {
         return <div className="container py-32 text-center text-muted-foreground">존재하지 않는 채널이거나 삭제되었습니다.</div>;
     }
 
     return (
-        <div className="container mx-auto">
+        <div className="container mx-auto py-8">
             {/* ✅ 3단 레이아웃 적용 */}
             <div className="flex justify-center gap-6">
 

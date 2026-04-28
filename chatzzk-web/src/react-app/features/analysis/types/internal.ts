@@ -15,7 +15,6 @@ export interface VodHeaderData {
     channelId: string;
     publishDate: string;
     duration: number;
-    avgScore: number;
     atmosphereRatio: Record<Atmosphere, number>;
 }
 
@@ -38,8 +37,8 @@ export interface PeakData {
 }
 
 export interface SegmentSummaryData {
-    id: string;             // UI용 고유 ID (예: seg-0, seg-1)
-    chapterId: string;      // 소속 챕터 ID
+    id: string;
+    chapterId: string;
 
     startTime: number;
     endTime: number;
@@ -51,7 +50,6 @@ export interface SegmentSummaryData {
     keywords: string[];
     atmosphere: Atmosphere;
 
-    score: number;
     volPeak: PeakData;
     mmtPeak: PeakData;
 }
