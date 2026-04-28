@@ -71,8 +71,6 @@ export function MomentsToolbar({
             "전체 방송 기준 시청자의 참여도를 기준으로 선정",
         [SORT_OPTIONS.MOMENTUM]:
             "최근 짧은 시간 내 급격한 참여도 상승을 기준으로 선정",
-        [SORT_OPTIONS.SCORE]:
-            "AI가 측정한 종합 평점(1~10)을 기준으로 선정",
     };
 
     return (
@@ -163,7 +161,6 @@ export function MomentsToolbar({
                     <SelectContent>
                         <SelectItem value={SORT_OPTIONS.VOLUME}>🔥 화력순</SelectItem>
                         <SelectItem value={SORT_OPTIONS.MOMENTUM}>⚡ 급상승순</SelectItem>
-                        <SelectItem value={SORT_OPTIONS.SCORE}>⭐ 평점순</SelectItem>
                     </SelectContent>
                 </Select>
 
@@ -236,11 +233,6 @@ function BestMomentsTooltip() {
                             <span className="text-blue-500 font-bold">변동 (화력의 변화):</span> 약 -3~3 사이의 값.
                             <br />0보다 큰 경우는 상승, 작은 경우는 하락을 의미합니다.
                             <br />0에서 멀어질수록 급격한 변화를 의미합니다.
-                        </li>
-                        <li>
-                            <span className="text-yellow-500 font-bold">평점 (Score):</span> 10점 만점.
-                            <br />상황, 스트리머와 시청자의 반응을 종합적으로 고려하여 매겨진 점수입니다.
-                            <br />AI가 평가한 점수입니다. (방송 역량과는 무관)
                         </li>
                     </ul>
                 </div>

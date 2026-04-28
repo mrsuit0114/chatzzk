@@ -30,28 +30,28 @@ export function VodCard({ data }: Props) {
 
     return (
         <Card
-            className="group cursor-pointer hover:shadow-md hover:border-primary/50 transition-all duration-200 overflow-hidden flex flex-col h-full bg-card"
+            className="group cursor-pointer hover:shadow-md hover:border-primary/50 transition-all duration-200 overflow-hidden flex flex-col bg-card"
             onClick={handleCardClick}
         >
-            <div className="relative h-20 bg-gradient-to-r from-emerald-500/10 to-emerald-500/5 border-b">
-
-                <Badge className={cn("absolute top-2 left-2 text-white border-none shadow-sm", badgeColor)}>
+            {/* 상단 바: 플랫폼 뱃지 + 재생시간 */}
+            <div className="flex items-center justify-between px-3 pt-3 pb-0">
+                <Badge className={cn("text-white border-none shadow-sm text-[10px] px-1.5 py-0.5", badgeColor)}>
                     {PLATFORM_LABELS[data.platform]}
                 </Badge>
-
-                <Badge className="absolute bottom-2 right-2 bg-black/80 text-white border-none pointer-events-none hover:bg-black/80">
+                <span className="text-[11px] text-muted-foreground font-mono">
                     {formatTime(data.duration * 1000)}
-                </Badge>
+                </span>
             </div>
 
-            {/* 2. 콘텐츠 영역 */}
-            <CardHeader className="p-4 pb-2 space-y-2">
-                <h3 className="font-semibold leading-snug line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">
+            {/* 제목 */}
+            <CardHeader className="p-3 pb-2 pt-2">
+                <h3 className="font-semibold text-sm leading-snug line-clamp-3 min-h-[3.75rem] group-hover:text-primary transition-colors">
                     {data.title}
                 </h3>
             </CardHeader>
 
-            <CardContent className="p-4 pt-0 mt-auto">
+            {/* 채널명 + 날짜 */}
+            <CardContent className="px-3 pb-3 pt-0 mt-auto">
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <button
                         onClick={handleChannelClick}
@@ -70,15 +70,19 @@ export function VodCard({ data }: Props) {
 
 export function VodCardSkeleton() {
     return (
-        <div className="border rounded-xl bg-card overflow-hidden h-[160px] flex flex-col">
-            <div className="h-14 bg-muted/40 animate-pulse" />
-            <div className="p-4 space-y-3">
-                <Skeleton className="h-5 w-3/4" />
-                <Skeleton className="h-5 w-1/2" />
-                <div className="flex justify-between pt-2">
-                    <Skeleton className="h-4 w-20" />
-                    <Skeleton className="h-4 w-16" />
-                </div>
+        <div className="border rounded-xl bg-card overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-3 pt-3 pb-0">
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-3 w-10" />
+            </div>
+            <div className="p-3 pt-2 space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-4/5" />
+                <Skeleton className="h-4 w-3/5" />
+            </div>
+            <div className="flex justify-between px-3 pb-3 pt-1">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-3 w-16" />
             </div>
         </div>
     );

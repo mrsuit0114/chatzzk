@@ -26,7 +26,6 @@ export function VodAnalysisHeader({
                         <div className="block">
                             <AnalysisMetrics
                                 atmosphereRatio={data.atmosphereRatio}
-                                avgScore={data.avgScore}
                             />
                         </div>
 

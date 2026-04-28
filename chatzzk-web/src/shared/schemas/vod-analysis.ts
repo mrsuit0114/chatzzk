@@ -30,9 +30,8 @@ export const StatSeriesSchema = z.object({
 
 export const DashboardStatsSchema = z.object({
     clip: StatSeriesSchema,
-    segment: StatSeriesSchema, // segments 배열과 1:1 매핑됨
-    atmosphereRatio: z.record(z.string(), z.number()), // Record<string, number>
-    avgScore: z.number(),
+    segment: StatSeriesSchema,
+    atmosphereRatio: z.record(z.string(), z.number()),
 });
 
 // ----------------------------------------------------------------------
@@ -47,7 +46,6 @@ export const SegmentPeakSchema = z.object({
 export const SegmentItemSchema = z.object({
     txt: z.string(),
     kwd: z.array(z.string()),
-    sc: z.number(),
     atmo: z.string(),
     volPeak: SegmentPeakSchema,
     mmtPeak: SegmentPeakSchema,

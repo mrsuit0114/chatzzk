@@ -26,9 +26,8 @@ export interface RawStatSeries {
 
 export interface RawDashboardStats {
     clip: RawStatSeries;
-    segment: RawStatSeries; // segments 배열과 1:1 매핑됨 (인덱스 기준)
+    segment: RawStatSeries;
     atmosphereRatio: Record<string, number>;
-    avgScore: number;
 }
 
 // 3. 세그먼트/챕터 상세
@@ -41,7 +40,6 @@ export interface RawSegmentPeak {
 export interface RawSegmentItem {
     txt: string;
     kwd: string[];
-    sc: number;
     atmo: string;
     volPeak: RawSegmentPeak;
     mmtPeak: RawSegmentPeak;

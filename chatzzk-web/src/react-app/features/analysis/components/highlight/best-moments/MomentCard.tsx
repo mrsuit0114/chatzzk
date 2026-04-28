@@ -1,4 +1,4 @@
-import { Flame, Zap, Star, Clock, Timer } from "lucide-react";
+import { Flame, Zap, Clock, Timer } from "lucide-react";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -50,18 +50,9 @@ export function MomentCard({ data, interval, sortBy, onClick }: MomentCardProps)
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <div className={cn(
-                        "flex items-center gap-1 text-xs tabular-nums transition-colors",
-                        sortBy === SORT_OPTIONS.SCORE ? "text-yellow-600 font-bold" : "text-muted-foreground"
-                    )}>
-                        <Star className={cn("h-3 w-3", sortBy === SORT_OPTIONS.SCORE ? "fill-yellow-500 text-yellow-500" : "")} />
-                        {data.score?.toFixed(1)}
-                    </div>
-                    <Badge variant="outline" className={cn("text-[10px] font-bold px-2 py-0.5", getBadgeClasses(data.atmosphere))}>
-                        {ATMOSPHERE_LABELS[data.atmosphere]}
-                    </Badge>
-                </div>
+                <Badge variant="outline" className={cn("text-[10px] font-bold px-2 py-0.5", getBadgeClasses(data.atmosphere))}>
+                    {ATMOSPHERE_LABELS[data.atmosphere]}
+                </Badge>
             </CardHeader>
 
             {/* Content (Flex-1로 남는 공간 차지) */}

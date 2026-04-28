@@ -1,6 +1,5 @@
 import {
     Clock,
-    Star,
     Flame,
     Zap,
 } from "lucide-react";
@@ -49,21 +48,13 @@ export function SegmentSummarySheet({ data, isOpen, onClose }: SegmentSummaryShe
                     </SheetDescription>
 
                     <div className="flex items-center justify-between pt-2">
-                        <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="font-mono font-medium px-2 py-0.5 text-xs">
-                                <Clock className="h-3 w-3 mr-1" />
-                                {formatTime(data.startTime)} ~ {formatTime(data.endTime)}
-                            </Badge>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-1 text-yellow-600 font-bold bg-yellow-50 px-2 py-0.5 rounded-md border border-yellow-100 text-xs shadow-sm">
-                                <Star className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-                                {data.score?.toFixed(1)}
-                            </div>
-                            <Badge variant="outline" className={cn("px-2 py-0.5 text-xs font-bold border-transparent", getBadgeClasses(data.atmosphere))}>
-                                {ATMOSPHERE_LABELS[data.atmosphere]}
-                            </Badge>
-                        </div>
+                        <Badge variant="secondary" className="font-mono font-medium px-2 py-0.5 text-xs">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {formatTime(data.startTime)} ~ {formatTime(data.endTime)}
+                        </Badge>
+                        <Badge variant="outline" className={cn("px-2 py-0.5 text-xs font-bold border-transparent", getBadgeClasses(data.atmosphere))}>
+                            {ATMOSPHERE_LABELS[data.atmosphere]}
+                        </Badge>
                     </div>
                 </SheetHeader>
 

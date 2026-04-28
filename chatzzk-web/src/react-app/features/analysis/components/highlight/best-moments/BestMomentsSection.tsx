@@ -49,9 +49,8 @@ export function BestMomentsSection({ data }: BestMomentsSectionProps) {
 
         // B. Sort
         result.sort((a, b) => {
-            if (currentSort === SORT_OPTIONS.VOLUME) return b.volPeak.volume - a.volPeak.volume;
             if (currentSort === SORT_OPTIONS.MOMENTUM) return b.mmtPeak.momentum - a.mmtPeak.momentum;
-            return b.score - a.score; // score
+            return b.volPeak.volume - a.volPeak.volume; // default: volume
         });
 
         // C. Limit (Top N)

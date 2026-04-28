@@ -83,12 +83,11 @@ export function SegmentTrendSection({
             return {
                 ...seg,
                 index: idx,
-                activeTimestamp: midTimestamp,  // x축 양 끝값 그래프 잘림 방지용
-                originalTimestamp: timestamp,  // 실제 타임스탬프
+                activeTimestamp: midTimestamp,
+                originalTimestamp: timestamp,
                 activeVolume: volValue,
-                activeMomentum: scaleMomentum(mmtValue), // 그래프용 (0~1)
-                originalMomentum: mmtValue,              // 툴팁용 (원본)
-                score: seg.score,
+                activeMomentum: scaleMomentum(mmtValue),
+                originalMomentum: mmtValue,
                 keywords: seg.keywords,
                 peakTimestamp: peakTimestamp
             };
